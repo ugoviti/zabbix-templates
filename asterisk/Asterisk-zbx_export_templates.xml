@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>4.4</version>
+    <date>2020-03-30T23:09:48Z</date>
+    <groups>
+        <group>
+            <name>Templates</name>
+        </group>
+        <group>
+            <name>Templates/Applications</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template App Asterisk</template>
+            <name>Template App Asterisk</name>
+            <description>Asterisk Monitoring by InitZero&#13;
+https://github.com/ugoviti/zabbix-templates&#13;
+Version: 20200331</description>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+                <group>
+                    <name>Templates/Applications</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>Asterisk</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Concurrent Active Calls</name>
+                    <key>check.asterisk[calls.active]</key>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Longest Call (Channel)</name>
+                    <key>check.asterisk[calls.longest.channel]</key>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Longest Call (Duration)</name>
+                    <key>check.asterisk[calls.longest.duration]</key>
+                    <history>30d</history>
+                    <units>uptime</units>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Processed Calls</name>
+                    <key>check.asterisk[calls.processed]</key>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Asterisk Last Reload</name>
+                    <key>check.asterisk[lastreload]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <units>uptime</units>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Asterisk Service Status</name>
+                    <key>check.asterisk[service.status]</key>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{str(Down,#1)}=1</expression>
+                            <name>Asterisk service DOWN</name>
+                            <priority>DISASTER</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>SIP Peers Offline</name>
+                    <key>check.asterisk[sip.peers.offline]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>SIP Peers Online</name>
+                    <key>check.asterisk[sip.peers.online]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>SIP Trunks Offline</name>
+                    <key>check.asterisk[sip.trunks.offline]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>SIP Trunks Online</name>
+                    <key>check.asterisk[sip.trunks.online]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Asterisk Uptime</name>
+                    <key>check.asterisk[systemuptime]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <units>uptime</units>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Asterisk Version</name>
+                    <key>check.asterisk[version]</key>
+                    <delay>60m</delay>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Asterisk</name>
+                        </application>
+                    </applications>
+                </item>
+            </items>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Discovery IAX2 Trunks</name>
+                    <key>discovery.asterisk[discovery.iax2.registry]</key>
+                    <delay>1h</delay>
+                    <lifetime>7d</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>IAX2 Trunk Status for {#USERNAME}@{#HOST}</name>
+                            <key>check.asterisk[iax2.registry,{#USERNAME}]</key>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Asterisk</name>
+                                </application>
+                            </applications>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{regexp(Registered,#3)}=0</expression>
+                                    <name>IAX2 Trunk not registered {#USERNAME}@{#HOST}</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Discovery SIP Trunks</name>
+                    <key>discovery.asterisk[discovery.sip.registry]</key>
+                    <delay>1h</delay>
+                    <lifetime>7d</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>SIP Trunk Status for {#USERNAME}@{#HOST}</name>
+                            <key>check.asterisk[sip.registry,{#USERNAME}]</key>
+                            <history>30d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Asterisk</name>
+                                </application>
+                            </applications>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{regexp(Registered,#3)}=0</expression>
+                                    <name>SIP Trunk not registered {#USERNAME}@{#HOST}</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+            </discovery_rules>
+        </template>
+    </templates>
+    <triggers>
+        <trigger>
+            <expression>{Template App Asterisk:check.asterisk[calls.longest.channel].str()}=1&#13;
+and&#13;
+{Template App Asterisk:check.asterisk[calls.longest.duration].last()}&gt;3600</expression>
+            <name>Call {ITEM.VALUE1} potentially stuck for {ITEM.VALUE2}</name>
+            <priority>WARNING</priority>
+        </trigger>
+    </triggers>
+</zabbix_export>
