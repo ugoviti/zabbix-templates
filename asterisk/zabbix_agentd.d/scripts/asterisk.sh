@@ -54,12 +54,12 @@ service.status() {
 
 # return int
 calls.active() {
-  $sudo asterisk -rx "core show channels" | grep "active call" | awk '{print$1}'
+  $sudo asterisk -rx "core show channels" | grep "active call.*" | awk '{print$1}'
 }
 
 # return int
 calls.processed() {
-  $sudo asterisk -rx "core show channels" | grep "call processed" | awk '{print$1}'
+  $sudo asterisk -rx "core show channels" | grep "call.* processed" | awk '{print$1}'
 }
 
 calls.longest.channel() {
