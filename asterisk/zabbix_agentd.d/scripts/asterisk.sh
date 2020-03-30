@@ -59,7 +59,7 @@ calls.active() {
 
 # return int
 calls.processed() {
-  $sudo asterisk -rx "core show channels" | grep "calls processed" | awk '{print$1}'
+  $sudo asterisk -rx "core show channels" | grep "call processed" | awk '{print$1}'
 }
 
 calls.longest.channel() {
