@@ -18,8 +18,9 @@ Monitor Asterisk PBX systems using Zabbix Network Monitoring system
 
 ## Installation
 
-- Copy `zabbix_agentd.d/scripts/asterisk.sh` into `/etc/zabbix/zabbix_agentd.d/scripts/asterisk.sh`
-- Copy `zabbix_agentd.d/asterisk.conf` into `/etc/zabbix/zabbix_agentd.d/asterisk.conf`
+- `cp zabbix_agentd.d/scripts/asterisk.sh /etc/zabbix/zabbix_agentd.d/scripts/asterisk.sh`
+- `chmod 755 /etc/zabbix/zabbix_agentd.d/scripts/asterisk.sh`
+- `cp zabbix_agentd.d/asterisk.conf /etc/zabbix/zabbix_agentd.d/asterisk.conf`
 - Edit `sudoers` using `visudo` command and add:
 ```
 User_Alias ZABBIX = zabbix
