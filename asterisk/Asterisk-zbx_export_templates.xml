@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.4</version>
-    <date>2020-03-30T23:09:48Z</date>
+    <date>2020-04-01T23:18:01Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -40,6 +40,13 @@ Version: 20200331</description>
                             <name>Asterisk</name>
                         </application>
                     </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{last(#3)}&gt;={$ACTIVE_CALLS_THRESHOLD}</expression>
+                            <name>{$ACTIVE_CALLS_THRESHOLD} concurrent active calls detected</name>
+                            <priority>WARNING</priority>
+                        </trigger>
+                    </triggers>
                 </item>
                 <item>
                     <name>Longest Call (Channel)</name>
@@ -203,6 +210,32 @@ Version: 20200331</description>
                     </item_prototypes>
                 </discovery_rule>
                 <discovery_rule>
+                    <name>Discovery PJSIP Trunks</name>
+                    <key>discovery.asterisk[discovery.pjsip.registry]</key>
+                    <delay>1h</delay>
+                    <lifetime>7d</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>PJSIP Trunk Status for {#ENDPOINT}/sip:{#USERNAME}@{#HOST}</name>
+                            <key>check.asterisk[pjsip.registry,{#ENDPOINT}]</key>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Asterisk</name>
+                                </application>
+                            </applications>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{regexp(Avail,#3)}=0</expression>
+                                    <name>PJSIP Trunk not registered {#ENDPOINT}/sip:{#USERNAME}@{#HOST}</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+                <discovery_rule>
                     <name>Discovery SIP Trunks</name>
                     <key>discovery.asterisk[discovery.sip.registry]</key>
                     <delay>1h</delay>
@@ -230,13 +263,25 @@ Version: 20200331</description>
                     </item_prototypes>
                 </discovery_rule>
             </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$ACTIVE_CALLS_THRESHOLD}</macro>
+                    <value>20</value>
+                    <description>Alarm when reaching max active calls threshold</description>
+                </macro>
+                <macro>
+                    <macro>{$LOGENST_CALL_DURATION}</macro>
+                    <value>7200</value>
+                    <description>Alarm when reaching call duration time</description>
+                </macro>
+            </macros>
         </template>
     </templates>
     <triggers>
         <trigger>
             <expression>{Template App Asterisk:check.asterisk[calls.longest.channel].str()}=1&#13;
 and&#13;
-{Template App Asterisk:check.asterisk[calls.longest.duration].last()}&gt;3600</expression>
+{Template App Asterisk:check.asterisk[calls.longest.duration].last()}&gt;={$LOGENST_CALL_DURATION}</expression>
             <name>Call {ITEM.VALUE1} potentially stuck for {ITEM.VALUE2}</name>
             <priority>WARNING</priority>
         </trigger>
