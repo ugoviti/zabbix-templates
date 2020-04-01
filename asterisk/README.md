@@ -30,7 +30,7 @@ ZABBIX ALL=(ALL) NOPASSWD: ZABBIX_COMMANDS
 ```
 - Restart zabbix-agent: `systemctl restart zabbix-agent `
 - Import `Asterisk-zbx_export_templates.xml` into Zabbix templates panel
-- Assigne Zabbix template to the Asterisk Host and wait automatic discovery
+- Assign Zabbix template to the Asterisk Host and wait automatic discovery
 
 
 ## TODO
