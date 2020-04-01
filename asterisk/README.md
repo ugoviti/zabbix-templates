@@ -13,8 +13,8 @@ Monitor Asterisk PBX systems using Zabbix Network Monitoring system
 - Monitoring of last reload time
 - Monitoring of uptime asterisk core
 - Monitoring of asterisk version
-- Monitoring of sip/iax2 online/offline peers
-- Monitoring of sip/iax2 online/offline trunks
+- Monitoring of pjsip online/offline endpoints and registrations
+- Monitoring of sip/iax2 online/offline peers and registrations
 
 ## Installation
 
@@ -34,5 +34,4 @@ ZABBIX ALL=(ALL) NOPASSWD: ZABBIX_COMMANDS
 
 
 ## TODO
-- PJSIP Support
 
