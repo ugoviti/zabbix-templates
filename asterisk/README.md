@@ -33,5 +33,5 @@ ZABBIX ALL=(ALL) NOPASSWD: ZABBIX_COMMANDS
 
 
 ## Template Macros available
-`{$ACTIVE_CALLS_THRESHOLD}`: Alarm when reaching max active calls threshold (default: 20 calls)
-`{$LOGENST_CALL_DURATION}`: Alarm when reaching call duration time (default: 7200 seconds)
+- `{$ACTIVE_CALLS_THRESHOLD}`: Alarm when reaching max active calls threshold (default: 20 calls)
+- `{$LOGENST_CALL_DURATION}`: Alarm when reaching call duration time (default: 7200 seconds)
