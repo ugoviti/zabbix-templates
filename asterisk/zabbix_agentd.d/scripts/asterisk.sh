@@ -1,17 +1,26 @@
 #!/bin/bash
 # Zabbix Agent monitoring automatic discovery and check script for Asterisk PBX services
 # author: Ugo Viti <ugo.viti@initzero.it>
-# version: 20200330
+# version: 20200402
 
 # comment to disable sudo
 sudo="sudo -u asterisk"
 
-# example JSON file for zabbix discovery
+# SIP/IAX2 example JSON file for zabbix discovery
 # {
 #   "data":
 #   [
 #     { "{#HOST}":"voip.eutelia.it:5060", "{#USERNAME}":"05751234567", "{#STATE}":"Registered"},
 #     { "{#HOST}":"sip.messagenet.it:5060", "{#USERNAME}":"34887123456", "{#STATE}":"Registered"}
+#   ]
+# }
+
+# PJSIP example JSON file for zabbix discovery
+# {
+#   "data":
+#   [
+#     { "{#HOST}":"voip.eutelia.it", "{#ENDPOINT}":"ci-05751234567",  "{#USERNAME}":"05751234567", "{#STATE}":"Avail"},
+#     { "{#HOST}":"sip.messagenet.it:5060", "{#ENDPOINT}":"mn-34887123456",  "{#USERNAME}":"34887123456", "{#STATE}":"Avail"},
 #   ]
 # }
 
@@ -35,14 +44,34 @@ convert_registrations_to_json() {
 }"
 }
 
-discovery.sip.registry() {
-  REGISTRY="$($sudo asterisk -r -x "sip show registry" | grep -v -e "^Host" -e "SIP registrations")"
-  convert_registrations_to_json
+convert_pjsip_registrations_to_json() {
+  echo "{
+  \"data\":
+  ["
+  echo "$REGISTRY" | while read registry; do
+  HOST="$(echo $registry | awk '{print $1}' | awk -F "/sip:" '{print $2}')"
+  ENDPOINT="$(echo $registry | awk '{print $2}')"
+  USERNAME="$($sudo asterisk -rx "pjsip show endpoint $ENDPOINT" | grep "$ENDPOINT/sip:" | awk '{print $2}' | awk -F"/sip:" '{print $2}' | awk -F"@" '{print $1}')"
+  STATE="$(echo $registry | awk '{print $3}')"
+  [ ! -z "$HOST" ] && echo "    { \"{#HOST}\":\"$HOST\", \"{#ENDPOINT}\":\"$ENDPOINT\",  \"{#USERNAME}\":\"$USERNAME\", \"{#STATE}\":\"$STATE\"},"
+  done | sed '$ s/,$//'
+  echo "  ]
+}"
 }
 
 discovery.iax2.registry() {
   REGISTRY="$($sudo asterisk -r -x "iax2 show registry" | grep -v -e "^Host" -e "IAX2 registrations")"
   convert_registrations_to_json
+}
+
+discovery.sip.registry() {
+  REGISTRY="$($sudo asterisk -r -x "sip show registry" | grep -v -e "^Host" -e "SIP registrations")"
+  convert_registrations_to_json
+}
+
+discovery.pjsip.registry() {
+  REGISTRY="$($sudo asterisk -r -x "pjsip show registrations" | grep -v -e "^$" -e "<Registration/ServerURI" -e "^===" -e "^Objects")"
+  convert_pjsip_registrations_to_json
 }
 
 ## status functions 
@@ -131,6 +160,28 @@ iax2.trunks.online(){
 
 iax2.trunks.offline(){
   $sudo asterisk -rx "iax2 show peers" | grep -e UNREACHABLE  -e UNKNOWN | awk '{print $1}' | grep [A-Za-z] | wc -l
+}
+
+# pjsip functions
+pjsip.registry() {
+  #$sudo asterisk -rx "pjsip show registration $1" | grep "$1/sip:" | awk '{print $3}'
+  $sudo asterisk -rx "pjsip show endpoint $1" | grep "$1/sip:" | awk '{print $4}'
+}
+
+pjsip.endpoints.online() {
+  $sudo asterisk -rx "pjsip show endpoints" | grep "Contact:" | egrep "Avail" | awk '{print $2}'| cut -d "/" -f1 | wc -l
+}
+
+pjsip.endpoints.offline() {
+  $sudo asterisk -rx "pjsip show endpoints" | grep "Endpoint:" | grep -v "<Endpoint/CID" | grep "Unavailable" | awk '{print $2}'| cut -d "/" -f1 | wc -l
+}
+
+pjsip.trunks.online() {
+  $sudo asterisk -rx "pjsip show endpoints" | grep "Contact:" | egrep "Avail" | awk '{print $2}'| cut -d "/" -f1 | grep [A-Za-z] | wc -l
+}
+
+pjsip.trunks.offline() {
+  $sudo asterisk -rx "pjsip show endpoints" | grep "Contact:" | egrep -e "NonQual" | awk '{print $2}'| cut -d "/" -f1 | grep [A-Za-z] | wc -l
 }
 
 # execute the passed command
