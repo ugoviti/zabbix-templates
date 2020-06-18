@@ -17,9 +17,9 @@ Monitor Asterisk PBX systems using Zabbix Network Monitoring system
 - Triggers for max active concurrent calls, call max duration time, Asterisk service problems, trunks registrations problems
 
 ## Installation
-- `cp zabbix_agentd.d/scripts/asterisk.sh /etc/zabbix/zabbix_agentd.d/scripts/asterisk.sh`
-- `chmod 755 /etc/zabbix/zabbix_agentd.d/scripts/asterisk.sh`
-- `cp zabbix_agentd.d/asterisk.conf /etc/zabbix/zabbix_agentd.d/asterisk.conf`
+- `cp zabbix_agentd.d/scripts/asterisk.sh /etc/zabbix/zabbix_agent*.d/scripts/asterisk.sh`
+- `chmod 755 /etc/zabbix/zabbix_agent*.d/scripts/asterisk.sh`
+- `cp zabbix_agentd.d/asterisk.conf /etc/zabbix/zabbix_agent*.d/asterisk.conf`
 - Edit `sudoers` using `visudo` command and add:
 ```
 User_Alias ZABBIX = zabbix
