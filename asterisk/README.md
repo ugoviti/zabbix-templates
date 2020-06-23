@@ -39,9 +39,9 @@ For **zabbix-agent2** the default configuration dir is `/etc/zabbix/zabbix_agent
 - `{$ACTIVE_CALLS_THRESHOLD}`: Alarm when reaching max active calls threshold (default: 20 calls)
 - `{$LOGENST_CALL_DURATION}`: Alarm when reaching call duration time (default: 7200 seconds)
 
-## Troublshooting
+## Troubleshooting
 
-If your Zabbix Agent installation doesnt' include the ` /etc/zabbix/zabbix_agentd.d/*.conf` directory, add the following lines to `/etc/zabbix/zabbix_agentd.conf` file:
+If your Zabbix Agent installation doesn't include the ` /etc/zabbix/zabbix_agentd.d/*.conf` directory, add the following lines to `/etc/zabbix/zabbix_agentd.conf` file:
 
 ```
 Include=/etc/zabbix/zabbix_agentd.d/*.conf
