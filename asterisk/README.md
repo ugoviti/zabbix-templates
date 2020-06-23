@@ -16,11 +16,12 @@ Monitor Asterisk PBX systems using Zabbix Network Monitoring system
 - Monitoring of sip/iax2 online/offline peers and registrations
 - Triggers for max active concurrent calls, call max duration time, Asterisk service problems, trunks registrations problems
 
-## Installation
-- `cp zabbix_agentd.d/scripts/asterisk.sh /etc/zabbix/zabbix_agent*.d/scripts/asterisk.sh`
-- `chmod 755 /etc/zabbix/zabbix_agent*.d/scripts/asterisk.sh`
-- `cp zabbix_agentd.d/asterisk.conf /etc/zabbix/zabbix_agent*.d/asterisk.conf`
-- Edit `sudoers` using `visudo` command and add:
+## Installation for Zabbix Agent 1
+- `mkdir -p /etc/zabbix/zabbix_agentd.d/scripts/`
+- `cp zabbix_agentd.d/scripts/asterisk.sh /etc/zabbix/zabbix_agentd.d/scripts/asterisk.sh`
+- `chmod 755 /etc/zabbix/zabbix_agentd.d/scripts/asterisk.sh`
+- `cp zabbix_agentd.d/asterisk.conf /etc/zabbix/zabbix_agentd.d/asterisk.conf`
+- Edit **sudoers** using `visudo` command and add:
 ```
 User_Alias ZABBIX = zabbix
 Cmnd_Alias ZABBIX_COMMANDS = /usr/sbin/asterisk
@@ -31,7 +32,17 @@ ZABBIX ALL=(ALL) NOPASSWD: ZABBIX_COMMANDS
 - Import `Asterisk-zbx_export_templates.xml` into Zabbix templates panel
 - Assign Zabbix template to the Asterisk Host and wait automatic discovery
 
+## Installation for Zabbix Agent 2
+For **zabbix-agent2** the default configuration dir is `/etc/zabbix/zabbix_agent2.d`
 
 ## Template Macros available
 - `{$ACTIVE_CALLS_THRESHOLD}`: Alarm when reaching max active calls threshold (default: 20 calls)
 - `{$LOGENST_CALL_DURATION}`: Alarm when reaching call duration time (default: 7200 seconds)
+
+## Troublshooting
+
+If your Zabbix Agent installation doesnt' include the ` /etc/zabbix/zabbix_agentd.d/*.conf` directory, add the following lines to `/etc/zabbix/zabbix_agentd.conf` file:
+
+```
+Include=/etc/zabbix/zabbix_agentd.d/*.conf
+```
