@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2020-10-01T11:28:10Z</date>
+    <groups>
+        <group>
+            <name>Templates/Applications</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template Synbak Backup Report</template>
+            <name>Template Synbak Backup Report</name>
+            <description>Zabbix Synbak Template&#13;
+version: 20201001&#13;
+&#13;
+NOTES:&#13;
+=========================&#13;
+Synbak: https://github.com/ugoviti/synbak&#13;
+Require synbak &gt;= 3.8.2&#13;
+&#13;
+Fix for Trigger Description: https://support.zabbix.com/browse/ZBXNEXT-1016</description>
+            <groups>
+                <group>
+                    <name>Templates/Applications</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>Synbak</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Synbak Failed Jobs</name>
+                    <type>DEPENDENT</type>
+                    <key>synbak.errors</key>
+                    <delay>0</delay>
+                    <applications>
+                        <application>
+                            <name>Synbak</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>XMLPATH</type>
+                            <params>number(/rss/channel/item/errors)</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>synbak.rss.status</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Synbak HTML Report URL</name>
+                    <type>DEPENDENT</type>
+                    <key>synbak.link</key>
+                    <delay>0</delay>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Synbak</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>XMLPATH</type>
+                            <params>string(/rss/channel/item/link)</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>synbak.rss.status</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Synbak Successful Jobs</name>
+                    <type>DEPENDENT</type>
+                    <key>synbak.ok</key>
+                    <delay>0</delay>
+                    <applications>
+                        <application>
+                            <name>Synbak</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>XMLPATH</type>
+                            <params>number(/rss/channel/item/oks)</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>synbak.rss.status</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Synbak RSS Report</name>
+                    <type>HTTP_AGENT</type>
+                    <key>synbak.rss.status</key>
+                    <delay>60m</delay>
+                    <history>10d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <description>RSS Backup Report</description>
+                    <applications>
+                        <application>
+                            <name>Synbak</name>
+                        </application>
+                    </applications>
+                    <timeout>30s</timeout>
+                    <url>{$SYNBAK_URL}/status.xml</url>
+                </item>
+                <item>
+                    <name>Synbak All Jobs Status</name>
+                    <type>DEPENDENT</type>
+                    <key>synbak.status</key>
+                    <delay>0</delay>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Synbak</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>XMLPATH</type>
+                            <params>string(/rss/channel/item/title)</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>synbak.rss.status</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Synbak All Jobs Count</name>
+                    <type>DEPENDENT</type>
+                    <key>synbak.tot</key>
+                    <delay>0</delay>
+                    <applications>
+                        <application>
+                            <name>Synbak</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>XMLPATH</type>
+                            <params>number(/rss/channel/item/tot)</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>synbak.rss.status</key>
+                    </master_item>
+                </item>
+            </items>
+            <macros>
+                <macro>
+                    <macro>{$SYNBAK_URL}</macro>
+                    <value>http://CHANGEME/admin/log/backup</value>
+                    <description>Synbak Backup Report URL</description>
+                </macro>
+            </macros>
+        </template>
+    </templates>
+    <triggers>
+        <trigger>
+            <expression>{Template Synbak Backup Report:synbak.errors.max(24h)}&gt;=1&#13;
+and&#13;
+{Template Synbak Backup Report:synbak.ok.last()}&#13;
+and&#13;
+{Template Synbak Backup Report:synbak.tot.last()}&#13;
+and&#13;
+{Template Synbak Backup Report:synbak.link.last()}&#13;
+and&#13;
+{Template Synbak Backup Report:synbak.status.last()}</expression>
+            <name>Synbak has failed jobs</name>
+            <opdata>Errors: {ITEM.LASTVALUE1} Ok: {ITEM.LASTVALUE2} Tot: {ITEM.LASTVALUE3}</opdata>
+            <url>{{ITEM.LASTVALUE4}.regsub(&quot;(.*)&quot;, &quot;\1&quot;)}</url>
+            <priority>AVERAGE</priority>
+            <description>{{ITEM.LASTVALUE5}.regsub(&quot;(.*)&quot;, &quot;\1&quot;)}</description>
+            <manual_close>YES</manual_close>
+        </trigger>
+    </triggers>
+</zabbix_export>
