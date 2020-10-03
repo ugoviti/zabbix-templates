@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.0</version>
-    <date>2020-10-03T08:24:28Z</date>
+    <date>2020-10-03T08:59:37Z</date>
     <groups>
         <group>
             <name>Templates/Applications</name>
@@ -48,7 +48,7 @@ Fix for Trigger Description: https://support.zabbix.com/browse/ZBXNEXT-1016</des
                         </step>
                     </preprocessing>
                     <master_item>
-                        <key>synbak.rss.status</key>
+                        <key>synbak.xml.status</key>
                     </master_item>
                 </item>
                 <item>
@@ -70,7 +70,7 @@ Fix for Trigger Description: https://support.zabbix.com/browse/ZBXNEXT-1016</des
                         </step>
                     </preprocessing>
                     <master_item>
-                        <key>synbak.rss.status</key>
+                        <key>synbak.xml.status</key>
                     </master_item>
                 </item>
                 <item>
@@ -90,25 +90,8 @@ Fix for Trigger Description: https://support.zabbix.com/browse/ZBXNEXT-1016</des
                         </step>
                     </preprocessing>
                     <master_item>
-                        <key>synbak.rss.status</key>
+                        <key>synbak.xml.status</key>
                     </master_item>
-                </item>
-                <item>
-                    <name>Synbak RSS Report</name>
-                    <type>HTTP_AGENT</type>
-                    <key>synbak.rss.status</key>
-                    <delay>60m</delay>
-                    <history>10d</history>
-                    <trends>0</trends>
-                    <value_type>TEXT</value_type>
-                    <description>RSS Backup Report</description>
-                    <applications>
-                        <application>
-                            <name>Synbak</name>
-                        </application>
-                    </applications>
-                    <timeout>30s</timeout>
-                    <url>{$SYNBAK_URL}/status.xml</url>
                 </item>
                 <item>
                     <name>Synbak All Jobs Status</name>
@@ -129,7 +112,7 @@ Fix for Trigger Description: https://support.zabbix.com/browse/ZBXNEXT-1016</des
                         </step>
                     </preprocessing>
                     <master_item>
-                        <key>synbak.rss.status</key>
+                        <key>synbak.xml.status</key>
                     </master_item>
                 </item>
                 <item>
@@ -149,8 +132,25 @@ Fix for Trigger Description: https://support.zabbix.com/browse/ZBXNEXT-1016</des
                         </step>
                     </preprocessing>
                     <master_item>
-                        <key>synbak.rss.status</key>
+                        <key>synbak.xml.status</key>
                     </master_item>
+                </item>
+                <item>
+                    <name>Synbak RSS Report</name>
+                    <type>HTTP_AGENT</type>
+                    <key>synbak.xml.status</key>
+                    <delay>60m</delay>
+                    <history>10d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <description>RSS Backup Report</description>
+                    <applications>
+                        <application>
+                            <name>Synbak</name>
+                        </application>
+                    </applications>
+                    <timeout>30s</timeout>
+                    <url>{$SYNBAK_URL}/status.xml</url>
                 </item>
             </items>
             <macros>
