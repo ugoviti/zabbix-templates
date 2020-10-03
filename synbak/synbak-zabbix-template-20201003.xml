@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.0</version>
-    <date>2020-10-01T11:28:10Z</date>
+    <date>2020-10-03T08:24:28Z</date>
     <groups>
         <group>
             <name>Templates/Applications</name>
@@ -12,7 +12,7 @@
             <template>Template Synbak Backup Report</template>
             <name>Template Synbak Backup Report</name>
             <description>Zabbix Synbak Template&#13;
-version: 20201001&#13;
+version: 20201003&#13;
 &#13;
 NOTES:&#13;
 =========================&#13;
@@ -165,14 +165,14 @@ Fix for Trigger Description: https://support.zabbix.com/browse/ZBXNEXT-1016</des
     <triggers>
         <trigger>
             <expression>{Template Synbak Backup Report:synbak.errors.max(24h)}&gt;=1&#13;
-and&#13;
-{Template Synbak Backup Report:synbak.ok.last()}&#13;
-and&#13;
-{Template Synbak Backup Report:synbak.tot.last()}&#13;
-and&#13;
-{Template Synbak Backup Report:synbak.link.last()}&#13;
-and&#13;
-{Template Synbak Backup Report:synbak.status.last()}</expression>
+or&#13;
+{Template Synbak Backup Report:synbak.ok.nodata(24h)}=1&#13;
+or&#13;
+{Template Synbak Backup Report:synbak.tot.nodata(24h)}=1&#13;
+or&#13;
+{Template Synbak Backup Report:synbak.link.nodata(24h)}=1&#13;
+or&#13;
+{Template Synbak Backup Report:synbak.status.nodata(24h)}=1</expression>
             <name>Synbak has failed jobs</name>
             <opdata>Errors: {ITEM.LASTVALUE1} Ok: {ITEM.LASTVALUE2} Tot: {ITEM.LASTVALUE3}</opdata>
             <url>{{ITEM.LASTVALUE4}.regsub(&quot;(.*)&quot;, &quot;\1&quot;)}</url>
