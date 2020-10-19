@@ -6,6 +6,7 @@ Monitor WEB servers SSL/HTTPS certificates expire time
 - Easy Intallation and Configuration
 - LLD Discovery based template
 - Multiple SSL domains support using CSV as input file for LLD
+- Accounting of Expire Date and Time Left to Expire
 - 4 types of trigger notifications (7 days left to expire, 3 days left to expire, certificate expired, domain https unreachable)
 - Configurable macros values for expiration days and CSV file path
 
