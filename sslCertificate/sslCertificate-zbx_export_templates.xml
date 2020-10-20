@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.0</version>
-    <date>2020-10-19T15:15:04Z</date>
+    <date>2020-10-20T11:04:40Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -13,7 +13,7 @@
             <name>Template Web SSL Certificates</name>
             <description>Check web site SSL certificate expire date and time left with LLD discovery&#13;
 https://github.com/ugoviti/zabbix-templates/tree/master/sslCertificate&#13;
-version: 20201019</description>
+version: 20201020</description>
             <groups>
                 <group>
                     <name>Templates</name>
@@ -68,7 +68,7 @@ version: 20201019</description>
                         <trigger_prototype>
                             <expression>{Template Web SSL Certificates:check.sslCertificate[timeExpire,{#DOMAIN}].max(#2)}&gt;0&#13;
 and&#13;
-{Template Web SSL Certificates:check.sslCertificate[timeLeft,{#DOMAIN}].last()}&lt;0d</expression>
+{Template Web SSL Certificates:check.sslCertificate[timeLeft,{#DOMAIN}].min(#2)}&lt;0d</expression>
                             <name>SSL certificate of {#DOMAIN} has EXPIRED on {ITEM.VALUE1}</name>
                             <priority>DISASTER</priority>
                             <manual_close>YES</manual_close>
@@ -82,7 +82,7 @@ and&#13;
                         <trigger_prototype>
                             <expression>{Template Web SSL Certificates:check.sslCertificate[timeExpire,{#DOMAIN}].max(#2)}&gt;0&#13;
 and&#13;
-{Template Web SSL Certificates:check.sslCertificate[timeLeft,{#DOMAIN}].last()}&lt;{$SSL_CERT_EXPIRE_TIME_CRITICAL}</expression>
+{Template Web SSL Certificates:check.sslCertificate[timeLeft,{#DOMAIN}].min(#2)}&lt;{$SSL_CERT_EXPIRE_TIME_CRITICAL}</expression>
                             <name>SSL certificate of {#DOMAIN} will expire on {ITEM.VALUE1}</name>
                             <opdata>Expire on: {ITEM.VALUE1} Time left: {ITEM.VALUE2}</opdata>
                             <priority>HIGH</priority>
@@ -93,14 +93,14 @@ and&#13;
                                     <name>SSL certificate of {#DOMAIN} has EXPIRED on {ITEM.VALUE1}</name>
                                     <expression>{Template Web SSL Certificates:check.sslCertificate[timeExpire,{#DOMAIN}].max(#2)}&gt;0&#13;
 and&#13;
-{Template Web SSL Certificates:check.sslCertificate[timeLeft,{#DOMAIN}].last()}&lt;0d</expression>
+{Template Web SSL Certificates:check.sslCertificate[timeLeft,{#DOMAIN}].min(#2)}&lt;0d</expression>
                                 </dependency>
                             </dependencies>
                         </trigger_prototype>
                         <trigger_prototype>
                             <expression>{Template Web SSL Certificates:check.sslCertificate[timeExpire,{#DOMAIN}].max(#2)}&gt;0&#13;
 and&#13;
-{Template Web SSL Certificates:check.sslCertificate[timeLeft,{#DOMAIN}].last()}&lt;{$SSL_CERT_EXPIRE_TIME_WARNING}</expression>
+{Template Web SSL Certificates:check.sslCertificate[timeLeft,{#DOMAIN}].min(#2)}&lt;{$SSL_CERT_EXPIRE_TIME_WARNING}</expression>
                             <name>SSL certificate of {#DOMAIN} will expire on {ITEM.VALUE1}</name>
                             <opdata>Expire on: {ITEM.VALUE1} Time left: {ITEM.VALUE2}</opdata>
                             <priority>WARNING</priority>
@@ -111,7 +111,7 @@ and&#13;
                                     <name>SSL certificate of {#DOMAIN} will expire on {ITEM.VALUE1}</name>
                                     <expression>{Template Web SSL Certificates:check.sslCertificate[timeExpire,{#DOMAIN}].max(#2)}&gt;0&#13;
 and&#13;
-{Template Web SSL Certificates:check.sslCertificate[timeLeft,{#DOMAIN}].last()}&lt;{$SSL_CERT_EXPIRE_TIME_CRITICAL}</expression>
+{Template Web SSL Certificates:check.sslCertificate[timeLeft,{#DOMAIN}].min(#2)}&lt;{$SSL_CERT_EXPIRE_TIME_CRITICAL}</expression>
                                 </dependency>
                             </dependencies>
                         </trigger_prototype>
