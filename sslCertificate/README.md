@@ -2,12 +2,13 @@
 Monitor WEB servers SSL/HTTPS certificates expire time
 
 ## Features
-- Zabbix Agent based
+- Zabbix Agent based (require Zabbix server >= 4.4)
+- Simple and short Linux bash script based template (only openssl command required)
 - Easy Intallation and Configuration
 - LLD Discovery based template
-- Multiple SSL domains support using CSV as input file for LLD
-- Accounting of Expire Date and Time Left to Expire
-- 4 types of trigger notifications (7 days left to expire, 3 days left to expire, certificate expired, domain https unreachable)
+- Multiple SSL domains support using one CSV file as input for LLD
+- Accounting of Expire Date and Time Left of the Expiring certificates
+- 4 configurable types of trigger notifications (7 days left to expire, 3 days left to expire, certificate expired, domain https unreachable)
 - Configurable macros values for expiration days and CSV file path
 
 ## Installation
