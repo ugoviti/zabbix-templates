@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2020-11-20T22:54:32Z'
+  date: '2020-11-20T23:36:32Z'
   groups:
     -
       name: Templates/Applications
@@ -186,7 +186,7 @@ zabbix_export:
         {Synbak Backup:synbak.status.nodata({$SYNBAK_NODATA_MAXTIME})}=1
         or
         {Synbak Backup:synbak.lastrun.nodata({$SYNBAK_NODATA_MAXTIME})}=1
-      name: 'Synbak has failed jobs'
+      name: 'Synbak has failed jobs in the last {$SYNBAK_ERRORS_DURATION}'
       opdata: 'Errors: {ITEM.LASTVALUE1} Ok: {ITEM.LASTVALUE2} Tot: {ITEM.LASTVALUE3}'
       url: '{{ITEM.LASTVALUE4}.regsub("(.*)", "\1")}'
       priority: HIGH
