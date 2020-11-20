@@ -1,0 +1,196 @@
+zabbix_export:
+  version: '5.2'
+  date: '2020-11-20T17:21:49Z'
+  groups:
+    -
+      name: Templates/Applications
+  templates:
+    -
+      template: 'Synbak Backup'
+      name: 'Synbak Backup'
+      description: |
+        Zabbix Synbak Template
+        version: 20201120
+        
+        NOTES:
+        =========================
+        Synbak: https://github.com/ugoviti/synbak
+        Require synbak >= 3.8.2
+        
+        Fix for Trigger Description: https://support.zabbix.com/browse/ZBXNEXT-1016
+      groups:
+        -
+          name: Templates/Applications
+      applications:
+        -
+          name: Synbak
+      items:
+        -
+          name: 'Synbak Failed Jobs'
+          type: DEPENDENT
+          key: synbak.errors
+          delay: '0'
+          applications:
+            -
+              name: Synbak
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - number(/rss/channel/item/errors)
+          master_item:
+            key: synbak.status.xml
+        -
+          name: 'Synbak Last Run'
+          type: DEPENDENT
+          key: synbak.lastrun
+          delay: '0'
+          units: unixtime
+          applications:
+            -
+              name: Synbak
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - string(/rss/channel/updated)
+            -
+              type: JAVASCRIPT
+              parameters:
+                - |
+                  var str = value.split(/,| |:/);
+                  var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                  
+                  var day = str[2];
+                  var month = months.indexOf(str[3]);
+                  var year = str[4];
+                  
+                  var hour = str[5];
+                  var minutes = str[6];
+                  var seconds = str[7];
+                  
+                  var date = parseInt((new Date(year,month,day,hour,minutes,seconds).getTime() / 1000).toFixed(0));
+                  
+                  return date;
+          master_item:
+            key: synbak.status.xml
+          triggers:
+            -
+              expression: '{now()} - {last()} > {$SYNBAK_NODATA_MAXTIME}'
+              name: 'No Synbak jobs running since {$SYNBAK_NODATA_MAXTIME}'
+              priority: WARNING
+              description: 'No updated data from synbak jobs since {$SYNBAK_NODATA_MAXTIME}'
+              manual_close: 'YES'
+        -
+          name: 'Synbak HTML Report URL'
+          type: DEPENDENT
+          key: synbak.link
+          delay: '0'
+          trends: '0'
+          value_type: TEXT
+          applications:
+            -
+              name: Synbak
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - string(/rss/channel/item/link)
+          master_item:
+            key: synbak.status.xml
+        -
+          name: 'Synbak Successful Jobs'
+          type: DEPENDENT
+          key: synbak.ok
+          delay: '0'
+          applications:
+            -
+              name: Synbak
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - number(/rss/channel/item/oks)
+          master_item:
+            key: synbak.status.xml
+        -
+          name: 'Synbak All Jobs Status'
+          type: DEPENDENT
+          key: synbak.status
+          delay: '0'
+          trends: '0'
+          value_type: TEXT
+          applications:
+            -
+              name: Synbak
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - string(/rss/channel/item/title)
+          master_item:
+            key: synbak.status.xml
+        -
+          name: 'Synbak RSS Report'
+          type: HTTP_AGENT
+          key: synbak.status.xml
+          delay: 30m
+          history: 7d
+          trends: '0'
+          value_type: TEXT
+          description: 'RSS Backup Report'
+          applications:
+            -
+              name: Synbak
+          timeout: 30s
+          url: '{$SYNBAK_URL}/status.xml'
+        -
+          name: 'Synbak All Jobs Count'
+          type: DEPENDENT
+          key: synbak.tot
+          delay: '0'
+          applications:
+            -
+              name: Synbak
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - number(/rss/channel/item/tot)
+          master_item:
+            key: synbak.status.xml
+      macros:
+        -
+          macro: '{$SYNBAK_ERRORS_DURATION}'
+          value: 12h
+          description: 'After this time, the failed backups will not counted anymore as errors'
+        -
+          macro: '{$SYNBAK_NODATA_MAXTIME}'
+          value: 24h
+          description: 'Maximum threshold hours since last run. If data is not received will be fired a warning trigger'
+        -
+          macro: '{$SYNBAK_URL}'
+          value: 'http://localhost/admin/log/backup'
+          description: 'Synbak Backup Report URL'
+  triggers:
+    -
+      expression: |
+        {Synbak Backup:synbak.errors.max({$SYNBAK_ERRORS_DURATION})}>=1
+        or
+        {Synbak Backup:synbak.ok.nodata({$SYNBAK_NODATA_MAXTIME})}=1
+        or
+        {Synbak Backup:synbak.tot.nodata({$SYNBAK_NODATA_MAXTIME})}=1
+        or
+        {Synbak Backup:synbak.link.nodata({$SYNBAK_NODATA_MAXTIME})}=1
+        or
+        {Synbak Backup:synbak.status.nodata({$SYNBAK_NODATA_MAXTIME})}=1
+        or
+        {Synbak Backup:synbak.status.nodata({$SYNBAK_NODATA_MAXTIME})}=1
+      name: 'Synbak has failed jobs'
+      opdata: 'Errors: {ITEM.LASTVALUE1} Ok: {ITEM.LASTVALUE2} Tot: {ITEM.LASTVALUE3}'
+      url: '{{ITEM.LASTVALUE4}.regsub("(.*)", "\1")}'
+      priority: HIGH
+      description: |
+        Synbak Last Run: {{ITEM.LASTVALUE6}
+        Synbak Last Status: {{ITEM.LASTVALUE5}.regsub("(.*)", "\1")}
+      manual_close: 'YES'
