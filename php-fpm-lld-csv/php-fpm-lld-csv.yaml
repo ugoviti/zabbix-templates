@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2020-11-20T00:48:42Z'
+  date: '2020-11-20T11:27:15Z'
   groups:
     -
       name: Templates/Applications
@@ -183,7 +183,7 @@ zabbix_export:
                   name: PHP-FPM
               trigger_prototypes:
                 -
-                  expression: '{min(15m)}  > {$PHP_FPM.QUEUE.WARN.MAX}'
+                  expression: '{min(15m)}>{$PHP_FPM.QUEUE.WARN.MAX}'
                   name: 'Pool {#POOL}: Queue utilization is high (over {$PHP_FPM.QUEUE.WARN.MAX}% for 15m)'
                   priority: WARNING
                   description: 'The queue for this pool reached {$PHP_FPM.QUEUE.WARN.MAX}% of its maximum capacity. Items in queue represent the current number of connections that have been initiated on this pool, but not yet accepted.'
@@ -380,7 +380,7 @@ zabbix_export:
                 key: 'php-fpm.get_status[{#POOL}]'
               trigger_prototypes:
                 -
-                  expression: '{min(#5)}>0'
+                  expression: '{min(#5)}>{$PHP_FPM.SLOW_REQUEST.WARN.MAX}'
                   name: 'Pool {#POOL}: Detected slow requests'
                   priority: WARNING
                   description: 'PHP-FPM detected slow request. A slow request means that it took more time to execute than expected (defined in the configuration of your pool).'
@@ -470,7 +470,7 @@ zabbix_export:
                   manual_close: 'YES'
           graph_prototypes:
             -
-              name: 'Pool {#POOL}: Connections'
+              name: 'Pool {#POOL}: Connections per second'
               ymin_type_1: FIXED
               graph_items:
                 -
@@ -496,28 +496,28 @@ zabbix_export:
               graph_items:
                 -
                   sortorder: '1'
-                  color: 1A7C11
-                  item:
-                    host: 'PHP-FPM by HTTP with LLD'
-                    key: 'php-fpm.processes_max_active[{#POOL}]'
-                -
-                  sortorder: '2'
-                  color: 2774A4
-                  item:
-                    host: 'PHP-FPM by HTTP with LLD'
-                    key: 'php-fpm.processes_idle[{#POOL}]'
-                -
-                  sortorder: '3'
                   color: F63100
                   item:
                     host: 'PHP-FPM by HTTP with LLD'
                     key: 'php-fpm.processes_total[{#POOL}]'
                 -
-                  sortorder: '4'
+                  sortorder: '2'
+                  color: 1A7C11
+                  item:
+                    host: 'PHP-FPM by HTTP with LLD'
+                    key: 'php-fpm.processes_max_active[{#POOL}]'
+                -
+                  sortorder: '3'
                   color: A54F10
                   item:
                     host: 'PHP-FPM by HTTP with LLD'
                     key: 'php-fpm.processes_active[{#POOL}]'
+                -
+                  sortorder: '4'
+                  color: 2774A4
+                  item:
+                    host: 'PHP-FPM by HTTP with LLD'
+                    key: 'php-fpm.processes_idle[{#POOL}]'
             -
               name: 'Pool {#POOL}: Queue'
               graph_items:
@@ -564,12 +564,16 @@ zabbix_export:
           description: 'The port of PHP-FPM status host or container.'
         -
           macro: '{$PHP_FPM.QUEUE.WARN.MAX}'
-          value: '80'
+          value: '70'
           description: 'The maximum PHP-FPM queue usage percent for trigger expression.'
         -
           macro: '{$PHP_FPM.SCHEME}'
           value: http
           description: 'Request scheme which may be http or https'
+        -
+          macro: '{$PHP_FPM.SLOW_REQUEST.WARN.MAX}'
+          value: '2'
+          description: 'The maximum slow requests admissible threshold'
         -
           macro: '{$PHP_FPM.STATUS.PAGE}'
           value: status
@@ -591,7 +595,7 @@ zabbix_export:
                   type: GRAPH_PROTOTYPE
                   name: graphid
                   value:
-                    name: 'Pool {#POOL}: Connections'
+                    name: 'Pool {#POOL}: Connections per second'
                     host: 'PHP-FPM by HTTP with LLD'
             -
               type: GRAPH_PROTOTYPE
