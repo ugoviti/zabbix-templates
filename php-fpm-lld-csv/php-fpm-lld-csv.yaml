@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2020-11-19T23:45:57Z'
+  date: '2020-11-20T00:48:42Z'
   groups:
     -
       name: Templates/Applications
@@ -24,6 +24,13 @@ zabbix_export:
         otherpool
         anicepoolname
         etc...
+        
+        NB. the status page of PHP-FPM Pool must be configured to match the following criteria:
+        
+        {$PHP_FPM.STATUS.PAGE}.{#POOL}
+        
+        example of full url:
+        http://localhost/status.poolname
       groups:
         -
           name: Templates/Applications
@@ -208,6 +215,8 @@ zabbix_export:
               key: 'php-fpm.name[{#POOL}]'
               delay: '0'
               history: 7d
+              trends: '0'
+              value_type: CHAR
               description: 'The name of current pool.'
               applications:
                 -
@@ -548,6 +557,7 @@ zabbix_export:
         -
           macro: '{$PHP_FPM.POOLS_LIST_URL}'
           value: 'http://localhost/php-fpm-pools.csv'
+          description: 'URL of CSV file containing PHP-FPM Pools list'
         -
           macro: '{$PHP_FPM.PORT}'
           value: '80'
