@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2020-11-22T10:21:12Z'
+  date: '2020-11-24T10:28:20Z'
   groups:
     -
       name: Templates/Applications
@@ -24,6 +24,8 @@ zabbix_export:
       applications:
         -
           name: Synbak
+        -
+          name: 'Zabbix raw items'
       items:
         -
           name: 'Synbak Failed Jobs'
@@ -58,7 +60,7 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - |
-                  var str = value.split(/,| |:/);
+                  var str = value.split(/,|  | |:/);
                   var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                   
                   var day = str[2];
@@ -78,8 +80,12 @@ zabbix_export:
             -
               expression: '{now()} - {last()} > {$SYNBAK_NODATA_MAXTIME}'
               name: 'No Synbak jobs running since {$SYNBAK_NODATA_MAXTIME}'
+              opdata: '{ITEM.LASTVALUE1}'
+              url: '{{ITEM.LASTVALUE3}.regsub("(.*)", "\1")}'
               priority: WARNING
-              description: 'No updated data from synbak jobs since {$SYNBAK_NODATA_MAXTIME}'
+              description: |
+                No updated data from synbak jobs since {$SYNBAK_NODATA_MAXTIME}
+                Synbak Last Run: {ITEM.LASTVALUE6}
               manual_close: 'YES'
         -
           name: 'Synbak HTML Report URL'
@@ -141,7 +147,7 @@ zabbix_export:
           description: 'RSS Backup Report'
           applications:
             -
-              name: Synbak
+              name: 'Zabbix raw items'
           timeout: 30s
           url: '{$SYNBAK_URL}/status.xml'
         -
@@ -194,3 +200,7 @@ zabbix_export:
         Synbak Last Run: {ITEM.LASTVALUE6}
         Synbak Last Status: {{ITEM.LASTVALUE5}.regsub("(.*)", "\1")}
       manual_close: 'YES'
+      dependencies:
+        -
+          name: 'No Synbak jobs running since {$SYNBAK_NODATA_MAXTIME}'
+          expression: '{Synbak Backup:synbak.lastrun.now()} - {Synbak Backup:synbak.lastrun.last()} > {$SYNBAK_NODATA_MAXTIME}'
