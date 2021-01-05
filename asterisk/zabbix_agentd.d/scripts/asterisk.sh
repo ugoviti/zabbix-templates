@@ -60,7 +60,14 @@ convert_pjsip_registrations_to_json() {
 }
 
 discovery.iax2.registry() {
-  REGISTRY="$($sudo asterisk -r -x "iax2 show registry" | grep -v -e "^Host" -e "IAX2 registrations")"
+  REGISTRY="$($sudo asterisk -rx "iax2 show registry" | grep -q 'No such command')"
+  
+  if [ $? == 0 ]; then ## IAX2 is not installed
+    REGISTRY=""
+  else
+    REGISTRY="$($sudo asterisk -r -x "iax2 show registry" | grep -v -e "^Host" -e "IAX2 registrations")"
+    fi
+  
   convert_registrations_to_json
 }
 
