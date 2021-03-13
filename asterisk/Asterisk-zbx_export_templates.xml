@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>4.4</version>
-    <date>2020-04-01T23:18:01Z</date>
+    <version>5.2</version>
+    <date>2021-03-13T00:40:05Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -12,11 +12,12 @@
     </groups>
     <templates>
         <template>
-            <template>Template App Asterisk</template>
-            <name>Template App Asterisk</name>
-            <description>Asterisk Monitoring by InitZero&#13;
-https://github.com/ugoviti/zabbix-templates&#13;
-Version: 20200331</description>
+            <template>Asterisk PBX</template>
+            <name>Asterisk PBX</name>
+            <description>Asterisk PBX monitoring template by InitZero
+
+https://github.com/ugoviti/zabbix-templates/tree/master/asterisk
+Version: 20210313</description>
             <groups>
                 <group>
                     <name>Templates</name>
@@ -27,7 +28,7 @@ Version: 20200331</description>
             </groups>
             <applications>
                 <application>
-                    <name>Asterisk</name>
+                    <name>Asterisk PBX</name>
                 </application>
             </applications>
             <items>
@@ -37,37 +38,37 @@ Version: 20200331</description>
                     <history>30d</history>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
                     <triggers>
                         <trigger>
-                            <expression>{last(#3)}&gt;={$ACTIVE_CALLS_THRESHOLD}</expression>
-                            <name>{$ACTIVE_CALLS_THRESHOLD} concurrent active calls detected</name>
+                            <expression>{last(#3)}&gt;={$ASTERISK_CALLS_ACTIVE_WARN}</expression>
+                            <name>{$ASTERISK_CALLS_ACTIVE_WARN} concurrent active calls detected</name>
                             <priority>WARNING</priority>
                         </trigger>
                     </triggers>
                 </item>
                 <item>
-                    <name>Longest Call (Channel)</name>
+                    <name>Longest Call Channel Name</name>
                     <key>check.asterisk[calls.longest.channel]</key>
                     <history>30d</history>
                     <trends>0</trends>
                     <value_type>TEXT</value_type>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
                 </item>
                 <item>
-                    <name>Longest Call (Duration)</name>
+                    <name>Longest Call Duration</name>
                     <key>check.asterisk[calls.longest.duration]</key>
                     <history>30d</history>
                     <units>uptime</units>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
                 </item>
@@ -77,19 +78,116 @@ Version: 20200331</description>
                     <history>30d</history>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
                 </item>
                 <item>
-                    <name>Asterisk Last Reload</name>
-                    <key>check.asterisk[lastreload]</key>
+                    <name>IAX2 Peers Offline</name>
+                    <key>check.asterisk[iax2.peers.offline]</key>
                     <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk PBX</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>IAX2 Peers Online</name>
+                    <key>check.asterisk[iax2.peers.online]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk PBX</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>IAX2 Trunks Offline</name>
+                    <key>check.asterisk[iax2.trunks.offline]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk PBX</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>IAX2 Trunks Online</name>
+                    <key>check.asterisk[iax2.trunks.online]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk PBX</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Asterisk Uptime after reload</name>
+                    <key>check.asterisk[lastreload]</key>
+                    <delay>10m</delay>
                     <history>30d</history>
                     <units>uptime</units>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{last()}&lt;10m</expression>
+                            <name>Asterisk service has been reloaded (uptime &lt; 10m)</name>
+                            <priority>INFO</priority>
+                            <description>A configuration change was made less than 10 minutes ago</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>PJSIP Endpoints Offline</name>
+                    <key>check.asterisk[pjsip.endpoints.offline]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk PBX</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>PJSIP Endpoints Online</name>
+                    <key>check.asterisk[pjsip.endpoints.online]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk PBX</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>PJSIP Trunks Offline</name>
+                    <key>check.asterisk[pjsip.trunks.offline]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk PBX</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>PJSIP Trunks Online</name>
+                    <key>check.asterisk[pjsip.trunks.online]</key>
+                    <delay>5m</delay>
+                    <history>30d</history>
+                    <applications>
+                        <application>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
                 </item>
@@ -101,13 +199,13 @@ Version: 20200331</description>
                     <value_type>TEXT</value_type>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
                     <triggers>
                         <trigger>
                             <expression>{str(Down,#1)}=1</expression>
-                            <name>Asterisk service DOWN</name>
+                            <name>Asterisk service is DOWN</name>
                             <priority>DISASTER</priority>
                         </trigger>
                     </triggers>
@@ -119,7 +217,7 @@ Version: 20200331</description>
                     <history>30d</history>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
                 </item>
@@ -130,7 +228,7 @@ Version: 20200331</description>
                     <history>30d</history>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
                 </item>
@@ -141,7 +239,7 @@ Version: 20200331</description>
                     <history>30d</history>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
                 </item>
@@ -152,34 +250,52 @@ Version: 20200331</description>
                     <history>30d</history>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
                 </item>
                 <item>
                     <name>Asterisk Uptime</name>
                     <key>check.asterisk[systemuptime]</key>
-                    <delay>5m</delay>
+                    <delay>10m</delay>
                     <history>30d</history>
                     <units>uptime</units>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{last()}&lt;10m</expression>
+                            <name>Asterisk service has been restarted (uptime &lt; 10m)</name>
+                            <priority>INFO</priority>
+                            <description>Uptime is less than 10 minutes</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
                 </item>
                 <item>
                     <name>Asterisk Version</name>
                     <key>check.asterisk[version]</key>
-                    <delay>60m</delay>
+                    <delay>10m</delay>
                     <history>30d</history>
                     <trends>0</trends>
                     <value_type>TEXT</value_type>
                     <applications>
                         <application>
-                            <name>Asterisk</name>
+                            <name>Asterisk PBX</name>
                         </application>
                     </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{diff()}=1 and {strlen()}&gt;0</expression>
+                            <name>Asterisk version has changed (new version: {ITEM.VALUE})</name>
+                            <priority>INFO</priority>
+                            <description>Asterisk version has changed. Ack to close.</description>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
                 </item>
             </items>
             <discovery_rules>
@@ -196,7 +312,7 @@ Version: 20200331</description>
                             <value_type>TEXT</value_type>
                             <applications>
                                 <application>
-                                    <name>Asterisk</name>
+                                    <name>Asterisk PBX</name>
                                 </application>
                             </applications>
                             <trigger_prototypes>
@@ -222,7 +338,7 @@ Version: 20200331</description>
                             <value_type>TEXT</value_type>
                             <applications>
                                 <application>
-                                    <name>Asterisk</name>
+                                    <name>Asterisk PBX</name>
                                 </application>
                             </applications>
                             <trigger_prototypes>
@@ -249,7 +365,7 @@ Version: 20200331</description>
                             <value_type>TEXT</value_type>
                             <applications>
                                 <application>
-                                    <name>Asterisk</name>
+                                    <name>Asterisk PBX</name>
                                 </application>
                             </applications>
                             <trigger_prototypes>
@@ -265,25 +381,230 @@ Version: 20200331</description>
             </discovery_rules>
             <macros>
                 <macro>
-                    <macro>{$ACTIVE_CALLS_THRESHOLD}</macro>
+                    <macro>{$ASTERISK_CALLS_ACTIVE_WARN}</macro>
                     <value>20</value>
                     <description>Alarm when reaching max active calls threshold</description>
                 </macro>
                 <macro>
-                    <macro>{$LOGENST_CALL_DURATION}</macro>
+                    <macro>{$ASTERISK_CALLS_DURATION_WARN}</macro>
                     <value>7200</value>
-                    <description>Alarm when reaching call duration time</description>
+                    <description>Alarm when reaching call duration time (in seconds)</description>
                 </macro>
             </macros>
+            <dashboards>
+                <dashboard>
+                    <name>Asterisk PBX</name>
+                    <widgets>
+                        <widget>
+                            <type>GRAPH_CLASSIC</type>
+                            <width>12</width>
+                            <height>5</height>
+                            <fields>
+                                <field>
+                                    <type>GRAPH</type>
+                                    <name>graphid</name>
+                                    <value>
+                                        <name>Concurrent Active Calls</name>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                            </fields>
+                        </widget>
+                        <widget>
+                            <type>GRAPH_CLASSIC</type>
+                            <x>12</x>
+                            <width>12</width>
+                            <height>5</height>
+                            <fields>
+                                <field>
+                                    <type>GRAPH</type>
+                                    <name>graphid</name>
+                                    <value>
+                                        <name>Longest Call Duration</name>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                            </fields>
+                        </widget>
+                        <widget>
+                            <type>GRAPH_CLASSIC</type>
+                            <y>5</y>
+                            <width>12</width>
+                            <height>7</height>
+                            <fields>
+                                <field>
+                                    <type>GRAPH</type>
+                                    <name>graphid</name>
+                                    <value>
+                                        <name>Peers Status</name>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                            </fields>
+                        </widget>
+                        <widget>
+                            <type>GRAPH_CLASSIC</type>
+                            <x>12</x>
+                            <y>5</y>
+                            <width>12</width>
+                            <height>7</height>
+                            <fields>
+                                <field>
+                                    <type>GRAPH</type>
+                                    <name>graphid</name>
+                                    <value>
+                                        <name>Trunks Status</name>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                            </fields>
+                        </widget>
+                    </widgets>
+                </dashboard>
+            </dashboards>
         </template>
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template App Asterisk:check.asterisk[calls.longest.channel].str()}=1&#13;
-and&#13;
-{Template App Asterisk:check.asterisk[calls.longest.duration].last()}&gt;={$LOGENST_CALL_DURATION}</expression>
+            <expression>{Asterisk PBX:check.asterisk[calls.longest.channel].str()}=1
+and
+{Asterisk PBX:check.asterisk[calls.longest.duration].last()}&gt;={$ASTERISK_CALLS_DURATION_WARN}</expression>
             <name>Call {ITEM.VALUE1} potentially stuck for {ITEM.VALUE2}</name>
             <priority>WARNING</priority>
         </trigger>
     </triggers>
+    <graphs>
+        <graph>
+            <name>Concurrent Active Calls</name>
+            <graph_items>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>199C0D</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[calls.active]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <name>Longest Call Duration</name>
+            <graph_items>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>199C0D</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[calls.longest.duration]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <name>Peers Status</name>
+            <graph_items>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>00FF00</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[sip.peers.online]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>FF0000</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[sip.peers.offline]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>3</sortorder>
+                    <color>03A9F4</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[pjsip.endpoints.online]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>4</sortorder>
+                    <color>7E57C2</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[pjsip.endpoints.offline]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>5</sortorder>
+                    <color>FFEB3B</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[iax2.peers.online]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>6</sortorder>
+                    <color>F4511E</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[iax2.peers.offline]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <name>Trunks Status</name>
+            <graph_items>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>00FF00</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[sip.trunks.online]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>FF0000</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[sip.trunks.offline]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>3</sortorder>
+                    <color>03A9F4</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[pjsip.trunks.online]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>4</sortorder>
+                    <color>9C27B0</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[iax2.trunks.offline]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>5</sortorder>
+                    <color>FFEB3B</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[iax2.trunks.online]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>6</sortorder>
+                    <color>F4511E</color>
+                    <item>
+                        <host>Asterisk PBX</host>
+                        <key>check.asterisk[pjsip.trunks.offline]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+    </graphs>
 </zabbix_export>

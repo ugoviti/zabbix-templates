@@ -1,5 +1,5 @@
 # Asterisk Zabbix Template
-Monitor Asterisk PBX systems using Zabbix Network Monitoring system
+Check Asterisk PBX engine using Zabbix Network Monitoring system
 
 ## Features
 - Easy installation and fast configuration (pure bash script without extra dependencies to install)
@@ -40,9 +40,11 @@ For **zabbix-agent2** the default configuration dir is `/etc/zabbix/zabbix_agent
 - `{$LOGENST_CALL_DURATION}`: Alarm when reaching call duration time (default: 7200 seconds)
 
 ## Troubleshooting
-
 If your Zabbix Agent installation doesn't include the ` /etc/zabbix/zabbix_agentd.d/*.conf` directory, add the following lines to `/etc/zabbix/zabbix_agentd.conf` file:
 
 ```
 Include=/etc/zabbix/zabbix_agentd.d/*.conf
 ```
+## BUGS
+Counting SIP/PJSIP/IAX2 Trunks is not reliable right now, works only if in the trunk name is alphanumeric (contains letters and number in the name)
+ex. trunk name 511123 is not recognised. trunk name terra-511123 is recognised as trunk
