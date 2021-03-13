@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.2</version>
-    <date>2021-03-13T00:40:05Z</date>
+    <date>2021-03-13T11:22:50Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -404,7 +404,7 @@ Version: 20210313</description>
                                     <type>GRAPH</type>
                                     <name>graphid</name>
                                     <value>
-                                        <name>Concurrent Active Calls</name>
+                                        <name>Asterisk Concurrent Active Calls</name>
                                         <host>Asterisk PBX</host>
                                     </value>
                                 </field>
@@ -420,7 +420,7 @@ Version: 20210313</description>
                                     <type>GRAPH</type>
                                     <name>graphid</name>
                                     <value>
-                                        <name>Longest Call Duration</name>
+                                        <name>Asterisk Longest Call Duration</name>
                                         <host>Asterisk PBX</host>
                                     </value>
                                 </field>
@@ -436,7 +436,7 @@ Version: 20210313</description>
                                     <type>GRAPH</type>
                                     <name>graphid</name>
                                     <value>
-                                        <name>Peers Status</name>
+                                        <name>Asterisk Peers Status</name>
                                         <host>Asterisk PBX</host>
                                     </value>
                                 </field>
@@ -453,7 +453,7 @@ Version: 20210313</description>
                                     <type>GRAPH</type>
                                     <name>graphid</name>
                                     <value>
-                                        <name>Trunks Status</name>
+                                        <name>Asterisk Trunks Status</name>
                                         <host>Asterisk PBX</host>
                                     </value>
                                 </field>
@@ -475,7 +475,7 @@ and
     </triggers>
     <graphs>
         <graph>
-            <name>Concurrent Active Calls</name>
+            <name>Asterisk Concurrent Active Calls</name>
             <graph_items>
                 <graph_item>
                     <sortorder>1</sortorder>
@@ -488,7 +488,7 @@ and
             </graph_items>
         </graph>
         <graph>
-            <name>Longest Call Duration</name>
+            <name>Asterisk Longest Call Duration</name>
             <graph_items>
                 <graph_item>
                     <sortorder>1</sortorder>
@@ -501,7 +501,7 @@ and
             </graph_items>
         </graph>
         <graph>
-            <name>Peers Status</name>
+            <name>Asterisk Peers Status</name>
             <graph_items>
                 <graph_item>
                     <sortorder>1</sortorder>
@@ -513,6 +513,7 @@ and
                 </graph_item>
                 <graph_item>
                     <sortorder>2</sortorder>
+                    <drawtype>DASHED_LINE</drawtype>
                     <color>FF0000</color>
                     <item>
                         <host>Asterisk PBX</host>
@@ -529,6 +530,7 @@ and
                 </graph_item>
                 <graph_item>
                     <sortorder>4</sortorder>
+                    <drawtype>DASHED_LINE</drawtype>
                     <color>7E57C2</color>
                     <item>
                         <host>Asterisk PBX</host>
@@ -545,6 +547,7 @@ and
                 </graph_item>
                 <graph_item>
                     <sortorder>6</sortorder>
+                    <drawtype>DASHED_LINE</drawtype>
                     <color>F4511E</color>
                     <item>
                         <host>Asterisk PBX</host>
@@ -554,7 +557,7 @@ and
             </graph_items>
         </graph>
         <graph>
-            <name>Trunks Status</name>
+            <name>Asterisk Trunks Status</name>
             <graph_items>
                 <graph_item>
                     <sortorder>1</sortorder>
@@ -566,6 +569,7 @@ and
                 </graph_item>
                 <graph_item>
                     <sortorder>2</sortorder>
+                    <drawtype>DASHED_LINE</drawtype>
                     <color>FF0000</color>
                     <item>
                         <host>Asterisk PBX</host>
@@ -582,10 +586,11 @@ and
                 </graph_item>
                 <graph_item>
                     <sortorder>4</sortorder>
-                    <color>9C27B0</color>
+                    <drawtype>DASHED_LINE</drawtype>
+                    <color>F4511E</color>
                     <item>
                         <host>Asterisk PBX</host>
-                        <key>check.asterisk[iax2.trunks.offline]</key>
+                        <key>check.asterisk[pjsip.trunks.offline]</key>
                     </item>
                 </graph_item>
                 <graph_item>
@@ -598,10 +603,11 @@ and
                 </graph_item>
                 <graph_item>
                     <sortorder>6</sortorder>
-                    <color>F4511E</color>
+                    <drawtype>DASHED_LINE</drawtype>
+                    <color>9C27B0</color>
                     <item>
                         <host>Asterisk PBX</host>
-                        <key>check.asterisk[pjsip.trunks.offline]</key>
+                        <key>check.asterisk[iax2.trunks.offline]</key>
                     </item>
                 </graph_item>
             </graph_items>
