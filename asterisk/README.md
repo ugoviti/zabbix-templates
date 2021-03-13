@@ -36,8 +36,8 @@ ZABBIX ALL=(ALL) NOPASSWD: ZABBIX_COMMANDS
 For **zabbix-agent2** the default configuration dir is `/etc/zabbix/zabbix_agent2.d`
 
 ## Template Macros available
-- `{$ACTIVE_CALLS_THRESHOLD}`: Alarm when reaching max active calls threshold (default: 20 calls)
-- `{$LOGENST_CALL_DURATION}`: Alarm when reaching call duration time (default: 7200 seconds)
+- `{$ASTERISK_CALLS_ACTIVE_WARN}`: Alarm when reaching max active calls threshold (default: 20 calls)
+- `{$ASTERISK_CALLS_DURATION_WARN}`: Alarm when reaching call duration time (default: 7200 seconds)
 
 ## Troubleshooting
 If your Zabbix Agent installation doesn't include the ` /etc/zabbix/zabbix_agentd.d/*.conf` directory, add the following lines to `/etc/zabbix/zabbix_agentd.conf` file:
