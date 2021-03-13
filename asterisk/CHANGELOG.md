@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2021-03-14
 ### Changed
 - Changed Template name from "Template App Asterisk" to "Asterisk PBX"
-- Renamed MACROS: (NOTE: if you changed defaults values, remember to update the macros associated to you hosts)
+- Renamed MACROS: (NOTE: if you changed defaults values, remember to update the macros associated to your hosts)
   - from {$ACTIVE_CALLS_THRESHOLD} to {$ASTERISK_CALLS_ACTIVE_WARN}
   - from {$LOGENST_CALL_DURATION} to {$ASTERISK_CALLS_DURATION_WARN}
 ### Added
-- Dashboard with graphical overview
+- New Template Dashboard
 - Refactoring of Graphs
 - Item PJSIP Trunks Online/Offline
 - Item PJSIP Endpoints Online/Offline
