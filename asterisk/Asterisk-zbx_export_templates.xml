@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.2</version>
-    <date>2021-03-13T11:22:50Z</date>
+    <date>2021-03-13T17:26:51Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -319,6 +319,7 @@ Version: 20210313</description>
                                 <trigger_prototype>
                                     <expression>{regexp(Registered,#3)}=0</expression>
                                     <name>IAX2 Trunk not registered {#USERNAME}@{#HOST}</name>
+                                    <opdata>{ITEM.LASTVALUE1}</opdata>
                                     <priority>HIGH</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
@@ -345,6 +346,7 @@ Version: 20210313</description>
                                 <trigger_prototype>
                                     <expression>{regexp(Avail,#3)}=0</expression>
                                     <name>PJSIP Trunk not registered {#ENDPOINT}/sip:{#USERNAME}@{#HOST}</name>
+                                    <opdata>{ITEM.LASTVALUE1}</opdata>
                                     <priority>HIGH</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
@@ -372,6 +374,7 @@ Version: 20210313</description>
                                 <trigger_prototype>
                                     <expression>{regexp(Registered,#3)}=0</expression>
                                     <name>SIP Trunk not registered {#USERNAME}@{#HOST}</name>
+                                    <opdata>{ITEM.LASTVALUE1}</opdata>
                                     <priority>HIGH</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
