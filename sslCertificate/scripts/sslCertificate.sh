@@ -1,5 +1,5 @@
 #!/bin/bash
-## Zabbix Agent monitoring automatic discovery and check script for X509/SSL/HTTPS domains
+## Zabbix Agent monitoring automatic discovery and check script for X509/SSL/HTTPS services
 ## author: Ugo Viti <ugo.viti@initzero.it>
 ## version: 20201018
 
@@ -32,7 +32,7 @@ discoveryDomains() {
 }
 
 # output in datetime format
-getsslExpireDate() {
+getSSLExpireDate() {
   if [ -z "$(echo $1 | awk -F: '{print $2}')" ]; then
     host=$1
     port=443
@@ -45,7 +45,7 @@ getsslExpireDate() {
 
 # output in unixtime format
 timeLeft() {
-  sslExpireDate=$(getsslExpireDate $domain)
+  sslExpireDate=$(getSSLExpireDate $domain)
   if [ ! -z "$sslExpireDate" ]; then
     echo $(($(date '+%s' --date "$sslExpireDate") - $(date '+%s')))
    else
@@ -56,7 +56,7 @@ timeLeft() {
 
 # output in unixtime format
 timeExpire() {
-  sslExpireDate=$(getsslExpireDate $domain)
+  sslExpireDate=$(getSSLExpireDate $domain)
   if [ ! -z "$sslExpireDate" ]; then
     date '+%s' --date "$sslExpireDate"
    else
@@ -65,7 +65,7 @@ timeExpire() {
   fi
 }
 
-# execute the passed command
+# execute the given command
 #set -x
 $cmd $@
 exit $?

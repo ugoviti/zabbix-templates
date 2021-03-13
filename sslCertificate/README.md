@@ -1,5 +1,5 @@
 # Web SSL Certificates Template
-Monitor WEB servers SSL/HTTPS certificates expire time
+Check WEB servers SSL/HTTPS certificates expire time using Zabbix Network Monitoring system
 
 ## Features
 - Zabbix Agent based (require Zabbix server >= 4.4)
