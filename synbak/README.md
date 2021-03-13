@@ -1,5 +1,5 @@
 # Synbak Zabbix Template
-Monitor Synbak Backup Reports using Zabbix Network Monitoring system
+Check Synbak Backup Reports using Zabbix Network Monitoring system
 
 ## Features
 
