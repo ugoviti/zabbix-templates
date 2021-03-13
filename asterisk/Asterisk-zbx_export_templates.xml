@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.2</version>
-    <date>2021-03-13T17:26:51Z</date>
+    <date>2021-03-13T18:16:13Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -433,7 +433,7 @@ Version: 20210313</description>
                             <type>GRAPH_CLASSIC</type>
                             <y>5</y>
                             <width>12</width>
-                            <height>7</height>
+                            <height>6</height>
                             <fields>
                                 <field>
                                     <type>GRAPH</type>
@@ -450,13 +450,96 @@ Version: 20210313</description>
                             <x>12</x>
                             <y>5</y>
                             <width>12</width>
-                            <height>7</height>
+                            <height>6</height>
                             <fields>
                                 <field>
                                     <type>GRAPH</type>
                                     <name>graphid</name>
                                     <value>
                                         <name>Asterisk Trunks Status</name>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                            </fields>
+                        </widget>
+                        <widget>
+                            <type>PLAIN_TEXT</type>
+                            <name>Asterisk General Status</name>
+                            <y>11</y>
+                            <width>6</width>
+                            <height>5</height>
+                            <fields>
+                                <field>
+                                    <type>INTEGER</type>
+                                    <name>show_as_html</name>
+                                    <value>1</value>
+                                </field>
+                                <field>
+                                    <type>INTEGER</type>
+                                    <name>show_lines</name>
+                                    <value>8</value>
+                                </field>
+                                <field>
+                                    <type>ITEM</type>
+                                    <name>itemids</name>
+                                    <value>
+                                        <key>check.asterisk[service.status]</key>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                                <field>
+                                    <type>ITEM</type>
+                                    <name>itemids</name>
+                                    <value>
+                                        <key>check.asterisk[systemuptime]</key>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                                <field>
+                                    <type>ITEM</type>
+                                    <name>itemids</name>
+                                    <value>
+                                        <key>check.asterisk[lastreload]</key>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                                <field>
+                                    <type>ITEM</type>
+                                    <name>itemids</name>
+                                    <value>
+                                        <key>check.asterisk[version]</key>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                                <field>
+                                    <type>ITEM</type>
+                                    <name>itemids</name>
+                                    <value>
+                                        <key>check.asterisk[calls.active]</key>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                                <field>
+                                    <type>ITEM</type>
+                                    <name>itemids</name>
+                                    <value>
+                                        <key>check.asterisk[calls.longest.channel]</key>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                                <field>
+                                    <type>ITEM</type>
+                                    <name>itemids</name>
+                                    <value>
+                                        <key>check.asterisk[calls.longest.duration]</key>
+                                        <host>Asterisk PBX</host>
+                                    </value>
+                                </field>
+                                <field>
+                                    <type>ITEM</type>
+                                    <name>itemids</name>
+                                    <value>
+                                        <key>check.asterisk[calls.processed]</key>
                                         <host>Asterisk PBX</host>
                                     </value>
                                 </field>
