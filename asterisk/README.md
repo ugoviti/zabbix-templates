@@ -31,6 +31,7 @@ Check Asterisk PBX engine using Zabbix Network Monitoring system
   - Asterisk version change
   - Trunks registrations problems
   - IAX2/SIP/PJSIP Peers/Endpoints unreachable
+  - IAX2/SIP/PJSIP Peers/Endpoints high latency
 
 ## Installation for Zabbix Agent 1
 - `mkdir -p /etc/zabbix/zabbix_agentd.d/scripts/`
@@ -52,8 +53,9 @@ ZABBIX ALL=(ALL) NOPASSWD: ZABBIX_COMMANDS
 For **zabbix-agent2** the default configuration dir is `/etc/zabbix/zabbix_agent2.d`. Replace the path in the above commands to install
 
 ## Template Macros available
-- `{$ASTERISK_CALLS_ACTIVE_WARN}`: Alarm when reaching max active calls threshold (default: 20 calls)
 - `{$ASTERISK_CALLS_DURATION_WARN}`: Alarm when reaching call duration time (default: 7200 seconds)
+- `{$ASTERISK_CALLS_ACTIVE_WARN}`: Alarm when reaching max active calls threshold (default: 20 calls)
+- `{$ASTERISK_PEER_LATENCY_WARN}`: Alarm when a peer have high latency (ms)
 
 ## Troubleshooting
 If your Zabbix Agent installation doesn't include the ` /etc/zabbix/zabbix_agentd.d/*.conf` directory, add the following lines to `/etc/zabbix/zabbix_agentd.conf` file:

@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Trigger for last restart
 - Trigger for last reload
 - Trigger for version change
+- Trigger for peers high latency
+- New Macro: {$ASTERISK_PEER_LATENCY_WARN} (default 400 ms)
 - Dicovery+Triggers of IAX2 Peers
 - Dicovery+Triggers of PJSIP Endpoints (enabled discovery but disabled item collection and triggers by default, enable by hand the items you want to monitor)
 - Dicovery+Triggers of SIP Peers (enabled discovery but disabled item collection and triggers by default, enable by hand the items you want to monitor)

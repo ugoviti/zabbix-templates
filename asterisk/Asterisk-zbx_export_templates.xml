@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.2</version>
-    <date>2021-03-14T15:33:42Z</date>
+    <date>2021-03-14T18:00:08Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -17,7 +17,7 @@
             <description>Asterisk PBX monitoring template by InitZero
 
 https://github.com/ugoviti/zabbix-templates/tree/master/asterisk
-Version: 20210313</description>
+Version: 20210314</description>
             <groups>
                 <group>
                     <name>Templates</name>
@@ -317,6 +317,14 @@ Version: 20210313</description>
                                     <name>Asterisk PBX IAX2 Peers</name>
                                 </application_prototype>
                             </application_prototypes>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{avg(5m)}&gt;{$ASTERISK_PEER_LATENCY_WARN}</expression>
+                                    <name>IAX2 peer {#PEER} high latency</name>
+                                    <priority>WARNING</priority>
+                                    <description>Peer high latency detected</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
                         </item_prototype>
                         <item_prototype>
                             <name>IAX2 peer {#PEER} status</name>
@@ -335,7 +343,7 @@ Version: 20210313</description>
                                 <trigger_prototype>
                                     <expression>{regexp(OK,#3)}=0</expression>
                                     <name>IAX2 peer {#PEER} is disconnected</name>
-                                    <priority>WARNING</priority>
+                                    <priority>AVERAGE</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
                         </item_prototype>
@@ -386,6 +394,14 @@ Version: 20210313</description>
                                     <name>Asterisk PBX PJSIP Endpoints</name>
                                 </application_prototype>
                             </application_prototypes>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{avg(5m)}&gt;{$ASTERISK_PEER_LATENCY_WARN}</expression>
+                                    <name>PJSIP endpoint {#ENDPOINT} high latency</name>
+                                    <priority>WARNING</priority>
+                                    <description>Peer high latency detected</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
                         </item_prototype>
                         <item_prototype>
                             <name>PJSIP endpoint {#ENDPOINT} status</name>
@@ -405,7 +421,7 @@ Version: 20210313</description>
                                 <trigger_prototype>
                                     <expression>{regexp(Avail,#3)}=0</expression>
                                     <name>PJSIP endpoint {#ENDPOINT} is disconnected</name>
-                                    <priority>WARNING</priority>
+                                    <priority>AVERAGE</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
                         </item_prototype>
@@ -456,6 +472,14 @@ Version: 20210313</description>
                                     <name>Asterisk PBX SIP Peers</name>
                                 </application_prototype>
                             </application_prototypes>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{avg(5m)}&gt;{$ASTERISK_PEER_LATENCY_WARN}</expression>
+                                    <name>SIP peer {#PEER} high latency</name>
+                                    <priority>WARNING</priority>
+                                    <description>Peer high latency detected</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
                         </item_prototype>
                         <item_prototype>
                             <name>SIP peer {#PEER} status</name>
@@ -475,7 +499,7 @@ Version: 20210313</description>
                                 <trigger_prototype>
                                     <expression>{regexp(OK,#3)}=0</expression>
                                     <name>SIP peer {#PEER} is disconnected</name>
-                                    <priority>WARNING</priority>
+                                    <priority>AVERAGE</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
                         </item_prototype>
@@ -519,6 +543,11 @@ Version: 20210313</description>
                     <macro>{$ASTERISK_CALLS_DURATION_WARN}</macro>
                     <value>7200</value>
                     <description>Alarm when reaching call duration time (in seconds)</description>
+                </macro>
+                <macro>
+                    <macro>{$ASTERISK_PEER_LATENCY_WARN}</macro>
+                    <value>400</value>
+                    <description>Alarm when a peer have high latency (ms)</description>
                 </macro>
             </macros>
             <dashboards>
