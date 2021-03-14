@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.2</version>
-    <date>2021-03-13T18:16:13Z</date>
+    <date>2021-03-14T15:33:42Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -300,9 +300,51 @@ Version: 20210313</description>
             </items>
             <discovery_rules>
                 <discovery_rule>
+                    <name>Discovery IAX2 Peers</name>
+                    <key>discovery.asterisk[discovery.iax2.peers]</key>
+                    <delay>30m</delay>
+                    <lifetime>7d</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>IAX2 peer {#PEER} latency</name>
+                            <key>check.asterisk[iax2.peer.latency,{#PEER}]</key>
+                            <delay>5m</delay>
+                            <history>7d</history>
+                            <units>ms</units>
+                            <description>IAX2 Peer latency</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Asterisk PBX IAX2 Peers</name>
+                                </application_prototype>
+                            </application_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>IAX2 peer {#PEER} status</name>
+                            <key>check.asterisk[iax2.peer.status,{#PEER}]</key>
+                            <delay>5m</delay>
+                            <history>7d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <description>IAX2 Peer status</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Asterisk PBX IAX2 Peers</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{regexp(OK,#3)}=0</expression>
+                                    <name>IAX2 peer {#PEER} is disconnected</name>
+                                    <priority>WARNING</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+                <discovery_rule>
                     <name>Discovery IAX2 Trunks</name>
                     <key>discovery.asterisk[discovery.iax2.registry]</key>
-                    <delay>1h</delay>
+                    <delay>30m</delay>
                     <lifetime>7d</lifetime>
                     <item_prototypes>
                         <item_prototype>
@@ -310,17 +352,60 @@ Version: 20210313</description>
                             <key>check.asterisk[iax2.registry,{#USERNAME}]</key>
                             <trends>0</trends>
                             <value_type>TEXT</value_type>
-                            <applications>
-                                <application>
-                                    <name>Asterisk PBX</name>
-                                </application>
-                            </applications>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Asterisk PBX IAX2 Trunks</name>
+                                </application_prototype>
+                            </application_prototypes>
                             <trigger_prototypes>
                                 <trigger_prototype>
                                     <expression>{regexp(Registered,#3)}=0</expression>
                                     <name>IAX2 Trunk not registered {#USERNAME}@{#HOST}</name>
-                                    <opdata>{ITEM.LASTVALUE1}</opdata>
                                     <priority>HIGH</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Discovery PJSIP Endpoints</name>
+                    <key>discovery.asterisk[discovery.pjsip.endpoints]</key>
+                    <delay>30m</delay>
+                    <lifetime>7d</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>PJSIP endpoint {#ENDPOINT} latency</name>
+                            <key>check.asterisk[pjsip.endpoint.latency,{#ENDPOINT}]</key>
+                            <delay>5m</delay>
+                            <history>7d</history>
+                            <status>DISABLED</status>
+                            <units>ms</units>
+                            <description>PJSIP Endpoint Status</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Asterisk PBX PJSIP Endpoints</name>
+                                </application_prototype>
+                            </application_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>PJSIP endpoint {#ENDPOINT} status</name>
+                            <key>check.asterisk[pjsip.endpoint.status,{#ENDPOINT}]</key>
+                            <delay>5m</delay>
+                            <history>7d</history>
+                            <trends>0</trends>
+                            <status>DISABLED</status>
+                            <value_type>TEXT</value_type>
+                            <description>PJSIP Endpoint Status</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Asterisk PBX PJSIP Endpoints</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{regexp(Avail,#3)}=0</expression>
+                                    <name>PJSIP endpoint {#ENDPOINT} is disconnected</name>
+                                    <priority>WARNING</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
                         </item_prototype>
@@ -329,7 +414,7 @@ Version: 20210313</description>
                 <discovery_rule>
                     <name>Discovery PJSIP Trunks</name>
                     <key>discovery.asterisk[discovery.pjsip.registry]</key>
-                    <delay>1h</delay>
+                    <delay>30m</delay>
                     <lifetime>7d</lifetime>
                     <item_prototypes>
                         <item_prototype>
@@ -337,17 +422,60 @@ Version: 20210313</description>
                             <key>check.asterisk[pjsip.registry,{#ENDPOINT}]</key>
                             <trends>0</trends>
                             <value_type>TEXT</value_type>
-                            <applications>
-                                <application>
-                                    <name>Asterisk PBX</name>
-                                </application>
-                            </applications>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Asterisk PBX PJSIP Trunks</name>
+                                </application_prototype>
+                            </application_prototypes>
                             <trigger_prototypes>
                                 <trigger_prototype>
                                     <expression>{regexp(Avail,#3)}=0</expression>
                                     <name>PJSIP Trunk not registered {#ENDPOINT}/sip:{#USERNAME}@{#HOST}</name>
-                                    <opdata>{ITEM.LASTVALUE1}</opdata>
                                     <priority>HIGH</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Discovery SIP Peers</name>
+                    <key>discovery.asterisk[discovery.sip.peers]</key>
+                    <delay>30m</delay>
+                    <lifetime>7d</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>SIP peer {#PEER} latency</name>
+                            <key>check.asterisk[sip.peer.latency,{#PEER}]</key>
+                            <delay>5m</delay>
+                            <history>7d</history>
+                            <status>DISABLED</status>
+                            <units>ms</units>
+                            <description>SIP Peer latency</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Asterisk PBX SIP Peers</name>
+                                </application_prototype>
+                            </application_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>SIP peer {#PEER} status</name>
+                            <key>check.asterisk[sip.peer.status,{#PEER}]</key>
+                            <delay>5m</delay>
+                            <history>7d</history>
+                            <trends>0</trends>
+                            <status>DISABLED</status>
+                            <value_type>TEXT</value_type>
+                            <description>SIP Peer status</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Asterisk PBX SIP Peers</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{regexp(OK,#3)}=0</expression>
+                                    <name>SIP peer {#PEER} is disconnected</name>
+                                    <priority>WARNING</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
                         </item_prototype>
@@ -356,7 +484,7 @@ Version: 20210313</description>
                 <discovery_rule>
                     <name>Discovery SIP Trunks</name>
                     <key>discovery.asterisk[discovery.sip.registry]</key>
-                    <delay>1h</delay>
+                    <delay>30m</delay>
                     <lifetime>7d</lifetime>
                     <item_prototypes>
                         <item_prototype>
@@ -365,16 +493,15 @@ Version: 20210313</description>
                             <history>30d</history>
                             <trends>0</trends>
                             <value_type>TEXT</value_type>
-                            <applications>
-                                <application>
-                                    <name>Asterisk PBX</name>
-                                </application>
-                            </applications>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Asterisk PBX SIP Trunks</name>
+                                </application_prototype>
+                            </application_prototypes>
                             <trigger_prototypes>
                                 <trigger_prototype>
                                     <expression>{regexp(Registered,#3)}=0</expression>
                                     <name>SIP Trunk not registered {#USERNAME}@{#HOST}</name>
-                                    <opdata>{ITEM.LASTVALUE1}</opdata>
                                     <priority>HIGH</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>

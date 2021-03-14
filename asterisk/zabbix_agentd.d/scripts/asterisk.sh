@@ -1,12 +1,24 @@
 #!/bin/bash
 # Zabbix Agent monitoring automatic discovery and check script for Asterisk PBX services
 # author: Ugo Viti <ugo.viti@initzero.it>
-# version: 20200402
+# version: 20210314
 
 # comment to disable sudo
 sudo="sudo -u asterisk"
 
-# SIP/IAX2 example JSON file for zabbix discovery
+# enable the caching of asterisk command (to lowering the load caused by frequend query)
+asteriskCacheEnabled="true"
+
+# timeout expire for cache file
+asteriskCacheTime="60"
+
+# tmp directory of cache files
+asteriskCacheDir="/tmp/zabbix-asterisk-tmp"
+
+
+## Zabbix JSON out examples
+
+# SIP/IAX2 Trunks example JSON file for zabbix discovery
 # {
 #   "data":
 #   [
@@ -15,7 +27,7 @@ sudo="sudo -u asterisk"
 #   ]
 # }
 
-# PJSIP example JSON file for zabbix discovery
+# PJSIP Trunks example JSON file for zabbix discovery
 # {
 #   "data":
 #   [
@@ -24,12 +36,43 @@ sudo="sudo -u asterisk"
 #   ]
 # }
 
+# SIP/IAX2 Peers example JSON file for zabbix discovery
+# {
+#   "data":
+#   [
+#     { "{#PEER}":"201", "{#STATE}":"OK", "{#LATENCY}":"10"},
+#     { "{#PEER}":"202", "{#STATE}":"UNKNOWN", "{#LATENCY}":""},
+#     { "{#PEER}":"203", "{#STATE}":"OK", "{#LATENCY}":"72"}
+#   ]
+# }
+
 cmd="$1"
 shift
 
+# exit on first error
+set -e
+
 [ -z "$cmd" ] && echo "ERROR: missing arguments... exiting" && exit 1
 
+## Asterisk command cache
+asteriskCmd() {
+  asteriskCmd=$@
+  if [ "$asteriskCacheEnabled" = "true" ]; then
+      asteriskCacheFile="$asteriskCacheDir/$(echo $asteriskCmd | sed 's/ /_/g')"
+      [ ! -e "$asteriskCacheDir" ] && install -m 750 -d "$asteriskCacheDir"
+      [ ! -e "$asteriskCacheFile" ] && touch "$asteriskCacheFile"
+      if [ -z "$(cat "$asteriskCacheFile")" ] || [ "$(( $(date +"%s") - $(stat -c "%Y" $asteriskCacheFile) ))" -gt "$asteriskCacheTime" ]; then
+        $sudo asterisk -rx "$asteriskCmd" > "$asteriskCacheFile"
+      fi
+      cat "$asteriskCacheFile"
+    else
+      $sudo asterisk -rx "$asteriskCmd"
+  fi
+}
+
+
 ## discovery functions
+# SIP/IAX2 registrations trunks
 convert_registrations_to_json() {
   echo "{
   \"data\":
@@ -44,6 +87,7 @@ convert_registrations_to_json() {
 }"
 }
 
+# PJSIP registrations trunks
 convert_pjsip_registrations_to_json() {
   echo "{
   \"data\":
@@ -51,7 +95,7 @@ convert_pjsip_registrations_to_json() {
   echo "$REGISTRY" | while read registry; do
   HOST="$(echo $registry | awk '{print $1}' | awk -F "/sip:" '{print $2}')"
   ENDPOINT="$(echo $registry | awk '{print $2}')"
-  USERNAME="$($sudo asterisk -rx "pjsip show endpoint $ENDPOINT" | grep "$ENDPOINT/sip:" | awk '{print $2}' | awk -F"/sip:" '{print $2}' | awk -F"@" '{print $1}')"
+  USERNAME="$(asteriskCmd "pjsip show endpoint $ENDPOINT" | grep "$ENDPOINT/sip:" | awk '{print $2}' | awk -F"/sip:" '{print $2}' | awk -F"@" '{print $1}')"
   STATE="$(echo $registry | awk '{print $3}')"
   [ ! -z "$HOST" ] && echo "    { \"{#HOST}\":\"$HOST\", \"{#ENDPOINT}\":\"$ENDPOINT\",  \"{#USERNAME}\":\"$USERNAME\", \"{#STATE}\":\"$STATE\"},"
   done | sed '$ s/,$//'
@@ -59,30 +103,89 @@ convert_pjsip_registrations_to_json() {
 }"
 }
 
+# SIP/IAX2 peers
+convert_peers_to_json() {
+  echo "{
+  \"data\":
+  ["
+  echo "$PEERS" | while read line; do
+  PEER="$(echo $line | awk '{print $1}' | awk -F "/" '{print $1}')"
+  STATE="$(echo $line | awk '{print $2}')"
+  LATENCY="$(echo $line | awk '{print $3}')"
+  [ ! -z "$PEER" ] && echo "    { \"{#PEER}\":\"$PEER\", \"{#STATE}\":\"$STATE\", \"{#LATENCY}\":\"$LATENCY\"},"
+  done | sed '$ s/,$//'
+  echo "  ]
+}"
+}
+
+# PJSIP endpoints
+convert_endpoints_to_json() {
+  echo "{
+  \"data\":
+  ["
+  echo "$ENDPOINTS" | while read line; do
+  ENDPOINT="$(echo $line | awk '{print $1}' | awk -F "/" '{print $1}')"
+  STATE="$(echo $line | cut -d" " -f2-)"
+  [ ! -z "$ENDPOINT" ] && echo "    { \"{#ENDPOINT}\":\"$ENDPOINT\", \"{#STATE}\":\"$STATE\"},"
+  done | sed '$ s/,$//'
+  echo "  ]
+}"
+}
+
+# trunk registrations discovery
 discovery.iax2.registry() {
-  REGISTRY="$($sudo asterisk -rx "iax2 show registry" | grep -q 'No such command')"
-  
-  if [ $? == 0 ]; then ## IAX2 is not installed
+  if asteriskCmd "iax2 show registry" | grep -qi ^'No such command'; then
     REGISTRY=""
   else
-    REGISTRY="$($sudo asterisk -r -x "iax2 show registry" | grep -v -e "^Host" -e "IAX2 registrations")"
-    fi
-  
+    REGISTRY="$(asteriskCmd "iax2 show registry" | sed -e '1,1d' -e '$d')"
+  fi
   convert_registrations_to_json
 }
 
 discovery.sip.registry() {
-  REGISTRY="$($sudo asterisk -r -x "sip show registry" | grep -v -e "^Host" -e "SIP registrations")"
+  REGISTRY="$(asteriskCmd "sip show registry" | sed -e '1,1d' -e '$d')"
   convert_registrations_to_json
 }
 
 discovery.pjsip.registry() {
-  REGISTRY="$($sudo asterisk -r -x "pjsip show registrations" | grep -v -e "^$" -e "<Registration/ServerURI" -e "^===" -e "^Objects")"
+  #REGISTRY="$(asteriskCmd "pjsip show registrations" | grep -v -e "^$" -e "<Registration/ServerURI" -e "^===" -e "^Objects")"
+  REGISTRY="$(asteriskCmd "pjsip show registrations" | sed -e '1,1d' -e '$d' | grep -v -e "^$" -e "<Registration/ServerURI" -e "^===" -e "^Objects")"
   convert_pjsip_registrations_to_json
 }
 
-## status functions 
+# peers discovery
+discovery.iax2.peers() {
+  if asteriskCmd "iax2 show peers" | grep -qi ^'No such command'; then
+    PEERS=""
+  else
+    # FIXME: because asterisk print empty columns in the "iax2 show peers" command, I must hardcode the field width, if asterisk will change the width we must update this function
+    PEERS="$(asteriskCmd "iax2 show peers" | sed -e '1,1d' -e '$d' | awk -v FIELDWIDTHS="17 41 5 42 15 11" '{print $1" "$6}' | sed -e 's/(//g' -e 's/)//g' | awk '{print $1" "$2" "$3}' | sed 's/  \+/ /g')"
+  fi
+  convert_peers_to_json
+}
 
+discovery.sip.peers() {
+  if asteriskCmd "sip show peers" | grep -qi ^'No such command'; then
+    PEERS=""
+  else
+    # FIXME: because asterisk print empty columns in the "sip show peers" command, I must hardcode the field width, if asterisk will change the width we must update this function
+    PEERS="$(asteriskCmd "sip show peers" | sed -e '1,1d' -e '$d' | awk -v FIELDWIDTHS="26 41 3 11 12 3 9 11" '{print $1" "$8}' | sed -e 's/(//g' -e 's/)//g' | awk '{print $1" "$2" "$3}' | sed 's/  \+/ /g')"
+  fi
+  convert_peers_to_json
+}
+
+discovery.pjsip.endpoints() {
+  if asteriskCmd "pjsip show endpoints" | grep -qi ^'No such command'; then
+    ENDPOINTS=""
+  else
+    # FIXME: because asterisk print empty columns in the "pjsip list endpoints" command, I must hardcode the field width, if asterisk will change the width we must update this function
+    ENDPOINTS="$(asteriskCmd "pjsip list endpoints" | grep -v "<.*>" | grep -w "Endpoint:" | awk -v FIELDWIDTHS="12 53 14 2 3 3" '{print $2" "$3}')"
+  fi
+  convert_endpoints_to_json
+}
+
+
+## status functions 
 service.status() {
   pgrep -x asterisk >/dev/null
   [ $? = 0 ] && echo Up || echo Down
@@ -90,105 +193,142 @@ service.status() {
 
 # return int
 calls.active() {
-  $sudo asterisk -rx "core show channels" | grep "active call.*" | awk '{print$1}'
+  asteriskCmd "core show channels" | grep "active call.*" | awk '{print$1}'
 }
 
 # return int
 calls.processed() {
-  $sudo asterisk -rx "core show channels" | grep "call.* processed" | awk '{print$1}'
+  asteriskCmd "core show channels" | grep "call.* processed" | awk '{print$1}'
 }
 
 calls.longest.channel() {
   # grab only latest call duration in seconds
-  channel="$($sudo asterisk -rx 'core show channels concise' | cut -d'!' -f1 | sed 's/!/ /g' | tail -1)"
+  channel="$(asteriskCmd 'core show channels concise' | cut -d'!' -f1 | sed 's/!/ /g' | tail -1)"
   [ -z "$channel" ] && echo 0 || echo "$channel"
 }
 
 calls.longest.duration() {
   # grab only latest call duration in seconds
-  duration="$($sudo asterisk -rx 'core show channels concise' | cut -d'!' -f12 | sed 's/!/ /g' | tail -1)"
+  duration="$(asteriskCmd 'core show channels concise' | cut -d'!' -f12 | sed 's/!/ /g' | tail -1)"
   [ -z "$duration" ] && echo 0 || echo "$duration"
 }
 
 
 # return secs
 lastreload() {
-  $sudo asterisk -rx "core show uptime seconds" | awk -F": " '/Last reload:/{print$2}'
+  asteriskCmd "core show uptime seconds" | awk -F": " '/Last reload:/{print$2}'
 }
 
 # return secs
 systemuptime() {
-  $sudo asterisk -rx "core show uptime seconds" | awk -F": " '/System uptime:/{print$2}'
+  asteriskCmd "core show uptime seconds" | awk -F": " '/System uptime:/{print$2}'
 }
 
 # return text
 version() {
-  $sudo asterisk -rx "core show version"
+  asteriskCmd "core show version"
 }
 
 ## sip functions - nb. trunks names must container alphanumeric chars adn peer names only numbers
 # return text
 sip.registry() {
-  $sudo asterisk -rx "sip show registry" | grep $1 | sed 's/Request Sent/RequestSent/' | awk '{print $5}'
+  asteriskCmd "sip show registry" | sed -e '1,1d' -e '$d' | grep -w "$1" | sed 's/Request Sent/RequestSent/' | awk '{print $5}'
+}
+
+sip.peer.status() {
+  asteriskCmd "sip show peer $1" | grep -w "Status.*" | sed -e 's/(//g' -e 's/)//g' | awk '{print $3}' | tr -d [:space:]
+}
+
+sip.peer.latency() {
+  asteriskCmd "sip show peer $1" | grep -w "Status.*" | sed -e 's/(//g' -e 's/)//g' | awk '{print $4}' | tr -d [:space:]
 }
 
 sip.peers.online(){
-  $sudo asterisk -rx "sip show peers" | grep OK | awk '{print $1}' | grep -v [A-Za-z] | wc -l
+  asteriskCmd "sip show peers" | sed -e '1,1d' -e '$d' | grep -w OK | wc -l
 }
 
 sip.peers.offline(){
-  $sudo asterisk -rx "sip show peers" | grep -e UNREACHABLE  -e UNKNOWN | awk '{print $1}' | grep -v [A-Za-z] | wc -l
+  asteriskCmd "sip show peers" | sed -e '1,1d' -e '$d' | grep -wv OK | wc -l
 }
 
 sip.trunks.online(){
-  $sudo asterisk -rx "sip show peers" | grep OK | awk '{print $1}' | grep [A-Za-z] | wc -l
+  # FIXME: trunk name MUST container letters to be discovered
+  asteriskCmd "sip show peers" | sed -e '1,1d' -e '$d' | grep -w OK | awk '{print $1}' | grep [A-Za-z] | wc -l
 }
 
 sip.trunks.offline(){
-  $sudo asterisk -rx "sip show peers" | grep -e UNREACHABLE  -e UNKNOWN | awk '{print $1}' | grep [A-Za-z] | wc -l
+  # FIXME: trunk name MUST container letters to be discovered
+  asteriskCmd "sip show peers" | sed -e '1,1d' -e '$d' | grep -wv OK | awk '{print $1}' | grep [A-Za-z] | wc -l
 }
 
 # iax2 functions
 iax2.registry() {
-  $sudo asterisk -rx "iax2 show registry" | grep $1 | sed 's/Request Sent/RequestSent/' | awk '{print $5}'
+  asteriskCmd "iax2 show registry" | sed -e '1,1d' -e '$d' | grep -w "$1" | sed 's/Request Sent/RequestSent/' | awk '{print $5}'
+}
+
+iax2.peer.status() {
+  asteriskCmd "iax2 show peer $1" | grep -w "Status.*" | sed -e 's/(//g' -e 's/)//g' | awk '{print $3}' | tr -d [:space:]
+}
+
+iax2.peer.latency() {
+  asteriskCmd "iax2 show peer $1" | grep -w "Status.*" | sed -e 's/(//g' -e 's/)//g' | awk '{print $4}' | tr -d [:space:]
 }
 
 iax2.peers.online(){
-  $sudo asterisk -rx "iax2 show peers" | grep OK | awk '{print $1}' | wc -l
+  asteriskCmd "iax2 show peers" | sed -e '1,1d' -e '$d' | grep -w OK | wc -l
 }
 
 iax2.peers.offline(){
-  $sudo asterisk -rx "iax2 show peers" | grep -e UNREACHABLE  -e UNKNOWN | awk '{print $1}' | wc -l
+  asteriskCmd "iax2 show peers" | sed -e '1,1d' -e '$d' | grep -wv OK | wc -l
 }
 
 iax2.trunks.online(){
-  $sudo asterisk -rx "iax2 show peers" | grep OK | awk '{print $1}' | grep [A-Za-z] | wc -l
+  # FIXME: trunk name MUST container letters to be discovered
+  asteriskCmd "iax2 show peers" | sed -e '1,1d' -e '$d' | grep -w OK | awk '{print $1}' | grep [A-Za-z] | wc -l
 }
 
 iax2.trunks.offline(){
-  $sudo asterisk -rx "iax2 show peers" | grep -e UNREACHABLE  -e UNKNOWN | awk '{print $1}' | grep [A-Za-z] | wc -l
+  # FIXME: trunk name MUST container letters to be discovered
+  asteriskCmd "sip show peers" | sed -e '1,1d' -e '$d' | grep -wv OK | awk '{print $1}' | grep [A-Za-z] | wc -l
 }
 
 # pjsip functions
 pjsip.registry() {
-  #$sudo asterisk -rx "pjsip show registration $1" | grep "$1/sip:" | awk '{print $3}'
-  $sudo asterisk -rx "pjsip show endpoint $1" | grep "$1/sip:" | awk '{print $4}'
+  #asteriskCmd "pjsip show registration $1" | grep "$1/sip:" | awk '{print $3}'
+  asteriskCmd "pjsip show endpoint $1" | grep "$1/sip:" | awk '{print $4}'
+}
+
+pjsip.endpoint.status() {
+  CONTACT=$(asteriskCmd "pjsip list contacts" | grep -v "<.*>" | grep "Contact.*$1" | awk '{print $4}')
+  if [ ! -z "$CONTACT" ]; then
+      echo $CONTACT
+    else
+      # if the endpoint is not registered (missing contact) discover using 'pjsip list endpoints' command
+      # FIXME: because asterisk print empty columns in the "pjsip list endpoints" command, I must hardcode the field width, if asterisk will change the width we must update this function
+      asteriskCmd "pjsip list endpoints" | grep -v "<.*>" | grep "Endpoint.*$1" | awk -v FIELDWIDTHS="12 53 14 2 3 3" '{print $3}'
+  fi
+}
+
+pjsip.endpoint.latency() {
+  asteriskCmd "pjsip list contacts" | grep -v "<.*>" | grep "Contact.*$1" | awk '{print $5}' | cut -d. -f1
 }
 
 pjsip.endpoints.online() {
-  $sudo asterisk -rx "pjsip show endpoints" | grep "Contact:" | egrep "Avail" | awk '{print $2}'| cut -d "/" -f1 | wc -l
+  asteriskCmd "pjsip show endpoints" | grep "Contact:" | egrep "Avail" | awk '{print $2}'| cut -d "/" -f1 | wc -l
 }
 
 pjsip.endpoints.offline() {
-  $sudo asterisk -rx "pjsip show endpoints" | grep "Endpoint:" | grep -v "<Endpoint/CID" | grep "Unavailable" | awk '{print $2}'| cut -d "/" -f1 | wc -l
+  asteriskCmd "pjsip show endpoints" | grep "Endpoint:" | grep -v "<Endpoint/CID" | grep "Unavailable" | awk '{print $2}'| cut -d "/" -f1 | wc -l
 }
 
 pjsip.trunks.online() {
-  $sudo asterisk -rx "pjsip show endpoints" | grep "Contact:" | egrep "Avail" | awk '{print $2}'| cut -d "/" -f1 | grep [A-Za-z] | wc -l
+  # FIXME: trunk name MUST container letters to be discovered
+  asteriskCmd "pjsip show endpoints" | grep "Contact:" | egrep "Avail" | awk '{print $2}'| cut -d "/" -f1 | grep [A-Za-z] | wc -l
 }
 
 pjsip.trunks.offline() {
-  $sudo asterisk -rx "pjsip show endpoints" | grep "Contact:" | egrep -e "NonQual" | awk '{print $2}'| cut -d "/" -f1 | grep [A-Za-z] | wc -l
+  # FIXME: trunk name MUST container letters to be discovered
+  asteriskCmd "pjsip show endpoints" | grep "Contact:" | egrep -e "NonQual" | awk '{print $2}'| cut -d "/" -f1 | grep [A-Za-z] | wc -l
 }
 
 # execute the passed command
