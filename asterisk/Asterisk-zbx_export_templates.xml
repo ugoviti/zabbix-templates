@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.2</version>
-    <date>2021-03-14T18:00:08Z</date>
+    <date>2021-03-14T22:11:37Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -17,7 +17,8 @@
             <description>Asterisk PBX monitoring template by InitZero
 
 https://github.com/ugoviti/zabbix-templates/tree/master/asterisk
-Version: 20210314</description>
+
+Version: 1.1.0 - Date: 20210314</description>
             <groups>
                 <group>
                     <name>Templates</name>

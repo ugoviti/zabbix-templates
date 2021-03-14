@@ -6,7 +6,7 @@
 # comment to disable sudo
 sudo="sudo -u asterisk"
 
-# enable the caching of asterisk command (to lowering the load caused by frequend query)
+# enable the caching of asterisk commands (to lowering the load caused by frequend query)
 asteriskCacheEnabled="true"
 
 # timeout expire for cache file
