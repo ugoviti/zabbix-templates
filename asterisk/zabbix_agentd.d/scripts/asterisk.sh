@@ -1,7 +1,7 @@
 #!/bin/bash
 # Zabbix Agent monitoring automatic discovery and check script for Asterisk PBX services
 # author: Ugo Viti <ugo.viti@initzero.it>
-# version: 20210314
+# version: 20210316
 
 # comment to disable sudo
 sudo="sudo -u asterisk"
@@ -193,7 +193,9 @@ service.status() {
 
 # return int
 calls.active() {
-  asteriskCmd "core show channels" | grep "active call.*" | awk '{print$1}'
+  #asteriskCmd "core show channels" | grep "active call.*" | awk '{print$1}'
+  # ignore "Ringing" channels and show only active calls ("Up")
+  expr $(asteriskCmd "core show channels concise"  | grep "\!Up\!" | wc -l) / 2
 }
 
 # return int
