@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.2</version>
-    <date>2021-03-14T22:11:37Z</date>
+    <date>2021-03-16T00:04:30Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -309,7 +309,6 @@ Version: 1.1.0 - Date: 20210314</description>
                         <item_prototype>
                             <name>IAX2 peer {#PEER} latency</name>
                             <key>check.asterisk[iax2.peer.latency,{#PEER}]</key>
-                            <delay>5m</delay>
                             <history>7d</history>
                             <units>ms</units>
                             <description>IAX2 Peer latency</description>
@@ -330,7 +329,6 @@ Version: 1.1.0 - Date: 20210314</description>
                         <item_prototype>
                             <name>IAX2 peer {#PEER} status</name>
                             <key>check.asterisk[iax2.peer.status,{#PEER}]</key>
-                            <delay>5m</delay>
                             <history>7d</history>
                             <trends>0</trends>
                             <value_type>TEXT</value_type>
@@ -385,7 +383,6 @@ Version: 1.1.0 - Date: 20210314</description>
                         <item_prototype>
                             <name>PJSIP endpoint {#ENDPOINT} latency</name>
                             <key>check.asterisk[pjsip.endpoint.latency,{#ENDPOINT}]</key>
-                            <delay>5m</delay>
                             <history>7d</history>
                             <status>DISABLED</status>
                             <units>ms</units>
@@ -407,7 +404,6 @@ Version: 1.1.0 - Date: 20210314</description>
                         <item_prototype>
                             <name>PJSIP endpoint {#ENDPOINT} status</name>
                             <key>check.asterisk[pjsip.endpoint.status,{#ENDPOINT}]</key>
-                            <delay>5m</delay>
                             <history>7d</history>
                             <trends>0</trends>
                             <status>DISABLED</status>
@@ -463,7 +459,6 @@ Version: 1.1.0 - Date: 20210314</description>
                         <item_prototype>
                             <name>SIP peer {#PEER} latency</name>
                             <key>check.asterisk[sip.peer.latency,{#PEER}]</key>
-                            <delay>5m</delay>
                             <history>7d</history>
                             <status>DISABLED</status>
                             <units>ms</units>
@@ -485,7 +480,6 @@ Version: 1.1.0 - Date: 20210314</description>
                         <item_prototype>
                             <name>SIP peer {#PEER} status</name>
                             <key>check.asterisk[sip.peer.status,{#PEER}]</key>
-                            <delay>5m</delay>
                             <history>7d</history>
                             <trends>0</trends>
                             <status>DISABLED</status>
@@ -623,19 +617,9 @@ Version: 1.1.0 - Date: 20210314</description>
                             <type>PLAIN_TEXT</type>
                             <name>Asterisk General Status</name>
                             <y>11</y>
-                            <width>6</width>
+                            <width>12</width>
                             <height>5</height>
                             <fields>
-                                <field>
-                                    <type>INTEGER</type>
-                                    <name>show_as_html</name>
-                                    <value>1</value>
-                                </field>
-                                <field>
-                                    <type>INTEGER</type>
-                                    <name>show_lines</name>
-                                    <value>8</value>
-                                </field>
                                 <field>
                                     <type>ITEM</type>
                                     <name>itemids</name>
