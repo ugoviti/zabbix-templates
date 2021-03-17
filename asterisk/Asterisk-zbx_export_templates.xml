@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.2</version>
-    <date>2021-03-17T12:28:31Z</date>
+    <date>2021-03-17T17:26:03Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -44,7 +44,7 @@ Version: 1.1.0 - Date: 20210317</description>
                     </applications>
                     <triggers>
                         <trigger>
-                            <expression>{max(5m)}&gt;{$ASTERISK_CALLS_ACTIVE_WARN}</expression>
+                            <expression>{avg(5m)}&gt;{$ASTERISK_CALLS_ACTIVE_WARN}</expression>
                             <name>Many concurrent active calls detected (&gt; {$ASTERISK_CALLS_ACTIVE_WARN})</name>
                             <priority>WARNING</priority>
                         </trigger>
@@ -693,10 +693,10 @@ Version: 1.1.0 - Date: 20210317</description>
     </templates>
     <triggers>
         <trigger>
-            <expression>{Asterisk PBX:check.asterisk[calls.longest.channel].str()}=1
+            <expression>{Asterisk PBX:check.asterisk[calls.longest.duration].last()}&gt;{$ASTERISK_CALLS_DURATION_WARN}
 and
-{Asterisk PBX:check.asterisk[calls.longest.duration].last()}&gt;{$ASTERISK_CALLS_DURATION_WARN}</expression>
-            <name>Long living call detected (duration &gt; {$ASTERISK_CALLS_DURATION_WARN}s): {ITEM.VALUE1}</name>
+{Asterisk PBX:check.asterisk[calls.longest.channel].strlen(#3)}&gt;1</expression>
+            <name>Long call duration detected (duration &gt; {$ASTERISK_CALLS_DURATION_WARN}s): {ITEM.VALUE2}</name>
             <priority>WARNING</priority>
         </trigger>
     </triggers>
