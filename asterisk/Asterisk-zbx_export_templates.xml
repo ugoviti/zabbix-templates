@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.2</version>
-    <date>2021-03-17T17:47:19Z</date>
+    <date>2021-03-17T18:06:22Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -145,6 +145,12 @@ Version: 1.1.1 - Date: 20210317</description>
                             <priority>INFO</priority>
                             <description>A configuration change was made less than 10 minutes ago</description>
                             <manual_close>YES</manual_close>
+                            <dependencies>
+                                <dependency>
+                                    <name>Asterisk service has been restarted (uptime &lt; 10m)</name>
+                                    <expression>{Asterisk PBX:check.asterisk[systemuptime].last()}&lt;10m</expression>
+                                </dependency>
+                            </dependencies>
                         </trigger>
                     </triggers>
                 </item>
