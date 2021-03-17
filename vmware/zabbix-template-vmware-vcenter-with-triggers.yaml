@@ -1,0 +1,269 @@
+zabbix_export:
+  version: '5.2'
+  date: '2021-03-15T19:00:10Z'
+  groups:
+    -
+      name: Templates/Applications
+  templates:
+    -
+      template: 'VMware vCenter with Triggers'
+      name: 'VMware vCenter with Triggers'
+      description: 'VMware vCenter with Datastore Triggers based on official version: 0.38'
+      templates:
+        -
+          name: 'VMware macros'
+      groups:
+        -
+          name: Templates/Applications
+      applications:
+        -
+          name: VMware
+        -
+          name: 'VMware Cluster'
+        -
+          name: 'VMware Datastore'
+      items:
+        -
+          name: 'VMware: Event log'
+          type: SIMPLE
+          key: 'vmware.eventlog[{$VMWARE.URL},skip]'
+          history: 7d
+          trends: '0'
+          value_type: LOG
+          username: '{$VMWARE.USERNAME}'
+          password: '{$VMWARE.PASSWORD}'
+          description: 'Collect VMware event log. See also: https://www.zabbix.com/documentation/5.2/manual/config/items/preprocessing/examples#filtering_vmware_event_log_records'
+          applications:
+            -
+              name: VMware
+        -
+          name: 'VMware: Full name'
+          type: SIMPLE
+          key: 'vmware.fullname[{$VMWARE.URL}]'
+          delay: 1h
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          username: '{$VMWARE.USERNAME}'
+          password: '{$VMWARE.PASSWORD}'
+          description: 'VMware service full name.'
+          applications:
+            -
+              name: VMware
+          preprocessing:
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+        -
+          name: 'VMware: Version'
+          type: SIMPLE
+          key: 'vmware.version[{$VMWARE.URL}]'
+          delay: 1h
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          username: '{$VMWARE.USERNAME}'
+          password: '{$VMWARE.PASSWORD}'
+          description: 'VMware service version.'
+          applications:
+            -
+              name: VMware
+          preprocessing:
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+      discovery_rules:
+        -
+          name: 'Discover VMware clusters'
+          type: SIMPLE
+          key: 'vmware.cluster.discovery[{$VMWARE.URL}]'
+          delay: 1h
+          username: '{$VMWARE.USERNAME}'
+          password: '{$VMWARE.PASSWORD}'
+          description: 'Discovery of clusters'
+          item_prototypes:
+            -
+              name: 'VMware: Status of "{#CLUSTER.NAME}" cluster'
+              type: SIMPLE
+              key: 'vmware.cluster.status[{$VMWARE.URL},{#CLUSTER.NAME}]'
+              history: 7d
+              username: '{$VMWARE.USERNAME}'
+              password: '{$VMWARE.PASSWORD}'
+              description: 'VMware cluster status.'
+              applications:
+                -
+                  name: 'VMware Cluster'
+              valuemap:
+                name: 'VMware status'
+        -
+          name: 'Discover VMware datastores'
+          type: SIMPLE
+          key: 'vmware.datastore.discovery[{$VMWARE.URL}]'
+          delay: 1h
+          username: '{$VMWARE.USERNAME}'
+          password: '{$VMWARE.PASSWORD}'
+          item_prototypes:
+            -
+              name: 'Datastore {#DATASTORE} average read latency'
+              type: SIMPLE
+              key: 'vmware.datastore.read[{$VMWARE.URL},{#DATASTORE},latency]'
+              history: 7d
+              username: '{$VMWARE.USERNAME}'
+              password: '{$VMWARE.PASSWORD}'
+              description: 'Amount of time for a read operation from the datastore (milliseconds).'
+              applications:
+                -
+                  name: 'VMware Datastore'
+            -
+              name: 'Datastore {#DATASTORE} free space'
+              type: SIMPLE
+              key: 'vmware.datastore.size[{$VMWARE.URL},{#DATASTORE},free]'
+              delay: 5m
+              history: 7d
+              units: B
+              username: '{$VMWARE.USERNAME}'
+              password: '{$VMWARE.PASSWORD}'
+              description: 'VMware datastore space in percentage from total.'
+              applications:
+                -
+                  name: 'VMware Datastore'
+            -
+              name: 'Datastore {#DATASTORE} free space (percentage)'
+              type: SIMPLE
+              key: 'vmware.datastore.size[{$VMWARE.URL},{#DATASTORE},pfree]'
+              delay: 5m
+              history: 7d
+              value_type: FLOAT
+              units: '%'
+              username: '{$VMWARE.USERNAME}'
+              password: '{$VMWARE.PASSWORD}'
+              description: 'VMware datastore space in percentage from total.'
+              applications:
+                -
+                  name: 'VMware Datastore'
+            -
+              name: 'Datastore {#DATASTORE} total size'
+              type: SIMPLE
+              key: 'vmware.datastore.size[{$VMWARE.URL},{#DATASTORE}]'
+              delay: 5m
+              history: 7d
+              units: B
+              username: '{$VMWARE.USERNAME}'
+              password: '{$VMWARE.PASSWORD}'
+              description: 'VMware datastore space in bytes.'
+              applications:
+                -
+                  name: 'VMware Datastore'
+            -
+              name: 'Datastore {#DATASTORE} average write latency'
+              type: SIMPLE
+              key: 'vmware.datastore.write[{$VMWARE.URL},{#DATASTORE},latency]'
+              history: 7d
+              username: '{$VMWARE.USERNAME}'
+              password: '{$VMWARE.PASSWORD}'
+              description: 'Amount of time for a write operation to the datastore (milliseconds).'
+              applications:
+                -
+                  name: 'VMware Datastore'
+          trigger_prototypes:
+            -
+              expression: |
+                {VMware vCenter with Triggers:vmware.datastore.size[{$VMWARE.URL},{#DATASTORE},pfree].min(5m)}<={$VMWARE.DATASTORE.FREE.PERCENT}
+                and
+                {VMware vCenter with Triggers:vmware.datastore.size[{$VMWARE.URL},{#DATASTORE},free].min(5m)}>=0
+                and
+                {VMware vCenter with Triggers:vmware.datastore.size[{$VMWARE.URL},{#DATASTORE}].min(5m)}>=0
+              name: 'Free space on datastore {#DATASTORE} is {ITEM.LASTVALUE1} with {ITEM.LASTVALUE2} remaining of {ITEM.LASTVALUE3}'
+              priority: HIGH
+        -
+          name: 'Discover VMware hypervisors'
+          type: SIMPLE
+          key: 'vmware.hv.discovery[{$VMWARE.URL}]'
+          delay: 1h
+          username: '{$VMWARE.USERNAME}'
+          password: '{$VMWARE.PASSWORD}'
+          description: 'Discovery of hypervisors.'
+          host_prototypes:
+            -
+              host: '{#HV.UUID}'
+              name: '{#HV.NAME}'
+              group_links:
+                -
+                  group:
+                    name: Templates/Applications
+              group_prototypes:
+                -
+                  name: '{#CLUSTER.NAME}'
+                -
+                  name: '{#DATACENTER.NAME}'
+              templates:
+                -
+                  name: 'VMware Hypervisor'
+              macros:
+                -
+                  macro: '{$VMWARE.HV.UUID}'
+                  value: '{#HV.UUID}'
+                  description: 'UUID of hypervisor.'
+              custom_interfaces: 'YES'
+              interfaces:
+                -
+                  ip: '{#HV.IP}'
+        -
+          name: 'Discover VMware VMs'
+          type: SIMPLE
+          key: 'vmware.vm.discovery[{$VMWARE.URL}]'
+          delay: 1h
+          status: DISABLED
+          username: '{$VMWARE.USERNAME}'
+          password: '{$VMWARE.PASSWORD}'
+          description: 'Discovery of guest virtual machines.'
+          host_prototypes:
+            -
+              host: '{#VM.UUID}'
+              name: '{#VM.NAME}'
+              group_links:
+                -
+                  group:
+                    name: Templates/Applications
+              group_prototypes:
+                -
+                  name: '{#CLUSTER.NAME} (vm)'
+                -
+                  name: '{#DATACENTER.NAME} (vm)'
+                -
+                  name: '{#HV.NAME}'
+              templates:
+                -
+                  name: 'VMware Guest'
+              macros:
+                -
+                  macro: '{$VMWARE.VM.UUID}'
+                  value: '{#VM.UUID}'
+                  description: 'UUID of guest virtual machine.'
+              custom_interfaces: 'YES'
+              interfaces:
+                -
+                  ip: '{#VM.IP}'
+      macros:
+        -
+          macro: '{$VMWARE.DATASTORE.FREE.PERCENT}'
+          value: '5'
+          description: 'Datastore Free size percent warning'
+  value_maps:
+    -
+      name: 'VMware status'
+      mappings:
+        -
+          value: '0'
+          newvalue: gray
+        -
+          value: '1'
+          newvalue: green
+        -
+          value: '2'
+          newvalue: yellow
+        -
+          value: '3'
+          newvalue: red
