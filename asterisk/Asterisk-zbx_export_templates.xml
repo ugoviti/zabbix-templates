@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.2</version>
-    <date>2021-03-17T17:26:03Z</date>
+    <date>2021-03-17T17:47:19Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -18,7 +18,7 @@
 
 https://github.com/ugoviti/zabbix-templates/tree/master/asterisk
 
-Version: 1.1.0 - Date: 20210317</description>
+Version: 1.1.1 - Date: 20210317</description>
             <groups>
                 <group>
                     <name>Templates</name>
