@@ -1,7 +1,7 @@
 #!/bin/bash
 # Zabbix Agent monitoring automatic discovery and check script for Asterisk PBX services
 # author: Ugo Viti <ugo.viti@initzero.it>
-# version: 20210316
+# version: 20210317
 
 # comment to disable sudo
 sudo="sudo -u asterisk"
@@ -193,28 +193,34 @@ service.status() {
 
 # return int
 calls.active() {
-  #asteriskCmd "core show channels" | grep "active call.*" | awk '{print$1}'
+  # disable cache for this check
+  asteriskCacheEnabled=false
   # ignore "Ringing" channels and show only active calls ("Up")
   expr $(asteriskCmd "core show channels concise"  | grep "\!Up\!" | wc -l) / 2
 }
 
 # return int
 calls.processed() {
-  asteriskCmd "core show channels" | grep "call.* processed" | awk '{print$1}'
-}
-
-calls.longest.channel() {
-  # grab only latest call duration in seconds
-  channel="$(asteriskCmd 'core show channels concise' | cut -d'!' -f1 | sed 's/!/ /g' | tail -1)"
-  [ -z "$channel" ] && echo 0 || echo "$channel"
+  # disable cache for this check
+  asteriskCacheEnabled=false
+  asteriskCmd "core show channels" | grep "call.* processed" | cut -d" " -f 1
 }
 
 calls.longest.duration() {
+  # disable cache for this check
+  asteriskCacheEnabled=false
   # grab only latest call duration in seconds
-  duration="$(asteriskCmd 'core show channels concise' | cut -d'!' -f12 | sed 's/!/ /g' | tail -1)"
+  duration="$(asteriskCmd 'core show channels concise' | awk -F\! '{print $12" "$1}' | sort -n | tail -1 | cut -d" " -f 1)"
   [ -z "$duration" ] && echo 0 || echo "$duration"
 }
 
+calls.longest.channel() {
+  # disable cache for this check
+  asteriskCacheEnabled=false
+  # grab only latest call duration in seconds
+  channel="$(asteriskCmd 'core show channels concise' | awk -F\! '{print $12" "$1}' | sort -n | tail -1 | cut -d" " -f 2)"
+  [ -z "$channel" ] && echo 0 || echo "$channel"
+}
 
 # return secs
 lastreload() {
