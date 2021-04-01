@@ -1,0 +1,164 @@
+zabbix_export:
+  version: '5.2'
+  date: '2021-04-01T00:44:34Z'
+  groups:
+    -
+      name: Templates
+  templates:
+    -
+      template: TurboSMTP
+      name: TurboSMTP
+      description: |
+        TurboSMTP API service monitoring template by InitZero
+        
+        https://github.com/ugoviti/zabbix-templates/tree/master/turbosmtp
+        
+        Version: 1.0.0 - Date: 20210401
+      groups:
+        -
+          name: Templates
+      applications:
+        -
+          name: TurboSMTP
+      items:
+        -
+          name: 'Email Sent (this month)'
+          key: 'turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 30m
+          applications:
+            -
+              name: TurboSMTP
+        -
+          name: 'Emails Sent (previous month)'
+          key: 'turbosmtp[emails.count.month.previous,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 30m
+          applications:
+            -
+              name: TurboSMTP
+        -
+          name: 'Email Sent (today)'
+          key: 'turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 30m
+          applications:
+            -
+              name: TurboSMTP
+        -
+          name: 'Email Sent (this week)'
+          key: 'turbosmtp[emails.count.week,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 30m
+          applications:
+            -
+              name: TurboSMTP
+        -
+          name: 'Email Sent (previous week)'
+          key: 'turbosmtp[emails.count.week.previous,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 30m
+          applications:
+            -
+              name: TurboSMTP
+        -
+          name: 'Emails quota limit (monthly)'
+          key: 'turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 30m
+          applications:
+            -
+              name: TurboSMTP
+      macros:
+        -
+          macro: '{$TURBOSMTP.PASSWORD}'
+          description: 'TurboSMTP Password'
+        -
+          macro: '{$TURBOSMTP.USERNAME}'
+          description: 'TurboSMTP Username (Email Address)'
+        -
+          macro: '{$TURBOSMTP.WARN.LIMIT}'
+          value: '90'
+          description: '% of monthly send quota limit before triggering alarm'
+      dashboards:
+        -
+          name: TurboSMTP
+          widgets:
+            -
+              type: GRAPH_CLASSIC
+              width: '12'
+              height: '5'
+              fields:
+                -
+                  type: GRAPH
+                  name: graphid
+                  value:
+                    name: 'Emails Sent Today'
+                    host: TurboSMTP
+            -
+              type: GRAPH_CLASSIC
+              'y': '5'
+              width: '12'
+              height: '5'
+              fields:
+                -
+                  type: GRAPH
+                  name: graphid
+                  value:
+                    name: 'Emails Sent by Week'
+                    host: TurboSMTP
+            -
+              type: GRAPH_CLASSIC
+              x: '12'
+              width: '12'
+              height: '5'
+              fields:
+                -
+                  type: GRAPH
+                  name: graphid
+                  value:
+                    name: 'Emails Sent by Month'
+                    host: TurboSMTP
+  triggers:
+    -
+      expression: '(100/{TurboSMTP:turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)})*{TurboSMTP:turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)}>{$TURBOSMTP.WARN.LIMIT}'
+      name: 'Emails Sent Quota Warning (> {$TURBOSMTP.WARN.LIMIT})'
+      priority: WARNING
+  graphs:
+    -
+      name: 'Emails Sent by Month'
+      show_work_period: 'NO'
+      show_triggers: 'NO'
+      graph_items:
+        -
+          sortorder: '1'
+          color: 2774A4
+          item:
+            host: TurboSMTP
+            key: 'turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+        -
+          sortorder: '2'
+          color: F7941D
+          item:
+            host: TurboSMTP
+            key: 'turbosmtp[emails.count.month.previous,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+    -
+      name: 'Emails Sent by Week'
+      graph_items:
+        -
+          sortorder: '1'
+          color: F63100
+          item:
+            host: TurboSMTP
+            key: 'turbosmtp[emails.count.week,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+        -
+          sortorder: '2'
+          color: 199C0D
+          item:
+            host: TurboSMTP
+            key: 'turbosmtp[emails.count.week.previous,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+    -
+      name: 'Emails Sent Today'
+      show_work_period: 'NO'
+      show_triggers: 'NO'
+      graph_items:
+        -
+          sortorder: '1'
+          color: 2774A4
+          item:
+            host: TurboSMTP
+            key: 'turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
