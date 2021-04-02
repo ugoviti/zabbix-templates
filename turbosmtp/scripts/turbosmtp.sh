@@ -57,10 +57,13 @@ auth() {
 }
 
 emails.count() {
-  curl -s https://dashboard.serversmtp.com/api/stats/panes/emails/count -G -d "start=$date_start" -d "end=$date_end" -d "filter=*" -H "Authorization: $auth" | jq -r .count
+  # https://www.serversmtp.com/turbo-api/#count-of-email-sent
+  [ -z "$1" ] && filter='*' || filter="$1"
+  curl -s https://dashboard.serversmtp.com/api/stats/panes/emails/count -G -d "start=$date_start" -d "end=$date_end" -d "filter=$filter" -H "Authorization: $auth" | jq -r .count
 }
 
 plans.smtp_limit() {
+  # https://www.serversmtp.com/turbo-api/#active-plans
   curl -s https://dashboard.serversmtp.com/api/plans -G -H "Authorization: $auth" | jq -r .[] | jq -r .smtp_limit
 }
 
@@ -91,9 +94,20 @@ emails.count.week() {
 emails.count.today() {
   date_start="$(date +"%Y-%m-%d 00:00:00")"
   date_end="$(date +"%Y-%m-%d %H:%M:%S")"
-  emails.count
+  emails.count $1
 }
 
+emails.count.today.delivered() {
+  emails.count.today '["SUCCESS","OPEN","CLICK","UNSUB","REPORT"]'
+}
+
+emails.count.today.read() {
+  emails.count.today '["OPEN","CLICK","UNSUB","REPORT"]'
+}
+
+emails.count.today.failed() {
+  emails.count.today '["FAIL"]'
+}
 
 # execute the given command
 #set -x

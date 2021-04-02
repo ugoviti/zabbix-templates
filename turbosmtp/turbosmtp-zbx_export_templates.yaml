@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2021-04-01T00:44:34Z'
+  date: '2021-04-02T06:58:56Z'
   groups:
     -
       name: Templates
@@ -22,7 +22,7 @@ zabbix_export:
           name: TurboSMTP
       items:
         -
-          name: 'Email Sent (this month)'
+          name: 'Emails Sent (this month)'
           key: 'turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
           applications:
@@ -36,28 +36,56 @@ zabbix_export:
             -
               name: TurboSMTP
         -
-          name: 'Email Sent (today)'
+          name: 'Emails Sent (today)'
           key: 'turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
           applications:
             -
               name: TurboSMTP
+          triggers:
+            -
+              expression: '{delta(1h)}>{$TURBOSMTP.THRESHOLD.HOURLY}'
+              name: 'TurboSMTP hourly send rate threshold exceded (> {$TURBOSMTP.THRESHOLD.HOURLY})'
+              priority: WARNING
+              description: 'TurboSMTP account: {$TURBOSMTP.USERNAME}'
+              manual_close: 'YES'
         -
-          name: 'Email Sent (this week)'
+          name: 'Emails Delivered (today)'
+          key: 'turbosmtp[emails.count.today.delivered,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 30m
+          applications:
+            -
+              name: TurboSMTP
+        -
+          name: 'Emails Failed (today)'
+          key: 'turbosmtp[emails.count.today.failed,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 30m
+          applications:
+            -
+              name: TurboSMTP
+        -
+          name: 'Emails Read (today)'
+          key: 'turbosmtp[emails.count.today.read,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 30m
+          applications:
+            -
+              name: TurboSMTP
+        -
+          name: 'Emails Sent (this week)'
           key: 'turbosmtp[emails.count.week,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
           applications:
             -
               name: TurboSMTP
         -
-          name: 'Email Sent (previous week)'
+          name: 'Emails Sent (previous week)'
           key: 'turbosmtp[emails.count.week.previous,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
           applications:
             -
               name: TurboSMTP
         -
-          name: 'Emails quota limit (monthly)'
+          name: 'Emails Quota Limit (monthly)'
           key: 'turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
           applications:
@@ -68,12 +96,16 @@ zabbix_export:
           macro: '{$TURBOSMTP.PASSWORD}'
           description: 'TurboSMTP Password'
         -
-          macro: '{$TURBOSMTP.USERNAME}'
-          description: 'TurboSMTP Username (Email Address)'
-        -
-          macro: '{$TURBOSMTP.WARN.LIMIT}'
+          macro: '{$TURBOSMTP.QUOTA.WARN.LIMIT}'
           value: '90'
           description: '% of monthly send quota limit before triggering alarm'
+        -
+          macro: '{$TURBOSMTP.THRESHOLD.HOURLY}'
+          value: '100'
+          description: 'Hourly max sending mail threshold'
+        -
+          macro: '{$TURBOSMTP.USERNAME}'
+          description: 'TurboSMTP Username (Email Address)'
       dashboards:
         -
           name: TurboSMTP
@@ -115,9 +147,10 @@ zabbix_export:
                     host: TurboSMTP
   triggers:
     -
-      expression: '(100/{TurboSMTP:turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)})*{TurboSMTP:turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)}>{$TURBOSMTP.WARN.LIMIT}'
-      name: 'Emails Sent Quota Warning (> {$TURBOSMTP.WARN.LIMIT})'
+      expression: '(100/{TurboSMTP:turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)})*{TurboSMTP:turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)}>{$TURBOSMTP.QUOTA.WARN.LIMIT}'
+      name: 'TurboSMTP sent emails quota warning (> {$TURBOSMTP.WARN.LIMIT})'
       priority: WARNING
+      description: 'TurboSMTP account: {$TURBOSMTP.USERNAME}'
   graphs:
     -
       name: 'Emails Sent by Month'
@@ -158,7 +191,25 @@ zabbix_export:
       graph_items:
         -
           sortorder: '1'
-          color: 2774A4
+          color: 6C59DC
+          item:
+            host: TurboSMTP
+            key: 'turbosmtp[emails.count.today.delivered,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+        -
+          sortorder: '2'
+          color: C7A72D
+          item:
+            host: TurboSMTP
+            key: 'turbosmtp[emails.count.today.failed,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+        -
+          sortorder: '3'
+          color: BA2A5D
+          item:
+            host: TurboSMTP
+            key: 'turbosmtp[emails.count.today.read,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+        -
+          sortorder: '4'
+          color: F230E0
           item:
             host: TurboSMTP
             key: 'turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
