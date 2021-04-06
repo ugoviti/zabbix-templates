@@ -1,5 +1,5 @@
 # TurboSMTP Template
-Check TurboSMTP Mail Sending API service
+Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 
 ## Features
 - Trigger: threshold for hourly send rate
