@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2021-04-06T07:29:59Z'
+  date: '2021-04-06T10:42:36Z'
   groups:
     -
       name: Templates
@@ -157,7 +157,7 @@ zabbix_export:
   triggers:
     -
       expression: '(100/{TurboSMTP:turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)})*{TurboSMTP:turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)}>{$TURBOSMTP.QUOTA.WARN.LIMIT}'
-      name: 'TurboSMTP sent emails quota warning (> {$TURBOSMTP.WARN.LIMIT})'
+      name: 'TurboSMTP monthly sent emails quota warning (> {$TURBOSMTP.WARN.LIMIT})'
       priority: WARNING
       description: 'TurboSMTP account: {$TURBOSMTP.USERNAME}'
   graphs:
