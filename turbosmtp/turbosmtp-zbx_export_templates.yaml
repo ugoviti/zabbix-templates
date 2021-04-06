@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2021-04-02T06:58:56Z'
+  date: '2021-04-06T07:27:37Z'
   groups:
     -
       name: Templates
@@ -25,13 +25,17 @@ zabbix_export:
           name: 'Emails Sent (this month)'
           key: 'turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
+          history: 30d
+          trends: 1095d
           applications:
             -
               name: TurboSMTP
         -
           name: 'Emails Sent (previous month)'
           key: 'turbosmtp[emails.count.month.previous,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
-          delay: 30m
+          delay: 1d
+          history: 30d
+          trends: 1095d
           applications:
             -
               name: TurboSMTP
@@ -39,20 +43,29 @@ zabbix_export:
           name: 'Emails Sent (today)'
           key: 'turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
+          history: 30d
           applications:
             -
               name: TurboSMTP
           triggers:
             -
-              expression: '{delta(1h)}>{$TURBOSMTP.THRESHOLD.HOURLY}'
+              expression: '({last()}-{min(1h)})>{$TURBOSMTP.THRESHOLD.HOURLY}'
               name: 'TurboSMTP hourly send rate threshold exceded (> {$TURBOSMTP.THRESHOLD.HOURLY})'
               priority: WARNING
-              description: 'TurboSMTP account: {$TURBOSMTP.USERNAME}'
+              description: |
+                TurboSMTP account: {$TURBOSMTP.USERNAME}
+                
+                max: ({mon01.initzero.it:turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].max(1h)}
+                
+                min: {mon01.initzero.it:turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].min(1h)})
+                
+                threshold: {$TURBOSMTP.THRESHOLD.HOURLY}
               manual_close: 'YES'
         -
           name: 'Emails Delivered (today)'
           key: 'turbosmtp[emails.count.today.delivered,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
+          history: 30d
           applications:
             -
               name: TurboSMTP
@@ -60,6 +73,7 @@ zabbix_export:
           name: 'Emails Failed (today)'
           key: 'turbosmtp[emails.count.today.failed,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
+          history: 30d
           applications:
             -
               name: TurboSMTP
@@ -67,6 +81,7 @@ zabbix_export:
           name: 'Emails Read (today)'
           key: 'turbosmtp[emails.count.today.read,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
+          history: 30d
           applications:
             -
               name: TurboSMTP
@@ -74,20 +89,23 @@ zabbix_export:
           name: 'Emails Sent (this week)'
           key: 'turbosmtp[emails.count.week,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 30m
+          history: 30d
           applications:
             -
               name: TurboSMTP
         -
           name: 'Emails Sent (previous week)'
           key: 'turbosmtp[emails.count.week.previous,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
-          delay: 30m
+          delay: 1d
+          history: 30d
           applications:
             -
               name: TurboSMTP
         -
           name: 'Emails Quota Limit (monthly)'
           key: 'turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
-          delay: 30m
+          delay: 1d
+          history: 30d
           applications:
             -
               name: TurboSMTP
