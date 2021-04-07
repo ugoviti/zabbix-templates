@@ -65,7 +65,10 @@ cmdCacheWrapper() {
 rblCheck(){
   IP="$1"
   shift
-
+  
+  # test blacklisted IP
+  #IP="127.0.0.2"
+  
   RBL_LIST="$@"
   
   # default RBL list

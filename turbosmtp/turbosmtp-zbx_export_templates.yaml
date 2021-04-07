@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2021-04-07T12:39:06Z'
+  date: '2021-04-07T15:14:56Z'
   groups:
     -
       name: Templates
@@ -30,17 +30,10 @@ zabbix_export:
           description: |
             Outgoing IP address is listed in public RBL
             
-            {$TURBOSMTP.RBL_LIST}
+            IP: {TurboSMTP:turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}
           applications:
             -
               name: TurboSMTP
-          triggers:
-            -
-              expression: '{last()}<>"Good"'
-              name: 'TurboSMTP sending IP poor RBL reputation'
-              priority: WARNING
-              description: 'IP: {TurboSMTP:turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}'
-              manual_close: 'YES'
         -
           name: 'Emails Sent (this month)'
           key: 'turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
@@ -190,6 +183,19 @@ zabbix_export:
       name: 'TurboSMTP monthly sent emails quota warning (> {$TURBOSMTP.WARN.LIMIT})'
       priority: WARNING
       description: 'TurboSMTP account: {$TURBOSMTP.USERNAME}'
+    -
+      expression: |
+        {TurboSMTP:turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}<>""
+        and
+        {TurboSMTP:turbosmtp[blacklist.check,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}<>"Good"
+      name: 'TurboSMTP poor RBL reputation for IP {ITEM.LASTVALUE1}'
+      opdata: '{ITEM.LASTVALUE2}'
+      priority: WARNING
+      description: |
+        Account: {$TURBOSMTP.USERNAME}
+        IP: {ITEM.LASTVALUE1}
+        Reputation: {{ITEM.LASTVALUE2}.regsub("(.*)", "\1")}
+      manual_close: 'YES'
   graphs:
     -
       name: 'Emails Sent by Month'
