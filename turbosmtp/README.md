@@ -4,6 +4,7 @@ Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 ## Features
 - Trigger: threshold for hourly send rate
 - Trigger: threshold for monthly sent emails
+- Trigger: RBL Sending IP Reputation
 - Item: Emails Sent (this month)
 - Item: Emails Sent (previous month)
 - Item: Emails Sent (today)
@@ -13,10 +14,14 @@ Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 - Item: Emails Sent (this week)
 - Item: Emails Sent (previous week)
 - Item: Emails Quota Limit (monthly)
+- Item: Sending IP Address
+- Item: Sending IP RBL Reputation
+- Command cache support
 
 ## Installation
+- Shell commands prerequisites: curl, jq, dig
 - `ZABBIX_SCRIPTS_DIR="/etc/zabbix/scripts"`
-- `ZABBIX_AGENT_DIR="$ZABBIX_AGENT_DIR/zabbix_agent2.d"`
+- `ZABBIX_AGENT_DIR="/etc/zabbix/zabbix_agent2.d"`
 - `mkdir -p $ZABBIX_SCRIPTS_DIR $ZABBIX_AGENT_DIR`
 - `cp scripts/turbosmtp.sh $ZABBIX_SCRIPTS_DIR/scripts/`
 - `chmod 755 $ZABBIX_SCRIPTS_DIR/scripts/turbosmtp.sh`

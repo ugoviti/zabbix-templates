@@ -1,15 +1,19 @@
 #!/bin/bash
 # Zabbix Agent monitoring afor TurboSMTP service
 # author: Ugo Viti <ugo.viti@initzero.it>
-# version: 20210402
+# version: 20210407
 
-## INSTALLATION:
-# dnf install curl jq -y
+## RHEL INSTALLATION:
+# dnf install curl jq bind-utils -y
 
-cmdCacheDir="/tmp/zabbix-turbosmtp"
+# enable the caching of recurring commands (to lowering the load caused by frequent queries)
+cmdCacheEnabled="false"
 
 # timeout expire for cache file (in seconds)
 cmdCacheTime="3600"
+
+# tmp directory of cache files
+cmdCacheDir="/tmp/zabbix-turbosmtp"
 
 cmd="$1"
 shift
@@ -20,40 +24,115 @@ shift
 password="$1"
 shift
 
+args="$@"
 
 [ -z "$cmd" ] && echo "ERROR: missing COMMAND arguments... exiting" && exit 1
 [ -z "$username" ] && echo "ERROR: missing USERNAME... exiting" && exit 1
 [ -z "$password" ] && echo "ERROR: missing PASSWORD... exiting" && exit 1
 
-## command cache
-
-cmd_init() {
-  COMMANDS="curl jq"
+cmdInit() {
+  COMMANDS="curl jq dig"
 
   # verify if all commands are installed in the system paths
   for COMMAND in $COMMANDS; do
       which $COMMAND >/dev/null 2>&1
       [ $? -ne 0 ] && echo "ERROR: the command '$COMMAND' doesn't exist in any path, please install it and retry. exiting..." && exit 1
   done
+
+  auth=$(cmdCacheEnabled=true cmdCacheWrapper authorize)
+}
+
+## command wrapper cache
+cmdCacheWrapper() {
+  cmd="$1"
+  shift
   
-  [ ! -e "${cmdCacheDir}" ] && install -m 750 -d "${cmdCacheDir}"
-  
-  if [ ! -e "${cmdCacheDir}/auth.token" ];
-    then
-      auth > "${cmdCacheDir}/auth.token"
-    else
-      if [ "$(( $(date +"%s") - $(stat -c "%Y" "${cmdCacheDir}/auth.token") ))" -gt "$cmdCacheTime" ]; then
-          auth > "${cmdCacheDir}/auth.token"
+  # use a cache file if requested
+  if [ "$cmdCacheEnabled" = "true" ]; then
+      cmdCacheFile="$cmdCacheDir/$(echo $cmd | sed 's/ /_/g')"
+      [ ! -e "$cmdCacheDir" ] && install -m 750 -d "$cmdCacheDir"
+      [ ! -e "$cmdCacheFile" ] && touch "$cmdCacheFile"
+      # update cache file if cmdCacheTime is expired
+      if [ -z "$(cat "$cmdCacheFile")" ] || [ "$(( $(date +"%s") - $(stat -c "%Y" $cmdCacheFile) ))" -gt "$cmdCacheTime" ]; then
+        $cmd $@ > "$cmdCacheFile"
       fi
+      cat "$cmdCacheFile"
+    else
+      $cmd $@
   fi
+}
+
+rblCheck(){
+  IP="$1"
+  shift
+
+  RBL_LIST="$@"
   
-  auth="$(cat "${cmdCacheDir}/auth.token")"
+  # default RBL list
+  : ${RBL_LIST:="
+      cbl.abuseat.org
+      dnsbl.sorbs.net
+      bl.spamcop.net
+      zen.spamhaus.org
+      combined.njabl.org
+      myfasttelco.com
+  "}
+  
+  RDNS=$(echo $IP | sed -ne "s~^\([0-9]\{1,3\}\)\.\([0-9]\{1,3\}\)\.\([0-9]\{1,3\}\)\.\([0-9]\{1,3\}\)$~\4.\3.\2.\1~p")
+
+  # -- cycle through all the blacklists
+  for RBL in ${RBL_LIST} ; do
+      # print the UTC date (without linefeed)
+      #printf $(date +"%Y-%m-%d %H:%M:%S")
+      #printf "%-50s" " ${RDNS}.${BL}."
+
+      # use dig to lookup the name in the blacklist  
+      local LISTED="$(dig +short -t a ${RDNS}.${RBL}.)"
+      [ ! -z "${LISTED}" ] && LISTED_RBL+="${RBL}, "
+      unset LISTED
+  done
+  if [ ! -z "${LISTED_RBL}" ]; then
+    LISTED_RBL=$(echo ${LISTED_RBL} | sed 's/,$//')
+    echo "IP $IP is listed in RBL: [${LISTED_RBL}]"
+  else
+    echo "Good"
+  fi
+}
+
+# returns the integer representation of an IP arg, passed in ascii dotted-decimal notation (x.x.x.x)
+ip2dec() {
+    local a b c d ip=$@
+    IFS=. read -r a b c d <<< "$ip"
+    printf '%d\n' "$((a * 256 ** 3 + b * 256 ** 2 + c * 256 + d))"
+}
+
+# returns the dotted-decimal ascii form of an IP arg passed in integer format
+dec2ip() {
+    local ip dec=$@
+    for e in {3..0}
+    do
+        ((octet = dec / (256 ** e) ))
+        ((dec -= octet * 256 ** e))
+        ip+=$delim$octet
+        delim=.
+    done
+    printf '%s\n' "$ip"
 }
 
 ## ref: https://www.serversmtp.com/turbo-api/
-
-auth() {
+authorize() {
   curl -s https://dashboard.serversmtp.com/api/authorize -d "email=${username}" -d "password=${password}" -d "no_expire=0" | jq -r .auth
+}
+
+user.info.ip() {
+  # https://www.serversmtp.com/turbo-api/#account-info
+  dec2ip $(curl -s https://dashboard.serversmtp.com/api/user/info -G -H "Authorization: $auth" | jq -r .ip)
+}
+
+blacklist.check() {
+  rblCheck $(cmdCacheEnabled=true cmdCacheWrapper user.info.ip) $@
+  # rbl tester
+  #rblCheck 127.0.0.2 $@
 }
 
 emails.count() {
@@ -109,7 +188,18 @@ emails.count.today.failed() {
   emails.count.today '["FAIL"]'
 }
 
-# execute the given command
+# init commands
 #set -x
-cmd_init
-$cmd $@
+cmdInit
+
+# command cache handling
+case $cmd in
+  # always cache these commands
+  authorize|user.info.ip)
+    cmdCacheEnabled=true cmdCacheWrapper $cmd $@
+    ;;
+  # disable cache for other commands
+  *)  
+    cmdCacheEnabled=false cmdCacheWrapper $cmd $@
+    ;;
+esac

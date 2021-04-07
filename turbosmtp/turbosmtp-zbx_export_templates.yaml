@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2021-04-06T10:42:36Z'
+  date: '2021-04-07T12:39:06Z'
   groups:
     -
       name: Templates
@@ -13,7 +13,7 @@ zabbix_export:
         
         https://github.com/ugoviti/zabbix-templates/tree/master/turbosmtp
         
-        Version: 1.0.1 - Date: 20210406
+        Version: 1.0.2 - Date: 20210407
       groups:
         -
           name: Templates
@@ -21,6 +21,26 @@ zabbix_export:
         -
           name: TurboSMTP
       items:
+        -
+          name: 'Sending IP RBL Reputation'
+          key: 'turbosmtp[blacklist.check,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 10m
+          trends: '0'
+          value_type: TEXT
+          description: |
+            Outgoing IP address is listed in public RBL
+            
+            {$TURBOSMTP.RBL_LIST}
+          applications:
+            -
+              name: TurboSMTP
+          triggers:
+            -
+              expression: '{last()}<>"Good"'
+              name: 'TurboSMTP sending IP poor RBL reputation'
+              priority: WARNING
+              description: 'IP: {TurboSMTP:turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}'
+              manual_close: 'YES'
         -
           name: 'Emails Sent (this month)'
           key: 'turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
@@ -97,6 +117,16 @@ zabbix_export:
           name: 'Emails Quota Limit (monthly)'
           key: 'turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
           delay: 1d
+          applications:
+            -
+              name: TurboSMTP
+        -
+          name: 'Sending IP Address'
+          key: 'turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 1d
+          trends: '0'
+          value_type: TEXT
+          description: 'Outgoing IP address used for sending mails to destination recipients'
           applications:
             -
               name: TurboSMTP
