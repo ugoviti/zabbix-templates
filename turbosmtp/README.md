@@ -4,7 +4,7 @@ Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 ## Features
 - Trigger: threshold for hourly send rate
 - Trigger: threshold for monthly sent emails
-- Trigger: RBL Sending IP Reputation
+- Trigger: sending IP poor RBL reputation
 - Item: Emails Sent (this month)
 - Item: Emails Sent (previous month)
 - Item: Emails Sent (today)
