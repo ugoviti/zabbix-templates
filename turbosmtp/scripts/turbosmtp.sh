@@ -1,5 +1,5 @@
 #!/bin/bash
-# Zabbix Agent monitoring afor TurboSMTP service
+# Zabbix Agent monitoring for TurboSMTP service
 # author: Ugo Viti <ugo.viti@initzero.it>
 # version: 20210407
 
