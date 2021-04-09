@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2021-04-07T15:14:56Z'
+  date: '2021-04-09T09:50:51Z'
   groups:
     -
       name: Templates
@@ -13,7 +13,7 @@ zabbix_export:
         
         https://github.com/ugoviti/zabbix-templates/tree/master/turbosmtp
         
-        Version: 1.0.2 - Date: 20210407
+        Version: 1.0.3 - Date: 20210409
       groups:
         -
           name: Templates
@@ -27,10 +27,7 @@ zabbix_export:
           delay: 10m
           trends: '0'
           value_type: TEXT
-          description: |
-            Outgoing IP address is listed in public RBL
-            
-            IP: {TurboSMTP:turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}
+          description: 'Sending IP address is listed in public RBL'
           applications:
             -
               name: TurboSMTP
@@ -63,13 +60,8 @@ zabbix_export:
               name: 'TurboSMTP hourly send rate threshold exceded (> {$TURBOSMTP.THRESHOLD.HOURLY})'
               priority: WARNING
               description: |
-                TurboSMTP account: {$TURBOSMTP.USERNAME}
-                
-                max: ({mon01.initzero.it:turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].max(1h)}
-                
-                min: {mon01.initzero.it:turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].min(1h)})
-                
-                threshold: {$TURBOSMTP.THRESHOLD.HOURLY}
+                Account: {$TURBOSMTP.USERNAME}
+                Hourly Threshold: {$TURBOSMTP.THRESHOLD.HOURLY}
               manual_close: 'YES'
         -
           name: 'Emails Delivered (today)'
@@ -113,6 +105,22 @@ zabbix_export:
           applications:
             -
               name: TurboSMTP
+        -
+          name: 'Account Status is Active'
+          key: 'turbosmtp[user.info.active,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
+          delay: 10m
+          trends: '0'
+          value_type: TEXT
+          description: 'Account: {$TURBOSMTP.USERNAME}'
+          applications:
+            -
+              name: TurboSMTP
+          triggers:
+            -
+              expression: '{last()}<>"true"'
+              name: 'TurboSMTP Account ({$TURBOSMTP.USERNAME}) is not active'
+              priority: DISASTER
+              manual_close: 'YES'
         -
           name: 'Sending IP Address'
           key: 'turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}]'
@@ -180,9 +188,9 @@ zabbix_export:
   triggers:
     -
       expression: '(100/{TurboSMTP:turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)})*{TurboSMTP:turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)}>{$TURBOSMTP.QUOTA.WARN.LIMIT}'
-      name: 'TurboSMTP monthly sent emails quota warning (> {$TURBOSMTP.WARN.LIMIT})'
+      name: 'TurboSMTP monthly sent emails quota warning (> {$TURBOSMTP.QUOTA.WARN.LIMIT}%)'
       priority: WARNING
-      description: 'TurboSMTP account: {$TURBOSMTP.USERNAME}'
+      description: 'Account: {$TURBOSMTP.USERNAME}'
     -
       expression: |
         {TurboSMTP:turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}<>""
@@ -190,7 +198,7 @@ zabbix_export:
         {TurboSMTP:turbosmtp[blacklist.check,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}<>"Good"
       name: 'TurboSMTP poor RBL reputation for IP {ITEM.LASTVALUE1}'
       opdata: '{ITEM.LASTVALUE2}'
-      priority: WARNING
+      priority: HIGH
       description: |
         Account: {$TURBOSMTP.USERNAME}
         IP: {ITEM.LASTVALUE1}

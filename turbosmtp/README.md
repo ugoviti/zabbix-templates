@@ -2,9 +2,10 @@
 Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 
 ## Features
-- Trigger: threshold for hourly send rate
-- Trigger: threshold for monthly sent emails
-- Trigger: sending IP poor RBL reputation
+- Trigger: Threshold for hourly send rate
+- Trigger: Threshold for monthly sent emails
+- Trigger: Sending IP poor RBL reputation
+- Trigger: Account Status is not Active
 - Item: Emails Sent (this month)
 - Item: Emails Sent (previous month)
 - Item: Emails Sent (today)
@@ -16,6 +17,7 @@ Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 - Item: Emails Quota Limit (monthly)
 - Item: Sending IP Address
 - Item: Sending IP RBL Reputation
+- Item: Account Active Status
 - Command cache support
 
 ## Installation

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Zabbix Agent monitoring for TurboSMTP service
 # author: Ugo Viti <ugo.viti@initzero.it>
-# version: 20210407
+# version: 20210409
 
 ## RHEL INSTALLATION:
 # dnf install curl jq bind-utils -y
@@ -125,6 +125,11 @@ dec2ip() {
 ## ref: https://www.serversmtp.com/turbo-api/
 authorize() {
   curl -s https://dashboard.serversmtp.com/api/authorize -d "email=${username}" -d "password=${password}" -d "no_expire=0" | jq -r .auth
+}
+
+user.info.active() {
+  # https://www.serversmtp.com/turbo-api/#account-info
+  curl -s https://dashboard.serversmtp.com/api/user/info -G -H "Authorization: $auth" | jq -r .active
 }
 
 user.info.ip() {
