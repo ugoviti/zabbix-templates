@@ -1,9 +1,9 @@
 # TurboSMTP Template
 Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 
-![TurboSMTP Zabbix Monitor](turbosmtp-dashboard.png)
-
 ![TurboSMTP Zabbix Monitor](turbosmtp-latestdata.png)
+
+![TurboSMTP Zabbix Monitor](turbosmtp-dashboard.png)
 
 ## Features
 
