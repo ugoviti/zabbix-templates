@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2021-04-09T09:50:51Z'
+  date: '2021-04-11T10:07:42Z'
   groups:
     -
       name: Templates
@@ -13,7 +13,7 @@ zabbix_export:
         
         https://github.com/ugoviti/zabbix-templates/tree/master/turbosmtp
         
-        Version: 1.0.3 - Date: 20210409
+        Version: 1.1.0 - Date: 20210411
       groups:
         -
           name: Templates
@@ -57,7 +57,7 @@ zabbix_export:
           triggers:
             -
               expression: '({last()}-{min(1h)})>{$TURBOSMTP.THRESHOLD.HOURLY}'
-              name: 'TurboSMTP hourly send rate threshold exceded (> {$TURBOSMTP.THRESHOLD.HOURLY})'
+              name: 'TurboSMTP Hourly send rate threshold exceded (> {$TURBOSMTP.THRESHOLD.HOURLY})'
               priority: WARNING
               description: |
                 Account: {$TURBOSMTP.USERNAME}
@@ -134,18 +134,22 @@ zabbix_export:
       macros:
         -
           macro: '{$TURBOSMTP.PASSWORD}'
-          description: 'TurboSMTP Password'
-        -
-          macro: '{$TURBOSMTP.QUOTA.WARN.LIMIT}'
-          value: '90'
-          description: '% of monthly send quota limit before triggering alarm'
+          description: 'Account Password'
         -
           macro: '{$TURBOSMTP.THRESHOLD.HOURLY}'
           value: '100'
-          description: 'Hourly max sending mail threshold'
+          description: 'Max hourly sending mail threshold'
         -
           macro: '{$TURBOSMTP.USERNAME}'
-          description: 'TurboSMTP Username (Email Address)'
+          description: 'Account Username (email address)'
+        -
+          macro: '{$TURBOSMTP.WARN.FAILED}'
+          value: '10'
+          description: 'Max % of daily failed mails against daily sent mails'
+        -
+          macro: '{$TURBOSMTP.WARN.QUOTA}'
+          value: '90'
+          description: 'Max % of monthly sent mails against monthly mail quota'
       dashboards:
         -
           name: TurboSMTP
@@ -187,8 +191,13 @@ zabbix_export:
                     host: TurboSMTP
   triggers:
     -
-      expression: '(100/{TurboSMTP:turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)})*{TurboSMTP:turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)}>{$TURBOSMTP.QUOTA.WARN.LIMIT}'
-      name: 'TurboSMTP monthly sent emails quota warning (> {$TURBOSMTP.QUOTA.WARN.LIMIT}%)'
+      expression: '(100/{TurboSMTP:turbosmtp[emails.count.today.failed,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)})*{TurboSMTP:turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)}>{$TURBOSMTP.WARN.FAILED}'
+      name: 'TurboSMTP Daily failed sent emails warning (> {$TURBOSMTP.WARN.FAILED}%)'
+      priority: WARNING
+      description: 'Account: {$TURBOSMTP.USERNAME}'
+    -
+      expression: '(100/{TurboSMTP:turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)})*{TurboSMTP:turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)}>{$TURBOSMTP.WARN.QUOTA}'
+      name: 'TurboSMTP Monthly sent emails quota warning (> {$TURBOSMTP.WARN.QUOTA}%)'
       priority: WARNING
       description: 'Account: {$TURBOSMTP.USERNAME}'
     -
@@ -196,7 +205,7 @@ zabbix_export:
         {TurboSMTP:turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}<>""
         and
         {TurboSMTP:turbosmtp[blacklist.check,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}<>"Good"
-      name: 'TurboSMTP poor RBL reputation for IP {ITEM.LASTVALUE1}'
+      name: 'TurboSMTP Poor RBL reputation for IP {ITEM.LASTVALUE1}'
       opdata: '{ITEM.LASTVALUE2}'
       priority: HIGH
       description: |

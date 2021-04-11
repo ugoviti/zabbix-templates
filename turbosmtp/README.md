@@ -2,22 +2,29 @@
 Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 
 ## Features
-- Trigger: Threshold for hourly send rate
-- Trigger: Threshold for monthly sent emails
-- Trigger: Sending IP poor RBL reputation
-- Trigger: Account Status is not Active
-- Item: Emails Sent (this month)
-- Item: Emails Sent (previous month)
-- Item: Emails Sent (today)
-- Item: Emails Delivered (today)
-- Item: Emails Failed (today)
-- Item: Emails Read (today)
-- Item: Emails Sent (this week)
-- Item: Emails Sent (previous week)
-- Item: Emails Quota Limit (monthly)
-- Item: Sending IP Address
-- Item: Sending IP RBL Reputation
-- Item: Account Active Status
+
+### Items
+- Emails Sent (this month)
+- Emails Sent (previous month)
+- Emails Sent (today)
+- Emails Delivered (today)
+- Emails Failed (today)
+- Emails Read (today)
+- Emails Sent (this week)
+- Emails Sent (previous week)
+- Emails Quota Limit (monthly)
+- Sending IP Address
+- Sending IP RBL Reputation
+- Account Active Status
+
+### Triggers
+- Account status is not active
+- Daily failed sent emails warning
+- Hourly send rate threshold exceded
+- Monthly sent emails quota warning
+- Poor RBL reputation for IP
+
+### Extra
 - Command cache support
 
 ## Installation
@@ -33,7 +40,8 @@ Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 - Assign Zabbix template to the host and customize the MACROS
 
 ## Template macros available
-- `{$TURBOSMTP.USERNAME}`: TurboSMTP Username (Email Address)
-- `{$TURBOSMTP.PASSWORD}`: TurboSMTP Password
-- `{$TURBOSMTP.QUOTA.WARN.LIMIT}`: % of monthly send quota limit before triggering alarm\
-- `{$TURBOSMTP.THRESHOLD.HOURLY}`: Hourly max sending mail threshold
+- `{$TURBOSMTP.USERNAME}`: Account Username (email address)
+- `{$TURBOSMTP.PASSWORD}`: Account Password
+- `{$TURBOSMTP.WARN.QUOTA}`: Max % of monthly sent mails against monthly mail quota
+- `{$TURBOSMTP.WARN.FAILED}`: Max % of daily failed mails against daily sent mails
+- `{$TURBOSMTP.THRESHOLD.HOURLY}`: Max hourly sending mail threshold
