@@ -1,6 +1,8 @@
 # TurboSMTP Template
 Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 
+![TurboSMTP Zabbix Monitor](turbosmtp-dashboard.png)
+
 ## Features
 
 ### Items
@@ -23,6 +25,11 @@ Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 - Hourly send rate threshold exceded
 - Monthly sent emails quota warning
 - Poor RBL reputation for IP
+
+### Graphs
+- Emails Sent Today
+- Emails Sent by Week
+- Emails Sent by Month
 
 ### Extra
 - Command cache support
