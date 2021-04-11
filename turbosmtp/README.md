@@ -24,7 +24,7 @@ Check TurboSMTP Mail Sending API service (https://www.serversmtp.com/it/)
 - Daily failed sent emails warning
 - Hourly send rate threshold exceded
 - Monthly sent emails quota warning
-- Poor RBL reputation for IP
+- Poor RBL reputation for sending IP
 
 ### Graphs
 - Emails Sent Today

@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2021-04-11T10:54:39Z'
+  date: '2021-04-11T10:57:03Z'
   groups:
     -
       name: Templates
@@ -206,7 +206,7 @@ zabbix_export:
         {TurboSMTP:turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}<>""
         and
         {TurboSMTP:turbosmtp[blacklist.check,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}<>"Good"
-      name: 'TurboSMTP Poor RBL reputation for IP {ITEM.LASTVALUE1}'
+      name: 'TurboSMTP Poor RBL reputation for sending IP {ITEM.LASTVALUE1}'
       opdata: '{ITEM.LASTVALUE2}'
       priority: HIGH
       description: |
