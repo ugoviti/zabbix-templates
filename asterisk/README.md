@@ -3,6 +3,8 @@ Check Asterisk PBX engine using Zabbix Network Monitoring system
 
 ![Asterisk Zabbix Monitor](asterisk-dashboard.png)
 
+![Asterisk Zabbix Monitor](asterisk-dashboard2.png)
+
 ## Features
 - Easy installation and fast configuration (pure bash script without extra dependencies to install)
 - Single script for discovery and checks
