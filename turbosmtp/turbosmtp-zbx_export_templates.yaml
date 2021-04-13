@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.2'
-  date: '2021-04-11T10:57:03Z'
+  date: '2021-04-13T11:23:49Z'
   groups:
     -
       name: Templates
@@ -13,7 +13,7 @@ zabbix_export:
         
         https://github.com/ugoviti/zabbix-templates/tree/master/turbosmtp
         
-        Version: 1.1.0 - Date: 20210411
+        Version: 1.1.1 - Date: 20210413
       groups:
         -
           name: Templates
@@ -56,7 +56,7 @@ zabbix_export:
               name: TurboSMTP
           triggers:
             -
-              expression: '({last()}-{min(1h)})>{$TURBOSMTP.THRESHOLD.HOURLY}'
+              expression: '({last(#1)}-{min(1h)})>{$TURBOSMTP.THRESHOLD.HOURLY}'
               name: 'TurboSMTP Hourly send rate threshold exceded (> {$TURBOSMTP.THRESHOLD.HOURLY}) for {$TURBOSMTP.USERNAME}'
               priority: WARNING
               description: |
@@ -117,7 +117,7 @@ zabbix_export:
               name: TurboSMTP
           triggers:
             -
-              expression: '{last()}<>"true"'
+              expression: '{last(#1)}<>"true"'
               name: 'TurboSMTP Account ({$TURBOSMTP.USERNAME}) is not active'
               priority: DISASTER
               manual_close: 'YES'
@@ -191,21 +191,23 @@ zabbix_export:
                     host: TurboSMTP
   triggers:
     -
-      expression: '(100/{TurboSMTP:turbosmtp[emails.count.today.failed,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)})*{TurboSMTP:turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)}>{$TURBOSMTP.WARN.FAILED}'
+      expression: '(100/{TurboSMTP:turbosmtp[emails.count.today,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(#1)})*{TurboSMTP:turbosmtp[emails.count.today.failed,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(#1)}>{$TURBOSMTP.WARN.FAILED}'
       name: 'TurboSMTP Daily failed sent emails warning (> {$TURBOSMTP.WARN.FAILED}%) for {$TURBOSMTP.USERNAME}'
-      opdata: 'Sent: {ITEM.LASTVALUE2} Failed: {ITEM.LASTVALUE1}'
+      opdata: 'Sent: {ITEM.LASTVALUE1} Failed: {ITEM.LASTVALUE2}'
       priority: WARNING
       description: 'Account: {$TURBOSMTP.USERNAME}'
+      manual_close: 'YES'
     -
-      expression: '(100/{TurboSMTP:turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)})*{TurboSMTP:turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(0)}>{$TURBOSMTP.WARN.QUOTA}'
+      expression: '(100/{TurboSMTP:turbosmtp[plans.smtp_limit,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(#1)})*{TurboSMTP:turbosmtp[emails.count.month,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(#1)}>{$TURBOSMTP.WARN.QUOTA}'
       name: 'TurboSMTP Monthly sent emails quota warning (> {$TURBOSMTP.WARN.QUOTA}%) for {$TURBOSMTP.USERNAME}'
       priority: WARNING
       description: 'Account: {$TURBOSMTP.USERNAME}'
+      manual_close: 'YES'
     -
       expression: |
-        {TurboSMTP:turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}<>""
+        {TurboSMTP:turbosmtp[user.info.ip,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(#1)}<>""
         and
-        {TurboSMTP:turbosmtp[blacklist.check,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last()}<>"Good"
+        {TurboSMTP:turbosmtp[blacklist.check,{$TURBOSMTP.USERNAME},{$TURBOSMTP.PASSWORD}].last(#1)}<>"Good"
       name: 'TurboSMTP Poor RBL reputation for sending IP {ITEM.LASTVALUE1}'
       opdata: '{ITEM.LASTVALUE2}'
       priority: HIGH
