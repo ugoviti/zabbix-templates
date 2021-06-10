@@ -1,0 +1,261 @@
+zabbix_export:
+  version: '5.4'
+  date: '2021-06-10T23:24:02Z'
+  groups:
+    -
+      uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    -
+      uuid: d9786e42b7984160b0a1e5cea9f663ee
+      template: 'Web URL Monitor'
+      name: 'Web URL Monitor'
+      description: |
+        InitZero's Web URL Monitor and SSL certificate expire Zabbix Template
+        
+        Project Page: https://github.com/ugoviti/zabbix-templates/tree/master/urlmonitor
+        
+        version: 20210610
+      groups:
+        -
+          name: Templates
+      discovery_rules:
+        -
+          uuid: a48b3b55dff84789b68635d9e26cd3ce
+          name: 'SSL Hosts Discovery'
+          key: 'url.discovery[discoverySSLHosts,{$URL_PATH_CSV}]'
+          delay: 1h
+          lifetime: 7d
+          item_prototypes:
+            -
+              uuid: 44a4965920c34756ae763dbaa778f3b2
+              name: '{#HOST} SSL certificate expiration date'
+              key: 'url.check[ssl.timeExpire,{#HOST},{#PORT}]'
+              delay: 30m
+              units: unixtime
+              description: 'Check expiry date of SSL certificate for domain {#HOST}'
+              tags:
+                -
+                  tag: Application
+                  value: 'SSL Certificate'
+              trigger_prototypes:
+                -
+                  uuid: 6845ff39b0a34727ae6096b72cc4c420
+                  expression: 'max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)=0'
+                  name: 'Failed to retrieve SSL certificate for {#HOST}'
+                  priority: WARNING
+            -
+              uuid: f72830c60eb2478382b69ff4777951f8
+              name: '{#HOST} SSL certificate expiration time left'
+              key: 'url.check[ssl.timeLeft,{#HOST},{#PORT}]'
+              delay: 30m
+              value_type: FLOAT
+              units: s
+              description: 'Check expiry date of SSL certificate for domain {#HOST}'
+              tags:
+                -
+                  tag: Application
+                  value: 'SSL Certificate'
+          trigger_prototypes:
+            -
+              uuid: b8d2c0e4415945719a047b8554e2ddb5
+              expression: |
+                max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)>0
+                and
+                max(/Web URL Monitor/url.check[ssl.timeLeft,{#HOST},{#PORT}],#2)<0d
+              name: 'SSL certificate of {#HOST} has EXPIRED on {ITEM.VALUE1}'
+              priority: DISASTER
+              dependencies:
+                -
+                  name: 'Failed to retrieve SSL certificate for {#HOST}'
+                  expression: 'max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)=0'
+            -
+              uuid: e6bafac2dbb24705a31d62a7dabd0be3
+              expression: |
+                max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)>0
+                and
+                max(/Web URL Monitor/url.check[ssl.timeLeft,{#HOST},{#PORT}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
+              name: 'SSL certificate of {#HOST} will expire on {ITEM.VALUE1}'
+              opdata: 'Expire on: {ITEM.VALUE1} Time left: {ITEM.VALUE2}'
+              priority: HIGH
+              description: 'Configured Critical level: {$URL_SSL_EXPIRE_TIME_CRITICAL}'
+              dependencies:
+                -
+                  name: 'SSL certificate of {#HOST} has EXPIRED on {ITEM.VALUE1}'
+                  expression: |
+                    max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)>0
+                    and
+                    max(/Web URL Monitor/url.check[ssl.timeLeft,{#HOST},{#PORT}],#2)<0d
+            -
+              uuid: 84c4e7bb22074328a1415a3a4ce00e74
+              expression: |
+                max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)>0
+                and
+                max(/Web URL Monitor/url.check[ssl.timeLeft,{#HOST},{#PORT}],#2)<{$URL_SSL_EXPIRE_TIME_WARNING}
+              name: 'SSL certificate of {#HOST} will expire on {ITEM.VALUE1}'
+              opdata: 'Expire on: {ITEM.VALUE1} Time left: {ITEM.VALUE2}'
+              priority: WARNING
+              description: 'Configured Warning level: {$URL_SSL_EXPIRE_TIME_WARNING}'
+              dependencies:
+                -
+                  name: 'SSL certificate of {#HOST} will expire on {ITEM.VALUE1}'
+                  expression: |
+                    max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)>0
+                    and
+                    max(/Web URL Monitor/url.check[ssl.timeLeft,{#HOST},{#PORT}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
+        -
+          uuid: 84fd20a71f45464fbd1694db5df728f9
+          name: 'Web Hosts Discovery'
+          key: 'url.discovery[discoveryWEBHosts,{$URL_PATH_CSV}]'
+          delay: 1h
+          lifetime: 7d
+          item_prototypes:
+            -
+              uuid: 2067f2c99a114074a922a66c4aee75ea
+              name: '{#HOST} URL Response Dataset'
+              key: 'url.check[url.monitor,{#URL},{#HOST}]'
+              history: '0'
+              trends: '0'
+              value_type: TEXT
+              description: 'URL Monitor for: {#URL}'
+              valuemap:
+                name: 'HTTP Response codes'
+              preprocessing:
+                -
+                  type: CSV_TO_JSON
+                  parameters:
+                    - ;
+                    - ''
+                    - '1'
+                -
+                  type: LTRIM
+                  parameters:
+                    - '['
+                -
+                  type: RTRIM
+                  parameters:
+                    - ']'
+              tags:
+                -
+                  tag: Application
+                  value: 'Zabbix raw items'
+            -
+              uuid: e968be2805ed48328dea0092bc4a8eed
+              name: '{#HOST} URL Response Time old'
+              key: 'url.check[url.responseTime,{#URL},{#HOST}]'
+              status: DISABLED
+              discover: NO_DISCOVER
+              value_type: FLOAT
+              units: seconds
+              description: 'URL Monitor for: {#URL}'
+              tags:
+                -
+                  tag: Application
+                  value: 'URL Monitor'
+            -
+              uuid: b4cc919388b64589bfd195186727fe76
+              name: '{#HOST} URL Response Code'
+              type: DEPENDENT
+              key: 'url.responseCode[{#URL}]'
+              delay: '0'
+              description: 'URL Monitor for: {#URL}'
+              valuemap:
+                name: 'HTTP Response codes'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.http_code
+              master_item:
+                key: 'url.check[url.monitor,{#URL},{#HOST}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'URL Response Code'
+              trigger_prototypes:
+                -
+                  uuid: 249c98d582814fe2967216bcffad0128
+                  expression: 'max(/Web URL Monitor/url.responseCode[{#URL}],#3)<>200'
+                  name: 'Unavailable Web URL {#URL}'
+                  url: '{#URL}'
+                  priority: HIGH
+                  description: 'Last three attempts returned timeout.  Please check URL connectivity.'
+            -
+              uuid: 9b0b6bff3b7843b2b24603bbdc84431b
+              name: '{#HOST} URL Response Time'
+              type: DEPENDENT
+              key: 'url.responseTime[{#URL}]'
+              delay: '0'
+              value_type: FLOAT
+              units: seconds
+              description: 'URL Monitor for: {#URL}'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.time_total
+              master_item:
+                key: 'url.check[url.monitor,{#URL},{#HOST}]'
+              tags:
+                -
+                  tag: Application
+                  value: 'URL Response Time'
+              trigger_prototypes:
+                -
+                  uuid: 243a1c43c2ee460eacfb11888af4d18d
+                  expression: 'avg(/Web URL Monitor/url.responseTime[{#URL}],5m)>{$URL_LATENCY_WARNING}'
+                  name: 'High response time detected for web URL {#URL} (> {$URL_LATENCY_WARNING}s)'
+                  priority: WARNING
+                  dependencies:
+                    -
+                      name: 'Unavailable Web URL {#URL}'
+                      expression: 'max(/Web URL Monitor/url.responseCode[{#URL}],#3)<>200'
+      macros:
+        -
+          macro: '{$URL_LATENCY_WARNING}'
+          value: '15'
+          description: 'Default acceptable latency for loading URL (seconds)'
+        -
+          macro: '{$URL_PATH_CSV}'
+          value: /etc/zabbix/urls.csv
+          description: 'URLs CSV file path (http URL or local path)'
+        -
+          macro: '{$URL_SSL_EXPIRE_TIME_CRITICAL}'
+          value: 3d
+          description: 'Critical level for SSL certificate expiration time (days)'
+        -
+          macro: '{$URL_SSL_EXPIRE_TIME_WARNING}'
+          value: 7d
+          description: 'Warning level for SSL certificate expiration time (days)'
+      valuemaps:
+        -
+          uuid: c0606612ff73441ab80bcdcb0f55822a
+          name: 'HTTP Response codes'
+          mappings:
+            -
+              value: '0'
+              newvalue: Unreachable
+            -
+              value: '200'
+              newvalue: OK
+            -
+              value: '301'
+              newvalue: 'Moved Permanently'
+            -
+              value: '302'
+              newvalue: Found
+            -
+              value: '303'
+              newvalue: 'See Other'
+            -
+              value: '403'
+              newvalue: Forbidden
+            -
+              value: '404'
+              newvalue: 'Not Found'
+            -
+              value: '500'
+              newvalue: 'Internal Server Error'
+            -
+              value: '503'
+              newvalue: 'Service Unavailable'
