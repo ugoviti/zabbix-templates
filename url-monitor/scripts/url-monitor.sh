@@ -193,7 +193,9 @@ url.monitor() {
   shift
   detectURLParts "$URL"
 
-  curlResponse="$(curl -L --connect-timeout 15 -s -o /dev/null -w "%{http_code};%{time_total}" "$URL" | sed 's/,/./g')"
+  curlCookies="/tmp/zabbix-url-monitor-$(echo $HOST:$PORT/$RPATH | sed -e 's/[^A-Za-z0-9_-]/_/g').cookies"
+  
+  curlResponse="$(curl -L --connect-timeout 15 -s -o /dev/null -c "$curlCookies" -w "%{http_code};%{time_total}" "$URL" | sed 's/,/./g')"
   
   curlData=($(echo "$curlResponse" | sed 's/;/\n/g'))
   
