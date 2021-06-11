@@ -194,10 +194,17 @@ url.monitor() {
   detectURLParts "$URL"
 
   curlCookies="/tmp/zabbix-url-monitor-$(echo $HOST:$PORT/$RPATH | sed -e 's/[^A-Za-z0-9_-]/_/g').cookies"
+  # use cookies file if exist otherwise create that
+  [ -e "$curlCookies" ] && curlArgs+=" -b $curlCookies" || curlArgs+=" -c $curlCookies"
   
-  curlResponse="$(curl -L --connect-timeout 15 -s -o /dev/null -c "$curlCookies" -w "%{http_code};%{time_total}" "$URL" | sed 's/,/./g')"
+  curlResponse="$(curl -L --connect-timeout 15 -s -o /dev/null $curlArgs -w "%{http_code};%{time_total}" "$URL")"
+  RETVAL=$?
   
-  curlData=($(echo "$curlResponse" | sed 's/;/\n/g'))
+  curlData=($(echo "$curlResponse" | sed 's/;/\n/g' | sed 's/,/./g'))
+  
+  # curl fail when invalid certificate is detected and exit with return code 60, manage this an generate valid HTTP error code 
+  ## nb. this is a workaround, using cloudflare defined HTTP error codes (ref. https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+  [[ "${curlData[0]}" = "000" && "$RETVAL" = "60" ]] && curlData[0]="526"
   
   echo "{
   \"data\": [
