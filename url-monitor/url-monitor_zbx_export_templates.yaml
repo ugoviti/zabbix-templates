@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-06-11T00:53:28Z'
+  date: '2021-06-11T13:40:12Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -15,104 +15,87 @@ zabbix_export:
         
         Project Page: https://github.com/ugoviti/zabbix-templates/tree/master/urlmonitor
         
-        version: 20210610
+        version: 20210611
       groups:
         -
           name: Templates
       discovery_rules:
         -
-          uuid: a48b3b55dff84789b68635d9e26cd3ce
-          name: 'SSL Hosts Discovery'
-          key: 'url.discovery[discoverySSLHosts,{$URL_PATH_CSV}]'
+          uuid: 84fd20a71f45464fbd1694db5df728f9
+          name: 'URLs Discovery'
+          key: 'url.discovery[url.discovery,{$URL_PATH_CSV}]'
           delay: 1h
           lifetime: 1d
           item_prototypes:
             -
-              uuid: 44a4965920c34756ae763dbaa778f3b2
+              uuid: af5c8739fa42454a9d35ffe8ce162412
               name: '{#HOST} SSL certificate expiration date'
-              key: 'url.check[ssl.timeExpire,{#HOST},{#PORT}]'
-              delay: 30m
+              type: DEPENDENT
+              key: 'ssl.timeExpire[{#URL}]'
+              delay: '0'
               units: unixtime
-              description: 'Check expiry date of SSL certificate for domain {#HOST}'
+              description: 'Check expiry date of SSL certificate for domain {#HOST}:{#PORT}'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.data[0].timeExpire'
+              master_item:
+                key: 'url.check[ssl.monitor,{#URL}]'
               tags:
                 -
                   tag: Application
                   value: 'SSL Certificate'
               trigger_prototypes:
                 -
-                  uuid: 6845ff39b0a34727ae6096b72cc4c420
-                  expression: 'max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],5m)=0'
-                  name: 'Failed to retrieve SSL certificate for {#HOST}:{#PORT}'
+                  uuid: da5d3edee6a5400fb77a9fd8b24c68ca
+                  expression: 'max(/Web URL Monitor/ssl.timeExpire[{#URL}],5m)=0'
+                  name: '{#HOST} SSL certificate failed to retrieve'
+                  url: '{#URL}'
                   priority: WARNING
+                  description: 'Unable to connect to {#URL}'
+                  dependencies:
+                    -
+                      name: '{#HOST} URL is unavailable'
+                      expression: 'max(/Web URL Monitor/url.responseCode[{#URL}],5m)<>200'
             -
-              uuid: f72830c60eb2478382b69ff4777951f8
+              uuid: 267beca2207546ba9b1c41e5850c6844
               name: '{#HOST} SSL certificate expiration time left'
-              key: 'url.check[ssl.timeLeft,{#HOST},{#PORT}]'
-              delay: 30m
+              type: DEPENDENT
+              key: 'ssl.timeLeft[{#URL}]'
+              delay: '0'
               value_type: FLOAT
               units: s
-              description: 'Check expiry date of SSL certificate for domain {#HOST}'
+              description: 'Check expiry date of SSL certificate for domain {#HOST}:{#PORT}'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.data[0].timeLeft'
+              master_item:
+                key: 'url.check[ssl.monitor,{#URL}]'
               tags:
                 -
                   tag: Application
                   value: 'SSL Certificate'
-          trigger_prototypes:
             -
-              uuid: b8d2c0e4415945719a047b8554e2ddb5
-              expression: |
-                max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)>0
-                and
-                max(/Web URL Monitor/url.check[ssl.timeLeft,{#HOST},{#PORT}],#2)<0d
-              name: 'SSL certificate of {#HOST} has EXPIRED on {ITEM.VALUE1}'
-              priority: DISASTER
-              dependencies:
+              uuid: bd6ea1c649364d4eb4109afd65b366c8
+              name: '{#HOST} SSL Dataset'
+              key: 'url.check[ssl.monitor,{#URL}]'
+              delay: 30m
+              history: 1h
+              trends: '0'
+              value_type: TEXT
+              description: 'SSL Dataset for {#HOST}:{#PORT}'
+              valuemap:
+                name: 'HTTP Response codes'
+              tags:
                 -
-                  name: 'Failed to retrieve SSL certificate for {#HOST}:{#PORT}'
-                  expression: 'max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],5m)=0'
-            -
-              uuid: e6bafac2dbb24705a31d62a7dabd0be3
-              expression: |
-                max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)>0
-                and
-                max(/Web URL Monitor/url.check[ssl.timeLeft,{#HOST},{#PORT}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
-              name: 'SSL certificate of {#HOST} will expire on {ITEM.VALUE1}'
-              opdata: 'Expire on: {ITEM.VALUE1} Time left: {ITEM.VALUE2}'
-              priority: HIGH
-              description: 'Configured Critical level: {$URL_SSL_EXPIRE_TIME_CRITICAL}'
-              dependencies:
-                -
-                  name: 'SSL certificate of {#HOST} has EXPIRED on {ITEM.VALUE1}'
-                  expression: |
-                    max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)>0
-                    and
-                    max(/Web URL Monitor/url.check[ssl.timeLeft,{#HOST},{#PORT}],#2)<0d
-            -
-              uuid: 84c4e7bb22074328a1415a3a4ce00e74
-              expression: |
-                max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)>0
-                and
-                max(/Web URL Monitor/url.check[ssl.timeLeft,{#HOST},{#PORT}],#2)<{$URL_SSL_EXPIRE_TIME_WARNING}
-              name: 'SSL certificate of {#HOST} will expire on {ITEM.VALUE1}'
-              opdata: 'Expire on: {ITEM.VALUE1} Time left: {ITEM.VALUE2}'
-              priority: WARNING
-              description: 'Configured Warning level: {$URL_SSL_EXPIRE_TIME_WARNING}'
-              dependencies:
-                -
-                  name: 'SSL certificate of {#HOST} will expire on {ITEM.VALUE1}'
-                  expression: |
-                    max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)>0
-                    and
-                    max(/Web URL Monitor/url.check[ssl.timeLeft,{#HOST},{#PORT}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
-        -
-          uuid: 84fd20a71f45464fbd1694db5df728f9
-          name: 'Web Hosts Discovery'
-          key: 'url.discovery[discoveryWEBHosts,{$URL_PATH_CSV}]'
-          delay: 1h
-          lifetime: 1d
-          item_prototypes:
+                  tag: Application
+                  value: 'Zabbix raw items'
             -
               uuid: 2067f2c99a114074a922a66c4aee75ea
-              name: '{#HOST} URL Response Dataset'
+              name: '{#HOST} URL Dataset'
               key: 'url.check[url.monitor,{#URL}]'
               history: 1h
               trends: '0'
@@ -120,28 +103,13 @@ zabbix_export:
               description: 'URL Monitor for: {#URL}'
               valuemap:
                 name: 'HTTP Response codes'
-              preprocessing:
-                -
-                  type: CSV_TO_JSON
-                  parameters:
-                    - ;
-                    - ''
-                    - '1'
-                -
-                  type: LTRIM
-                  parameters:
-                    - '['
-                -
-                  type: RTRIM
-                  parameters:
-                    - ']'
               tags:
                 -
                   tag: Application
                   value: 'Zabbix raw items'
             -
               uuid: b4cc919388b64589bfd195186727fe76
-              name: '{#HOST} URL Response Code'
+              name: '{#HOST} URL response code'
               type: DEPENDENT
               key: 'url.responseCode[{#URL}]'
               delay: '0'
@@ -152,24 +120,27 @@ zabbix_export:
                 -
                   type: JSONPATH
                   parameters:
-                    - $.http_code
+                    - '$.data[0].http_code'
               master_item:
                 key: 'url.check[url.monitor,{#URL}]'
               tags:
                 -
                   tag: Application
-                  value: 'URL Response Code'
+                  value: 'URL Monitor'
               trigger_prototypes:
                 -
                   uuid: 249c98d582814fe2967216bcffad0128
                   expression: 'max(/Web URL Monitor/url.responseCode[{#URL}],5m)<>200'
-                  name: 'Unavailable Web URL {#URL}'
+                  name: '{#HOST} URL is unavailable'
                   url: '{#URL}'
                   priority: HIGH
-                  description: 'Last three attempts returned timeout.  Please check URL connectivity.'
+                  description: |
+                    Unable to connect to {#URL}
+                    
+                    Last three attempts returned timeout.  Please check URL connectivity.
             -
               uuid: 9b0b6bff3b7843b2b24603bbdc84431b
-              name: '{#HOST} URL Response Time'
+              name: '{#HOST} URL response time'
               type: DEPENDENT
               key: 'url.responseTime[{#URL}]'
               delay: '0'
@@ -180,23 +151,90 @@ zabbix_export:
                 -
                   type: JSONPATH
                   parameters:
-                    - $.time_total
+                    - '$.data[0].time_total'
               master_item:
                 key: 'url.check[url.monitor,{#URL}]'
               tags:
                 -
                   tag: Application
-                  value: 'URL Response Time'
+                  value: 'URL Monitor'
               trigger_prototypes:
                 -
                   uuid: 243a1c43c2ee460eacfb11888af4d18d
                   expression: 'avg(/Web URL Monitor/url.responseTime[{#URL}],5m)>{$URL_LATENCY_WARNING}'
-                  name: 'High response time detected for web URL {#URL} (> {$URL_LATENCY_WARNING}s)'
+                  name: '{#HOST} URL high response time detected (> {$URL_LATENCY_WARNING}s)'
+                  url: '{#URL}'
                   priority: WARNING
+                  description: 'Slow replies from {#URL}'
                   dependencies:
                     -
-                      name: 'Unavailable Web URL {#URL}'
+                      name: '{#HOST} URL is unavailable'
                       expression: 'max(/Web URL Monitor/url.responseCode[{#URL}],5m)<>200'
+          trigger_prototypes:
+            -
+              uuid: 435c3b1e7c3140f3b69e7a7344283f0e
+              expression: |
+                max(/Web URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                and
+                max(/Web URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
+              name: '{#HOST} SSL certificate has EXPIRED on {ITEM.VALUE1}'
+              url: '{#URL}'
+              priority: DISASTER
+              description: 'SSL Certificate for {#URL} is expired'
+              dependencies:
+                -
+                  name: '{#HOST} SSL certificate failed to retrieve'
+                  expression: 'max(/Web URL Monitor/ssl.timeExpire[{#URL}],5m)=0'
+            -
+              uuid: 420919c495584031b8e3e180c92f7df0
+              expression: |
+                max(/Web URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                and
+                max(/Web URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
+              name: '{#HOST} SSL certificate will expire on {ITEM.VALUE1}'
+              opdata: 'Expire on: {ITEM.VALUE1} Time left: {ITEM.VALUE2}'
+              url: '{#URL}'
+              priority: HIGH
+              description: 'Configured Critical level: {$URL_SSL_EXPIRE_TIME_CRITICAL}'
+              dependencies:
+                -
+                  name: '{#HOST} SSL certificate has EXPIRED on {ITEM.VALUE1}'
+                  expression: |
+                    max(/Web URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                    and
+                    max(/Web URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
+            -
+              uuid: 4bccbaea16d1417abdb9c9aa5732fad4
+              expression: |
+                max(/Web URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                and
+                max(/Web URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_WARNING}
+              name: '{#HOST} SSL certificate will expire on {ITEM.VALUE1}'
+              opdata: 'Expire on: {ITEM.VALUE1} Time left: {ITEM.VALUE2}'
+              url: '{#URL}'
+              priority: WARNING
+              description: 'Configured Warning level: {$URL_SSL_EXPIRE_TIME_WARNING}'
+              dependencies:
+                -
+                  name: '{#HOST} SSL certificate will expire on {ITEM.VALUE1}'
+                  expression: |
+                    max(/Web URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                    and
+                    max(/Web URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
+          graph_prototypes:
+            -
+              uuid: 007e18b4c84d48e6a0d80a2accf2bf27
+              name: '{#URL} URL response time'
+              yaxismax: '30'
+              type: STACKED
+              ymax_type_1: FIXED
+              graph_items:
+                -
+                  sortorder: '1'
+                  color: 199C0D
+                  item:
+                    host: 'Web URL Monitor'
+                    key: 'url.responseTime[{#URL}]'
       macros:
         -
           macro: '{$URL_LATENCY_WARNING}'
@@ -214,6 +252,62 @@ zabbix_export:
           macro: '{$URL_SSL_EXPIRE_TIME_WARNING}'
           value: 7d
           description: 'Warning level for SSL certificate expiration time (days)'
+      dashboards:
+        -
+          uuid: f8259da7c38546ef84eb8c954a9870f3
+          name: 'URL Monitor'
+          auto_start: 'NO'
+          pages:
+            -
+              name: 'Web Monitor'
+              widgets:
+                -
+                  type: GRAPH_PROTOTYPE
+                  name: 'Web URL Monitor'
+                  width: '23'
+                  height: '10'
+                  fields:
+                    -
+                      type: INTEGER
+                      name: columns
+                      value: '3'
+                    -
+                      type: INTEGER
+                      name: rows
+                      value: '2'
+                    -
+                      type: GRAPH_PROTOTYPE
+                      name: graphid
+                      value:
+                        name: '{#URL} URL response time'
+                        host: 'Web URL Monitor'
+            -
+              name: 'SSL Monitor'
+              widgets:
+                -
+                  type: GRAPH_PROTOTYPE
+                  name: 'SSL Monitor'
+                  width: '23'
+                  height: '10'
+                  fields:
+                    -
+                      type: INTEGER
+                      name: columns
+                      value: '3'
+                    -
+                      type: INTEGER
+                      name: rows
+                      value: '2'
+                    -
+                      type: INTEGER
+                      name: source_type
+                      value: '3'
+                    -
+                      type: ITEM_PROTOTYPE
+                      name: itemid
+                      value:
+                        key: 'ssl.timeLeft[{#URL}]'
+                        host: 'Web URL Monitor'
       valuemaps:
         -
           uuid: c0606612ff73441ab80bcdcb0f55822a

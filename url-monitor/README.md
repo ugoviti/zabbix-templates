@@ -1,5 +1,7 @@
-# Web SSL Certificates Template
-Check WEB URL response time, reachability and SSL/HTTPS certificates expire time using Zabbix Network Monitoring system
+# WEB URLs and SSL Monitor Template
+Monitor WEB URLs response time, reachability and SSL/HTTPS certificates expire time using Zabbix Network Monitoring system
+
+![URL Monitor](url-monitor-dashboard.png)
 
 ## Features
 - Zabbix Agent based (require Zabbix server >= 5.4)
@@ -10,6 +12,7 @@ Check WEB URL response time, reachability and SSL/HTTPS certificates expire time
 - Accounting of Expire Date and Time Left of the Expiring SSL certificates
 - 4 configurable types of trigger notifications (7 days left to expire, 3 days left to expire, certificate expired, domain https unreachable)
 - Configurable macros values for expiration days and CSV file/url path
+- Automatic Graphs and dashboard for response time metrics
 
 ## Installation
 - `ZABBIX_AGENT_DIR="/etc/zabbix/zabbix_agentd.d"`
