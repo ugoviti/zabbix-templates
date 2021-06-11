@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-06-10T23:24:02Z'
+  date: '2021-06-11T00:53:28Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -25,7 +25,7 @@ zabbix_export:
           name: 'SSL Hosts Discovery'
           key: 'url.discovery[discoverySSLHosts,{$URL_PATH_CSV}]'
           delay: 1h
-          lifetime: 7d
+          lifetime: 1d
           item_prototypes:
             -
               uuid: 44a4965920c34756ae763dbaa778f3b2
@@ -41,8 +41,8 @@ zabbix_export:
               trigger_prototypes:
                 -
                   uuid: 6845ff39b0a34727ae6096b72cc4c420
-                  expression: 'max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)=0'
-                  name: 'Failed to retrieve SSL certificate for {#HOST}'
+                  expression: 'max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],5m)=0'
+                  name: 'Failed to retrieve SSL certificate for {#HOST}:{#PORT}'
                   priority: WARNING
             -
               uuid: f72830c60eb2478382b69ff4777951f8
@@ -67,8 +67,8 @@ zabbix_export:
               priority: DISASTER
               dependencies:
                 -
-                  name: 'Failed to retrieve SSL certificate for {#HOST}'
-                  expression: 'max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],#2)=0'
+                  name: 'Failed to retrieve SSL certificate for {#HOST}:{#PORT}'
+                  expression: 'max(/Web URL Monitor/url.check[ssl.timeExpire,{#HOST},{#PORT}],5m)=0'
             -
               uuid: e6bafac2dbb24705a31d62a7dabd0be3
               expression: |
@@ -108,13 +108,13 @@ zabbix_export:
           name: 'Web Hosts Discovery'
           key: 'url.discovery[discoveryWEBHosts,{$URL_PATH_CSV}]'
           delay: 1h
-          lifetime: 7d
+          lifetime: 1d
           item_prototypes:
             -
               uuid: 2067f2c99a114074a922a66c4aee75ea
               name: '{#HOST} URL Response Dataset'
-              key: 'url.check[url.monitor,{#URL},{#HOST}]'
-              history: '0'
+              key: 'url.check[url.monitor,{#URL}]'
+              history: 1h
               trends: '0'
               value_type: TEXT
               description: 'URL Monitor for: {#URL}'
@@ -140,19 +140,6 @@ zabbix_export:
                   tag: Application
                   value: 'Zabbix raw items'
             -
-              uuid: e968be2805ed48328dea0092bc4a8eed
-              name: '{#HOST} URL Response Time old'
-              key: 'url.check[url.responseTime,{#URL},{#HOST}]'
-              status: DISABLED
-              discover: NO_DISCOVER
-              value_type: FLOAT
-              units: seconds
-              description: 'URL Monitor for: {#URL}'
-              tags:
-                -
-                  tag: Application
-                  value: 'URL Monitor'
-            -
               uuid: b4cc919388b64589bfd195186727fe76
               name: '{#HOST} URL Response Code'
               type: DEPENDENT
@@ -167,7 +154,7 @@ zabbix_export:
                   parameters:
                     - $.http_code
               master_item:
-                key: 'url.check[url.monitor,{#URL},{#HOST}]'
+                key: 'url.check[url.monitor,{#URL}]'
               tags:
                 -
                   tag: Application
@@ -175,7 +162,7 @@ zabbix_export:
               trigger_prototypes:
                 -
                   uuid: 249c98d582814fe2967216bcffad0128
-                  expression: 'max(/Web URL Monitor/url.responseCode[{#URL}],#3)<>200'
+                  expression: 'max(/Web URL Monitor/url.responseCode[{#URL}],5m)<>200'
                   name: 'Unavailable Web URL {#URL}'
                   url: '{#URL}'
                   priority: HIGH
@@ -195,7 +182,7 @@ zabbix_export:
                   parameters:
                     - $.time_total
               master_item:
-                key: 'url.check[url.monitor,{#URL},{#HOST}]'
+                key: 'url.check[url.monitor,{#URL}]'
               tags:
                 -
                   tag: Application
@@ -209,7 +196,7 @@ zabbix_export:
                   dependencies:
                     -
                       name: 'Unavailable Web URL {#URL}'
-                      expression: 'max(/Web URL Monitor/url.responseCode[{#URL}],#3)<>200'
+                      expression: 'max(/Web URL Monitor/url.responseCode[{#URL}],5m)<>200'
       macros:
         -
           macro: '{$URL_LATENCY_WARNING}'
@@ -234,10 +221,10 @@ zabbix_export:
           mappings:
             -
               value: '0'
-              newvalue: Unreachable
+              newvalue: Error
             -
               value: '200'
-              newvalue: OK
+              newvalue: Ok
             -
               value: '301'
               newvalue: 'Moved Permanently'

@@ -220,7 +220,7 @@ url.monitor() {
   HOST="$1"
   shift
   echo "http_code;time_total"
-  curl -L --connect-timeout 60 -s -o /dev/null -w "%{http_code};%{time_total}" "$URL" | sed 's/,/./g'
+  curl -L --connect-timeout 15 -s -o /dev/null -w "%{http_code};%{time_total}" "$URL" | sed 's/,/./g'
 }
 
 # execute the given command
