@@ -1,4 +1,4 @@
-# WEB URLs and SSL Monitor Template
+# Zabbix Template URL Monitor for HTTP Web Servers and SSL Certificates
 Monitor WEB URLs response time, reachability and SSL/HTTPS certificates expire time using Zabbix Network Monitoring system
 
 ![URL Monitor Dashboard](url-monitor-dashboard.png)
@@ -8,12 +8,12 @@ Monitor WEB URLs response time, reachability and SSL/HTTPS certificates expire t
 - Zabbix Agent based (require Zabbix server >= 5.4)
 - Simple and short Linux bash script based template (commands required: openssl, curl)
 - Easy Intallation and Configuration
-- LLD Discovery based template
-- Multiple SSL domains support using one CSV file as input for LLD (local file path or HTTP URL supported)
+- LLD Discovery Items and Triggers based template
+- Multiple URL monitoring using one CSV file as input for LLD (local file path or HTTP URL supported)
 - Accounting of Expire Date and Time Left of the Expiring SSL certificates
-- 4 configurable types of trigger notifications (7 days left to expire, 3 days left to expire, certificate expired, domain https unreachable)
-- Configurable macros values for expiration days and CSV file/url path
-- Automatic Graphs and dashboard for response time metrics
+- 6 automatic types of trigger notifications (7 days left to expire, 3 days left to expire, certificate expired, http server unreachable, etc...)
+- Configurable macros
+- Automatic graphs and dashboard for response time metrics
 
 ## Installation
 - `ZABBIX_AGENT_DIR="/etc/zabbix/zabbix_agentd.d"`
@@ -27,6 +27,7 @@ Monitor WEB URLs response time, reachability and SSL/HTTPS certificates expire t
 
 ## CSV Template example
 
+Default:
 ```/etc/zabbix/url-monitor.csv
 https://www.initzero.it
 https://www.wearequantico.it
@@ -37,7 +38,7 @@ https://www.amazon.it/gp/bestsellers/?ref_=nav_em_cs_bestsellers_0_1_1_2
 ```
 
 ## Template macros available
-- `{$URL_PATH_CSV}`: CSV file path or url of domains list (example: '/etc/zabbix/url-monitor.csv' or 'http://yourserver.local/url-monitor.csv')
+- `{$URL_PATH_CSV}`: CSV file path or url of domains list (default: '/etc/zabbix/url-monitor.csv' or for example: 'http://yourserver.local/url-monitor.csv')
 - `{$URL_LATENCY_WARNING}`: Default acceptable latency for loading URL (seconds)
 - `{$URL_SSL_EXPIRE_TIME_CRITICAL}`: Critical level for SSL certificate expiration time (days)
 - `{$URL_SSL_EXPIRE_TIME_WARNING}`: Warning level for SSL certificate expiration time (days)
