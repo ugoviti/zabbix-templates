@@ -95,9 +95,9 @@ function uri_parser() {
 }
 
 # print CSV formatted list removing blank and commented lines
-parseURLsCSV() {
-  csv="$args"
-  uri_parser "$csv"
+parseCSV() {
+  csv="$1"
+  uri_parser "$1"
   
   if [ -z "$uri_schema" ]; then
       cat "$csv" | sed -e '/^#/d' -e '/^$/d' -e '/^{#/d'
@@ -107,7 +107,7 @@ parseURLsCSV() {
 }
 
 detectURLParts() {
-  uri_parser "$URL"
+  uri_parser "$1"
   
   # default to https
   if [ -z "$uri_schema" ]; then
@@ -128,7 +128,7 @@ detectURLParts() {
 }
 
 printURLs() {
-  parseURLsCSV | while read URL; do
+  parseCSV "$1" | while read URL; do
     detectURLParts "$URL"
     if   [[ "${SCHEMA}" = "http" && "${PORT}" = "80" ]]; then
         unset URL_PORT
@@ -143,12 +143,10 @@ printURLs() {
 
 ## discovery rules
 url.discovery() {
-  URL="$1"
-
   echo "{
 \"data\":
   ["
-  printURLs | sed 'H;1h;$!d;x;s/\(.*\),/\1/'
+  printURLs "$1" | sed 'H;1h;$!d;x;s/\(.*\),/\1/'
   echo " ]
 }"
 }
@@ -181,9 +179,7 @@ ssl.time_expire() {
 
 
 url.monitor() {
-  URL="$1"
-  shift
-  detectURLParts "$URL"
+  detectURLParts "$1"
 
   # define cookies file name
   curlCookiesFile="${curlCookiesDir}/$(echo $HOST:$PORT/$RPATH | sed -e 's/[^A-Za-z0-9_-]/_/g').cookies"
@@ -199,7 +195,7 @@ url.monitor() {
     curlArgs+=" -b $curlCookiesFile"
   fi
 
-  curlResponse="$(curl -L --connect-timeout 15 -s -o /dev/null $curlArgs -w "%{http_code};%{time_total}" "$URL")"
+  curlResponse="$(curl -L --connect-timeout 15 -s -o /dev/null $curlArgs -w "%{http_code};%{time_total}" "$1")"
   RETVAL=$?
 
   # parse curl 
