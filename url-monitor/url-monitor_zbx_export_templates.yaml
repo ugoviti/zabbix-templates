@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-06-14T11:35:54Z'
+  date: '2021-06-14T11:57:01Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -11,7 +11,7 @@ zabbix_export:
       template: 'URL Monitor'
       name: 'URL Monitor'
       description: |
-        Zabbix Template URL Monitor made by InitZero
+        Zabbix Template URL Monitor for HTTP Web Servers and SSL Certificates made by InitZero
         
         - HTTP response time
         - HTTP response code
@@ -28,7 +28,7 @@ zabbix_export:
           uuid: 84fd20a71f45464fbd1694db5df728f9
           name: 'URL Discovery'
           key: 'url.discovery[url.discovery,{$URL_PATH_CSV}]'
-          delay: 1h
+          delay: 30m
           lifetime: 1d
           item_prototypes:
             -
