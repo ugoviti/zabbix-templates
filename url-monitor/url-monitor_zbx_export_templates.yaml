@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-06-14T10:20:38Z'
+  date: '2021-06-14T11:35:54Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -8,14 +8,18 @@ zabbix_export:
   templates:
     -
       uuid: d9786e42b7984160b0a1e5cea9f663ee
-      template: 'Web URL Monitor'
-      name: 'Web URL Monitor'
+      template: 'URL Monitor'
+      name: 'URL Monitor'
       description: |
-        InitZero's Web URL Monitor and SSL certificate expire Zabbix Template
+        Zabbix Template URL Monitor made by InitZero
         
-        Project Page: https://github.com/ugoviti/zabbix-templates/tree/master/urlmonitor
+        - HTTP response time
+        - HTTP response code
+        - SSL certificate expiration check
         
-        version: 20210611
+        Project Page: https://github.com/ugoviti/zabbix-templates/tree/master/url-monitor
+        
+        version: 20210614
       groups:
         -
           name: Templates
@@ -29,7 +33,7 @@ zabbix_export:
           item_prototypes:
             -
               uuid: b4cc919388b64589bfd195186727fe76
-              name: '{#HOST} URL response code'
+              name: '{#HOST} HTTP response code'
               type: DEPENDENT
               key: 'http.responseCode[{#URL}]'
               delay: '0'
@@ -46,10 +50,10 @@ zabbix_export:
               tags:
                 -
                   tag: Application
-                  value: 'URL Monitor'
+                  value: 'HTTP Monitor'
             -
               uuid: 9b0b6bff3b7843b2b24603bbdc84431b
-              name: '{#HOST} URL response time'
+              name: '{#HOST} HTTP response time'
               type: DEPENDENT
               key: 'http.responseTime[{#URL}]'
               delay: '0'
@@ -66,27 +70,27 @@ zabbix_export:
               tags:
                 -
                   tag: Application
-                  value: 'URL Monitor'
+                  value: 'HTTP Monitor'
               trigger_prototypes:
                 -
                   uuid: 243a1c43c2ee460eacfb11888af4d18d
-                  expression: 'avg(/Web URL Monitor/http.responseTime[{#URL}],5m)>{$URL_LATENCY_WARNING}'
-                  name: '{#HOST} URL high response time detected (> {$URL_LATENCY_WARNING}s)'
+                  expression: 'avg(/URL Monitor/http.responseTime[{#URL}],5m)>{$URL_LATENCY_WARNING}'
+                  name: '{#HOST} HTTP server high response time detected (> {$URL_LATENCY_WARNING}s)'
                   opdata: '{ITEM.VALUE1}'
                   url: '{#URL}'
                   priority: WARNING
                   description: 'Slow replies from {#URL}'
                   dependencies:
                     -
-                      name: '{#HOST} URL is unavailable'
+                      name: '{#HOST} HTTP server is unavailable'
                       expression: |
-                        min(/Web URL Monitor/http.responseCode[{#URL}],#3)<>200
+                        min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                         and
-                        max(/Web URL Monitor/http.responseCode[{#URL}],#3)<>200
+                        max(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                         and
-                        last(/Web URL Monitor/http.responseCode[{#URL}],#1)<>200
+                        last(/URL Monitor/http.responseCode[{#URL}],#1)<>200
                         and
-                        last(/Web URL Monitor/ssl.timeLeft[{#URL}])>0
+                        last(/URL Monitor/ssl.timeLeft[{#URL}])>0
             -
               uuid: af5c8739fa42454a9d35ffe8ce162412
               name: '{#HOST} SSL certificate expiration date'
@@ -105,11 +109,11 @@ zabbix_export:
               tags:
                 -
                   tag: Application
-                  value: 'SSL Certificate'
+                  value: 'SSL Monitor'
               trigger_prototypes:
                 -
                   uuid: da5d3edee6a5400fb77a9fd8b24c68ca
-                  expression: 'nodata(/Web URL Monitor/ssl.timeExpire[{#URL}],30m)=1'
+                  expression: 'nodata(/URL Monitor/ssl.timeExpire[{#URL}],30m)=1'
                   name: '{#HOST} SSL certificate failed to retrieve'
                   opdata: '{ITEM.VALUE1}'
                   url: '{#URL}'
@@ -117,15 +121,15 @@ zabbix_export:
                   description: 'Unable to connect to {#URL}'
                   dependencies:
                     -
-                      name: '{#HOST} URL is unavailable'
+                      name: '{#HOST} HTTP server is unavailable'
                       expression: |
-                        min(/Web URL Monitor/http.responseCode[{#URL}],#3)<>200
+                        min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                         and
-                        max(/Web URL Monitor/http.responseCode[{#URL}],#3)<>200
+                        max(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                         and
-                        last(/Web URL Monitor/http.responseCode[{#URL}],#1)<>200
+                        last(/URL Monitor/http.responseCode[{#URL}],#1)<>200
                         and
-                        last(/Web URL Monitor/ssl.timeLeft[{#URL}])>0
+                        last(/URL Monitor/ssl.timeLeft[{#URL}])>0
             -
               uuid: 267beca2207546ba9b1c41e5850c6844
               name: '{#HOST} SSL certificate expiration time left'
@@ -145,7 +149,7 @@ zabbix_export:
               tags:
                 -
                   tag: Application
-                  value: 'SSL Certificate'
+                  value: 'SSL Monitor'
             -
               uuid: 2067f2c99a114074a922a66c4aee75ea
               name: '{#HOST} URL Monitor Dataset'
@@ -162,11 +166,29 @@ zabbix_export:
                   value: 'Zabbix raw items'
           trigger_prototypes:
             -
+              uuid: 249c98d582814fe2967216bcffad0128
+              expression: |
+                min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
+                and
+                max(/URL Monitor/http.responseCode[{#URL}],#3)<>200
+                and
+                last(/URL Monitor/http.responseCode[{#URL}],#1)<>200
+                and
+                last(/URL Monitor/ssl.timeLeft[{#URL}])>0
+              name: '{#HOST} HTTP server is unavailable'
+              opdata: '{ITEM.VALUE1}'
+              url: '{#URL}'
+              priority: HIGH
+              description: |
+                Unable to connect to {#URL}
+                
+                Last three attempts returned timeout.  Please check URL connectivity.
+            -
               uuid: 435c3b1e7c3140f3b69e7a7344283f0e
               expression: |
-                max(/Web URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
                 and
-                max(/Web URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
+                max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
               name: '{#HOST} SSL certificate has EXPIRED on {ITEM.VALUE1}'
               opdata: '{ITEM.VALUE1}'
               url: '{#URL}'
@@ -175,13 +197,13 @@ zabbix_export:
               dependencies:
                 -
                   name: '{#HOST} SSL certificate failed to retrieve'
-                  expression: 'nodata(/Web URL Monitor/ssl.timeExpire[{#URL}],30m)=1'
+                  expression: 'nodata(/URL Monitor/ssl.timeExpire[{#URL}],30m)=1'
             -
               uuid: 420919c495584031b8e3e180c92f7df0
               expression: |
-                max(/Web URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
                 and
-                max(/Web URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
+                max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
               name: '{#HOST} SSL certificate will expire on {ITEM.VALUE1}'
               opdata: 'Expire on: {ITEM.VALUE1} Time left: {ITEM.VALUE2}'
               url: '{#URL}'
@@ -191,15 +213,15 @@ zabbix_export:
                 -
                   name: '{#HOST} SSL certificate has EXPIRED on {ITEM.VALUE1}'
                   expression: |
-                    max(/Web URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                    max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
                     and
-                    max(/Web URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
+                    max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
             -
               uuid: 4bccbaea16d1417abdb9c9aa5732fad4
               expression: |
-                max(/Web URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
                 and
-                max(/Web URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_WARNING}
+                max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_WARNING}
               name: '{#HOST} SSL certificate will expire on {ITEM.VALUE1}'
               opdata: 'Expire on: {ITEM.VALUE1} Time left: {ITEM.VALUE2}'
               url: '{#URL}'
@@ -209,27 +231,9 @@ zabbix_export:
                 -
                   name: '{#HOST} SSL certificate will expire on {ITEM.VALUE1}'
                   expression: |
-                    max(/Web URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                    max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
                     and
-                    max(/Web URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
-            -
-              uuid: 249c98d582814fe2967216bcffad0128
-              expression: |
-                min(/Web URL Monitor/http.responseCode[{#URL}],#3)<>200
-                and
-                max(/Web URL Monitor/http.responseCode[{#URL}],#3)<>200
-                and
-                last(/Web URL Monitor/http.responseCode[{#URL}],#1)<>200
-                and
-                last(/Web URL Monitor/ssl.timeLeft[{#URL}])>0
-              name: '{#HOST} URL is unavailable'
-              opdata: '{ITEM.VALUE1}'
-              url: '{#URL}'
-              priority: HIGH
-              description: |
-                Unable to connect to {#URL}
-                
-                Last three attempts returned timeout.  Please check URL connectivity.
+                    max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
           graph_prototypes:
             -
               uuid: 007e18b4c84d48e6a0d80a2accf2bf27
@@ -242,7 +246,7 @@ zabbix_export:
                   sortorder: '1'
                   color: 199C0D
                   item:
-                    host: 'Web URL Monitor'
+                    host: 'URL Monitor'
                     key: 'http.responseTime[{#URL}]'
       macros:
         -
@@ -289,7 +293,7 @@ zabbix_export:
                       name: graphid
                       value:
                         name: '{#URL} URL response time'
-                        host: 'Web URL Monitor'
+                        host: 'URL Monitor'
             -
               name: 'SSL Monitor'
               widgets:
@@ -316,7 +320,7 @@ zabbix_export:
                       name: itemid
                       value:
                         key: 'ssl.timeLeft[{#URL}]'
-                        host: 'Web URL Monitor'
+                        host: 'URL Monitor'
       valuemaps:
         -
           uuid: c0606612ff73441ab80bcdcb0f55822a

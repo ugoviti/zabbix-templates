@@ -1,11 +1,12 @@
 # WEB URLs and SSL Monitor Template
 Monitor WEB URLs response time, reachability and SSL/HTTPS certificates expire time using Zabbix Network Monitoring system
 
-![URL Monitor](url-monitor-dashboard.png)
+![URL Monitor Dashboard](url-monitor-dashboard.png)
+![URL Monitor Latest Data](url-monitor-latestdata.png)
 
 ## Features
 - Zabbix Agent based (require Zabbix server >= 5.4)
-- Simple and short Linux bash script based template (only openssl command required)
+- Simple and short Linux bash script based template (commands required: openssl, curl)
 - Easy Intallation and Configuration
 - LLD Discovery based template
 - Multiple SSL domains support using one CSV file as input for LLD (local file path or HTTP URL supported)
