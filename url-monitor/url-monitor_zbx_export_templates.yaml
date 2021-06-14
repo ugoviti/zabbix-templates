@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-06-14T11:57:01Z'
+  date: '2021-06-14T12:01:36Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -238,9 +238,7 @@ zabbix_export:
             -
               uuid: 007e18b4c84d48e6a0d80a2accf2bf27
               name: '{#URL} URL response time'
-              yaxismax: '30'
               type: STACKED
-              ymax_type_1: FIXED
               graph_items:
                 -
                   sortorder: '1'
