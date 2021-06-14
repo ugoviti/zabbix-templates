@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Zabbix Agent URL Monitoring with automatic discovery and check script for X509/SSL/HTTPS certificates
 ## author: Ugo Viti <ugo.viti@initzero.it>
-## version: 20210610
+## version: 20210614
 
 ## example input CSV file used by CVS to JSON zabbix discovery parser
 # www.initzero.it
@@ -162,37 +162,23 @@ getSSLExpireDate() {
 }
 
 # output in unixtime format
-ssl.timeLeft() {
+ssl.time_left() {
   if [ ! -z "$sslExpireDate" ]; then
     echo $(($(date '+%s' --date "$sslExpireDate") - $(date '+%s')))
    else
-    echo 0
     return 1
   fi
 }
 
 # output in unixtime format
-ssl.timeExpire() {
+ssl.time_expire() {
   if [ ! -z "$sslExpireDate" ]; then
     date '+%s' --date "$sslExpireDate"
    else
-    echo 0
     return 1
   fi
 }
 
-ssl.monitor() {
-  URL="$1"
-  shift
-  detectURLParts "$URL"
-  sslExpireDate=$(getSSLExpireDate)
-  
-  echo "{
-  \"data\": [
-      { \"timeLeft\":\"$(ssl.timeLeft)\", \"timeExpire\":\"$(ssl.timeExpire)\" }
-  ]
-}"
-}
 
 url.monitor() {
   URL="$1"
@@ -216,15 +202,33 @@ url.monitor() {
   curlResponse="$(curl -L --connect-timeout 15 -s -o /dev/null $curlArgs -w "%{http_code};%{time_total}" "$URL")"
   RETVAL=$?
 
+  # parse curl 
   curlData=($(echo "$curlResponse" | sed 's/;/\n/g' | sed 's/,/./g'))
 
   # curl fail when invalid certificate is detected and exit with return code 60, manage this an generate valid HTTP error code 
   ## nb. this is a workaround, using cloudflare defined HTTP error codes (ref. https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
   [[ "${curlData[0]}" = "000" && "$RETVAL" = "60" ]] && curlData[0]="526"
+  [[ "${curlData[0]}" = "000" ]] && curlData[0]="0"
+  
+  # compose the data var
+  #data+="\"http_schema\":\"${SCHEMA}\", "
+  [ ! -z "${curlData[0]}" ] && data+="\"http_code\":\"${curlData[0]}\", "
+  [[ ! -z "${curlData[0]}" && "${curlData[0]}" != "0" ]] && data+="\"time_total\":\"${curlData[1]}\", "
 
+  # get ssl expire date if it's an https url and the web server is reachable
+  if [[ "$SCHEMA" = "https" && "${curlData[0]}" != "0" ]];then
+    sslExpireDate=$(getSSLExpireDate)
+    ssl_time_expire="$(ssl.time_expire)"
+    ssl_time_left="$(ssl.time_left)"
+    
+    [ ! -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\":\"$ssl_time_expire\", "
+    [ ! -z "$ssl_time_left" ] && data+="\"ssl_time_left\":\"$ssl_time_left\",  "
+  fi
+
+  # print json for zabbix
   echo "{
   \"data\": [
-      { \"http_code\":\"${curlData[0]}\", \"time_total\":\"${curlData[1]}\" }
+      { $(echo $data | sed 'H;1h;$!d;x;s/\(.*\),/\1/') }
   ]
 }"
 }
