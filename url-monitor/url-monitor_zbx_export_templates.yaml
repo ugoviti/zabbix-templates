@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-06-14T22:07:02Z'
+  date: '2021-06-15T22:23:01Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -91,7 +91,7 @@ zabbix_export:
               trigger_prototypes:
                 -
                   uuid: 243a1c43c2ee460eacfb11888af4d18d
-                  expression: 'avg(/URL Monitor/http.responseTime[{#URL}],5m)>{$URL_LATENCY_WARNING}'
+                  expression: 'avg(/URL Monitor/http.responseTime[{#URL}],#3)>{$URL_LATENCY_WARNING}'
                   name: '{#HOST} HTTP server high response time detected (> {$URL_LATENCY_WARNING}s)'
                   opdata: '{ITEM.VALUE1}'
                   url: '{#URL}'
@@ -125,15 +125,6 @@ zabbix_export:
                 -
                   tag: Application
                   value: 'SSL Monitor'
-              trigger_prototypes:
-                -
-                  uuid: da5d3edee6a5400fb77a9fd8b24c68ca
-                  expression: 'nodata(/URL Monitor/ssl.timeExpire[{#URL}],30m)=1'
-                  name: '{#HOST} SSL certificate failed to retrieve'
-                  opdata: '{ITEM.VALUE1}'
-                  url: '{#URL}'
-                  priority: WARNING
-                  description: 'Unable to connect to {#URL}'
             -
               uuid: 267beca2207546ba9b1c41e5850c6844
               name: '{#HOST} SSL certificate expiration time left'
@@ -170,6 +161,17 @@ zabbix_export:
                   value: 'Zabbix raw items'
           trigger_prototypes:
             -
+              uuid: da5d3edee6a5400fb77a9fd8b24c68ca
+              expression: |
+                nodata(/URL Monitor/ssl.timeExpire[{#URL}],10m)=1
+                and
+                last(/URL Monitor/http.responseCode[{#URL}])=200
+              name: '{#HOST} SSL certificate failed to retrieve'
+              opdata: '{ITEM.VALUE1}'
+              url: '{#URL}'
+              priority: WARNING
+              description: 'Unable to connect to {#URL}'
+            -
               uuid: 435c3b1e7c3140f3b69e7a7344283f0e
               expression: |
                 max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
@@ -183,7 +185,10 @@ zabbix_export:
               dependencies:
                 -
                   name: '{#HOST} SSL certificate failed to retrieve'
-                  expression: 'nodata(/URL Monitor/ssl.timeExpire[{#URL}],30m)=1'
+                  expression: |
+                    nodata(/URL Monitor/ssl.timeExpire[{#URL}],10m)=1
+                    and
+                    last(/URL Monitor/http.responseCode[{#URL}])=200
             -
               uuid: 420919c495584031b8e3e180c92f7df0
               expression: |
@@ -312,7 +317,7 @@ zabbix_export:
           mappings:
             -
               value: '0'
-              newvalue: Error
+              newvalue: 'Connect Error'
             -
               value: '200'
               newvalue: Ok
