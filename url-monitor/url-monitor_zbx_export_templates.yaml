@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-06-15T22:23:01Z'
+  date: '2021-06-16T12:43:22Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -55,11 +55,15 @@ zabbix_export:
                 -
                   uuid: 249c98d582814fe2967216bcffad0128
                   expression: |
+                    (
                     min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                     and
                     max(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                     and
                     last(/URL Monitor/http.responseCode[{#URL}],#1)<>200
+                    )
+                    or
+                    nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
                   name: '{#HOST} HTTP server is unavailable'
                   opdata: '{ITEM.VALUE1}'
                   url: '{#URL}'
@@ -92,7 +96,7 @@ zabbix_export:
                 -
                   uuid: 243a1c43c2ee460eacfb11888af4d18d
                   expression: 'avg(/URL Monitor/http.responseTime[{#URL}],#3)>{$URL_LATENCY_WARNING}'
-                  name: '{#HOST} HTTP server high response time detected (> {$URL_LATENCY_WARNING}s)'
+                  name: '{#HOST} HTTP server high response time detected (> {$URL_LATENCY_WARNING})'
                   opdata: '{ITEM.VALUE1}'
                   url: '{#URL}'
                   priority: WARNING
@@ -101,11 +105,15 @@ zabbix_export:
                     -
                       name: '{#HOST} HTTP server is unavailable'
                       expression: |
+                        (
                         min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                         and
                         max(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                         and
                         last(/URL Monitor/http.responseCode[{#URL}],#1)<>200
+                        )
+                        or
+                        nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
             -
               uuid: af5c8739fa42454a9d35ffe8ce162412
               name: '{#HOST} SSL certificate expiration date'
@@ -165,7 +173,11 @@ zabbix_export:
               expression: |
                 nodata(/URL Monitor/ssl.timeExpire[{#URL}],10m)=1
                 and
+                (
                 last(/URL Monitor/http.responseCode[{#URL}])=200
+                or
+                nodata(/URL Monitor/http.responseCode[{#URL}],5m)=0
+                )
               name: '{#HOST} SSL certificate failed to retrieve'
               opdata: '{ITEM.VALUE1}'
               url: '{#URL}'
@@ -188,7 +200,11 @@ zabbix_export:
                   expression: |
                     nodata(/URL Monitor/ssl.timeExpire[{#URL}],10m)=1
                     and
+                    (
                     last(/URL Monitor/http.responseCode[{#URL}])=200
+                    or
+                    nodata(/URL Monitor/http.responseCode[{#URL}],5m)=0
+                    )
             -
               uuid: 420919c495584031b8e3e180c92f7df0
               expression: |
