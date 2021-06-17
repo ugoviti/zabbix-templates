@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-06-16T12:43:22Z'
+  date: '2021-06-17T10:36:33Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -55,6 +55,8 @@ zabbix_export:
                 -
                   uuid: 249c98d582814fe2967216bcffad0128
                   expression: |
+                    nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
+                    or
                     (
                     min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                     and
@@ -62,9 +64,7 @@ zabbix_export:
                     and
                     last(/URL Monitor/http.responseCode[{#URL}],#1)<>200
                     )
-                    or
-                    nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
-                  name: '{#HOST} HTTP server is unavailable'
+                  name: '{#HOST} HTTP server error detected'
                   opdata: '{ITEM.VALUE1}'
                   url: '{#URL}'
                   priority: HIGH
@@ -103,8 +103,10 @@ zabbix_export:
                   description: 'Slow replies from {#URL}'
                   dependencies:
                     -
-                      name: '{#HOST} HTTP server is unavailable'
+                      name: '{#HOST} HTTP server error detected'
                       expression: |
+                        nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
+                        or
                         (
                         min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                         and
@@ -112,8 +114,6 @@ zabbix_export:
                         and
                         last(/URL Monitor/http.responseCode[{#URL}],#1)<>200
                         )
-                        or
-                        nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
             -
               uuid: af5c8739fa42454a9d35ffe8ce162412
               name: '{#HOST} SSL certificate expiration date'
@@ -171,13 +171,9 @@ zabbix_export:
             -
               uuid: da5d3edee6a5400fb77a9fd8b24c68ca
               expression: |
-                nodata(/URL Monitor/ssl.timeExpire[{#URL}],10m)=1
+                nodata(/URL Monitor/ssl.timeExpire[{#URL}],5m)=1
                 and
-                (
-                last(/URL Monitor/http.responseCode[{#URL}])=200
-                or
-                nodata(/URL Monitor/http.responseCode[{#URL}],5m)=0
-                )
+                nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
               name: '{#HOST} SSL certificate failed to retrieve'
               opdata: '{ITEM.VALUE1}'
               url: '{#URL}'
@@ -198,13 +194,9 @@ zabbix_export:
                 -
                   name: '{#HOST} SSL certificate failed to retrieve'
                   expression: |
-                    nodata(/URL Monitor/ssl.timeExpire[{#URL}],10m)=1
+                    nodata(/URL Monitor/ssl.timeExpire[{#URL}],5m)=1
                     and
-                    (
-                    last(/URL Monitor/http.responseCode[{#URL}])=200
-                    or
-                    nodata(/URL Monitor/http.responseCode[{#URL}],5m)=0
-                    )
+                    nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
             -
               uuid: 420919c495584031b8e3e180c92f7df0
               expression: |
@@ -332,8 +324,20 @@ zabbix_export:
           name: 'HTTP Response codes'
           mappings:
             -
-              value: '0'
-              newvalue: 'Connect Error'
+              value: '1'
+              newvalue: 'Unknown Error'
+            -
+              value: '6'
+              newvalue: 'Could not resolve host'
+            -
+              value: '7'
+              newvalue: 'Failed to connect'
+            -
+              value: '28'
+              newvalue: 'Connection timed out'
+            -
+              value: '60'
+              newvalue: 'SSL certificate problem'
             -
               value: '200'
               newvalue: Ok
@@ -358,6 +362,3 @@ zabbix_export:
             -
               value: '503'
               newvalue: 'Service Unavailable'
-            -
-              value: '526'
-              newvalue: 'Invalid SSL Certificate'

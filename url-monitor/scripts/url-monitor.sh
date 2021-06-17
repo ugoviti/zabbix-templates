@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Zabbix Agent URL Monitoring with automatic discovery and check script for X509/SSL/HTTPS certificates
 ## author: Ugo Viti <ugo.viti@initzero.it>
-## version: 20210614
+## version: 20210617
 
 ## example input CSV file used by CVS to JSON zabbix discovery parser
 # www.initzero.it
@@ -196,23 +196,32 @@ url.monitor() {
   fi
 
   curlResponse="$(curl -L --connect-timeout 15 -s -o /dev/null $curlArgs -w "%{http_code};%{time_total}" "$1")"
-  RETVAL=$?
+  curlRetVal=$?
 
   # parse curl 
   curlData=($(echo "$curlResponse" | sed 's/;/\n/g' | sed 's/,/./g'))
 
-  # curl fail when invalid certificate is detected and exit with return code 60, manage this an generate valid HTTP error code 
-  ## nb. this is a workaround, using cloudflare defined HTTP error codes (ref. https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-  [[ "${curlData[0]}" = "000" && "$RETVAL" = "60" ]] && curlData[0]="526"
-  [[ "${curlData[0]}" = "000" ]] && curlData[0]="0"
+  ## manage when curl fail and not generate a valid HTTP error code 
+  # NOTE: this is a workaround, using cloudflare defined HTTP error codes (ref. https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+  
+  ## use curl return code as http response code
+  # curl: (6) Could not resolve host
+  # curl: (7) Failed to connect
+  # curl: (28) Connection timed out
+  # curl: (60) SSL certificate problem: self signed certificate
+  [[ "$curlRetVal" != "0" ]] && curlData[0]="$curlRetVal"
+
+  # failback and map generic error to http code 1
+  [[ "${curlData[0]}" = "000" && "$curlRetVal" = "0" ]] && curlData[0]="1"
+
   
   # compose the data var
   #data+="\"http_schema\":\"${SCHEMA}\", "
-  [ ! -z "${curlData[0]}" ] && data+="\"http_code\":\"${curlData[0]}\", "
-  [[ ! -z "${curlData[0]}" && "${curlData[0]}" != "0" ]] && data+="\"time_total\":\"${curlData[1]}\", "
+  [[ ! -z "${curlData[0]}" ]] && data+="\"http_code\":\"${curlData[0]}\", "
+  [[ ! -z "${curlData[1]}" ]] && data+="\"time_total\":\"${curlData[1]}\", "
 
   # get ssl expire date if it's an https url and the web server is reachable
-  if [[ "$SCHEMA" = "https" && "${curlData[0]}" != "0" ]];then
+  if [[ "$SCHEMA" = "https" ]] && [[ "$curlRetVal" = "0" || "$curlRetVal" = "60" ]];then
     sslExpireDate=$(getSSLExpireDate)
     ssl_time_expire="$(ssl.time_expire)"
     ssl_time_left="$(ssl.time_left)"
