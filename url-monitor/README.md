@@ -1,31 +1,54 @@
 # Zabbix Template URL Monitor for HTTP Web Servers and SSL Certificates
-Monitor WEB URLs response time, reachability and SSL/HTTPS certificates expire time using Zabbix Network Monitoring system
+Monitor HTTTP Web Servers reachability, response time, and SSL/HTTPS certificates expire time using Zabbix Network Monitoring system
 
 ![URL Monitor Dashboard](url-monitor-dashboard.png)
 ![URL Monitor Latest Data](url-monitor-latestdata.png)
 
 ## Features
-- Zabbix Agent based (require Zabbix server >= 5.4)
-- Simple and short Linux bash script based template (commands required: openssl, curl)
+- Zabbix Agent based (tested with Zabbix server >= 5.4)
+- Simple Linux bash script based template (commands required: openssl, curl)
 - Easy Intallation and Configuration
 - LLD Discovery Items and Triggers based template
-- Multiple URL monitoring using one CSV file as input for LLD (local file path or HTTP URL supported)
-- Accounting of Expire Date and Time Left of the Expiring SSL certificates
+- Multiple URL monitoring using one CSV file as input for LLD (you can specify a local file path or a HTTP URL)
+- Accounting of Expire Date and Time Left of the expiring SSL certificates
 - 6 automatic types of trigger notifications (7 days left to expire, 3 days left to expire, certificate expired, http server unreachable, etc...)
 - Configurable macros
 - Automatic graphs and dashboard for response time metrics
 
-## Installation
-- `ZABBIX_AGENT_DIR="/etc/zabbix/zabbix_agentd.d"`
-- `mkdir -p $ZABBIX_AGENT_DIR/../scripts/`
-- `cp scripts/url-monitor.sh $ZABBIX_AGENT_DIR/../scripts/`
-- `chmod 755 $ZABBIX_AGENT_DIR/../scripts/url-monitor.sh`
-- `cp url-monitor.conf $ZABBIX_AGENT_DIR/`
-- Restart zabbix-agent: `systemctl restart zabbix-agent `
-- Import `url-monitor-zbx_export_templates.xml` into Zabbix templates panel
-- Assign Zabbix template to the host, customize the `{$URL_PATH_CSV}` macro path with your CSV file and wait for automatic discovery
+### Items
+- {#HOST} HTTP response code
+- {#HOST} HTTP response time
+- {#HOST} SSL certificate expiration date
+- {#HOST} SSL certificate expiration time left
 
-## CSV Template example
+### Triggers
+- {#HOST} HTTP server error detected
+- {#HOST} HTTP server high response time detected (> {$URL_LATENCY_WARNING})
+- {#HOST} SSL certificate failed to retrieve
+- {#HOST} SSL certificate will expire on {ITEM.VALUE1} (< {$URL_SSL_EXPIRE_TIME_WARNING})
+- {#HOST} SSL certificate will expire on {ITEM.VALUE1} (< {$URL_SSL_EXPIRE_TIME_CRITICAL})
+- {#HOST} SSL certificate has EXPIRED on {ITEM.VALUE1}
+
+### Graphs
+- {#URL} URL response time
+
+## Installation
+- Shell commands prerequisites: `curl` `openssl`
+- `git clone https://github.com/ugoviti/zabbix-templates.git`
+- `cd zabbix-templates/`
+- `git pull`
+- `cd url-monitor/`
+- `ZABBIX_SCRIPTS_DIR="/etc/zabbix/scripts"`
+- `ZABBIX_AGENT_DIR="/etc/zabbix/zabbix_agent2.d"`
+- `mkdir -p $ZABBIX_SCRIPTS_DIR $ZABBIX_AGENT_DIR`
+- `cp scripts/* $ZABBIX_SCRIPTS_DIR/`
+- `chmod 755 $ZABBIX_SCRIPTS_DIR/*`
+- `cp zabbix_agent*/*.conf $ZABBIX_AGENT_DIR/`
+- Restart zabbix-agent: `systemctl restart zabbix-agent2`
+- Import `url-monitor-zbx_export_templates.xml` into Zabbix templates panel
+- Assign Zabbix template to the host and customize the MACROS like`{$URL_PATH_CSV}` macro path with your CSV file and wait for automatic discovery
+
+## CSV File template example
 
 Default:
 ```/etc/zabbix/url-monitor.csv
@@ -35,6 +58,10 @@ https://www.wearequantico.it
 # follow an example with different port
 http://www.otherdomain.fqdn:8080
 https://www.amazon.it/gp/bestsellers/?ref_=nav_em_cs_bestsellers_0_1_1_2
+# also this is valid:
+google.com
+google.com:80
+google.com:443
 ```
 
 ## Template macros available
