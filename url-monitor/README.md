@@ -1,5 +1,5 @@
 # Zabbix Template URL Monitor for HTTP Web Servers and SSL Certificates
-Monitor HTTTP Web Servers reachability, response time, and SSL/HTTPS certificates expire time using Zabbix Network Monitoring system
+Monitor HTTP Web Servers reachability, response time, and SSL/HTTPS certificates expire time using Zabbix Network Monitoring system
 
 ![URL Monitor Dashboard](url-monitor-dashboard.png)
 ![URL Monitor Latest Data](url-monitor-latestdata.png)
