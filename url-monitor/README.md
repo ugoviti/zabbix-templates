@@ -50,8 +50,8 @@ Monitor HTTTP Web Servers reachability, response time, and SSL/HTTPS certificate
 
 ## CSV File template example
 
-Default:
-```/etc/zabbix/url-monitor.csv
+Default file path: `/etc/zabbix/url-monitor.csv`
+```
 https://www.initzero.it
 https://www.wearequantico.it
 # this is a comment and will be excluded
