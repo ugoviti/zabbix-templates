@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-06-17T10:36:33Z'
+  date: '2021-06-24T11:26:40Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -19,7 +19,7 @@ zabbix_export:
         
         Project Page: https://github.com/ugoviti/zabbix-templates/tree/master/url-monitor
         
-        version: 20210614
+        version: 20210624
       groups:
         -
           name: Templates
@@ -252,7 +252,7 @@ zabbix_export:
           description: 'Default acceptable latency for loading URL (seconds)'
         -
           macro: '{$URL_PATH_CSV}'
-          value: /etc/zabbix/urls.csv
+          value: /etc/zabbix/url-monitor.csv
           description: 'URLs CSV file path (http URL or local path)'
         -
           macro: '{$URL_SSL_EXPIRE_TIME_CRITICAL}'
