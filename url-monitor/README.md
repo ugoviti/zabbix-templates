@@ -66,6 +66,8 @@ google.com:80
 google.com:443
 # for mail servers or non HTTP servers use the schema 'tcp://'
 tcp://smtp.example.com:465
+# or for IMAPS
+tcp://imap.example.com:993
 ```
 
 ### NOTES:
@@ -74,6 +76,7 @@ tcp://smtp.example.com:465
   3. http://www.initzero.it or www.initzero.it:80 are the same
   4. https://www.initzero.it or https://www.initzero.it:443 or www.initzero.it or www.initzero.it:443 are the same
   5. to monitor SMTP SSL certificates or not HTTP server, you can use the 'tcp://' schema
+  6. if the 'tcp://' schema is specified, the HTTP server check will be disabled and HTTP response code will be always 200 (only certificate check will be monitored)
 
 
 ## Template macros available

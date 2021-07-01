@@ -184,13 +184,8 @@ ssl.time_expire() {
   fi
 }
 
-
-url.monitor() {
-  detectURLParts "$1"
-
-  # exit if the SCHEMA is not http or https
-  [[ "$SCHEMA" != "http" && "$SCHEMA" != "https" ]] && return 0
-  
+# check http/https server response code
+getHTTPData() {
   # define cookies file name
   curlCookiesFile="${curlCookiesDir}/$(echo $HOST:$PORT/$RPATH | sed -e 's/[^A-Za-z0-9_-]/_/g').cookies"
 
@@ -229,15 +224,32 @@ url.monitor() {
   #data+="\"http_schema\":\"${SCHEMA}\", "
   [[ ! -z "${curlData[0]}" ]] && data+="\"http_code\":\"${curlData[0]}\", "
   [[ ! -z "${curlData[1]}" ]] && data+="\"time_total\":\"${curlData[1]}\", "
+}
 
-  # get ssl expire date if it's an https url and the web server is reachable
-  if [[ "$SCHEMA" = "https" ]] && [[ "$curlRetVal" = "0" || "$curlRetVal" = "60" ]];then
-    sslExpireDate=$(getSSLExpireDate)
-    ssl_time_expire="$(ssl.time_expire)"
-    ssl_time_left="$(ssl.time_left)"
-    
-    [ ! -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\":\"$ssl_time_expire\", "
-    [ ! -z "$ssl_time_left" ] && data+="\"ssl_time_left\":\"$ssl_time_left\",  "
+# check ssl certificate expiration
+getSSLData() {
+  sslExpireDate=$(getSSLExpireDate)
+  ssl_time_expire="$(ssl.time_expire)"
+  ssl_time_left="$(ssl.time_left)"
+  
+  [ ! -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\":\"$ssl_time_expire\", "
+  [ ! -z "$ssl_time_left" ] && data+="\"ssl_time_left\":\"$ssl_time_left\",  "
+}
+
+
+url.monitor() {
+  detectURLParts "$1"
+
+  # get HTTP request only for http and https protocols
+  [[ "$SCHEMA" = "http" || "$SCHEMA" = "https" ]] && getHTTPData "$1"
+  # # get ssl expire date if it's an https url and the web server is reachable
+  if   [[ "$SCHEMA" = "https" ]] && [[ "$curlRetVal" = "0" || "$curlRetVal" = "60" ]];then
+    getSSLData "$1"
+  elif [[ "$SCHEMA" = "tcp" ]];then
+    # always save http code 200 for non http servers check
+    data+="\"http_code\":\"200\", "
+    data+="\"time_total\":\"0\", "
+    getSSLData "$1"
   fi
 
   # print json for zabbix
