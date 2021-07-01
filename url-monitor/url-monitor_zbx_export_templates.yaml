@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-06-24T11:26:40Z'
+  date: '2021-07-01T08:15:17Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -19,7 +19,7 @@ zabbix_export:
         
         Project Page: https://github.com/ugoviti/zabbix-templates/tree/master/url-monitor
         
-        version: 20210624
+        version: 20210701
       groups:
         -
           name: Templates
@@ -33,7 +33,7 @@ zabbix_export:
           item_prototypes:
             -
               uuid: b4cc919388b64589bfd195186727fe76
-              name: '{#HOST} HTTP response code'
+              name: '{#ITEMNAME} HTTP response code'
               type: DEPENDENT
               key: 'http.responseCode[{#URL}]'
               delay: '0'
@@ -74,7 +74,7 @@ zabbix_export:
                     Last three attempts returned timeout.  Please check URL connectivity.
             -
               uuid: 9b0b6bff3b7843b2b24603bbdc84431b
-              name: '{#HOST} HTTP response time'
+              name: '{#ITEMNAME} HTTP response time'
               type: DEPENDENT
               key: 'http.responseTime[{#URL}]'
               delay: '0'
@@ -116,7 +116,7 @@ zabbix_export:
                         )
             -
               uuid: af5c8739fa42454a9d35ffe8ce162412
-              name: '{#HOST} SSL certificate expiration date'
+              name: '{#ITEMNAME} SSL certificate expiration date'
               type: DEPENDENT
               key: 'ssl.timeExpire[{#URL}]'
               delay: '0'
@@ -135,7 +135,7 @@ zabbix_export:
                   value: 'SSL Monitor'
             -
               uuid: 267beca2207546ba9b1c41e5850c6844
-              name: '{#HOST} SSL certificate expiration time left'
+              name: '{#ITEMNAME} SSL certificate expiration time left'
               type: DEPENDENT
               key: 'ssl.timeLeft[{#URL}]'
               delay: '0'
@@ -155,7 +155,7 @@ zabbix_export:
                   value: 'SSL Monitor'
             -
               uuid: 2067f2c99a114074a922a66c4aee75ea
-              name: '{#HOST} URL Monitor Dataset'
+              name: '{#ITEMNAME} URL Monitor Dataset'
               key: 'url.check[url.monitor,{#URL}]'
               history: 1h
               trends: '0'

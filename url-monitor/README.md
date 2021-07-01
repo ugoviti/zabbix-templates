@@ -53,6 +53,7 @@ Monitor HTTP Web Servers reachability, response time, and SSL/HTTPS certificates
 
 Default file path: `/etc/zabbix/url-monitor.csv`
 ```
+http://www.initzero.it
 https://www.initzero.it
 https://www.wearequantico.it
 # this is a comment and will be excluded
@@ -63,7 +64,17 @@ https://www.amazon.it/gp/bestsellers/?ref_=nav_em_cs_bestsellers_0_1_1_2
 google.com
 google.com:80
 google.com:443
+# for mail servers or non HTTP servers use the schema 'tcp://'
+tcp://smtp.example.com:465
 ```
+
+### NOTES:
+  1. by default if no port is specified will be used the port '443'
+  2. by default if no schema is specified will be used the schema 'https'
+  3. http://www.initzero.it or www.initzero.it:80 are the same
+  4. https://www.initzero.it or https://www.initzero.it:443 or www.initzero.it or www.initzero.it:443 are the same
+  5. to monitor SMTP SSL certificates or not HTTP server, you can use the 'tcp://' schema
+
 
 ## Template macros available
 - `{$URL_PATH_CSV}`: CSV file path or url of domains list (default: '/etc/zabbix/url-monitor.csv' or for example: 'http://yourserver.local/url-monitor.csv')
