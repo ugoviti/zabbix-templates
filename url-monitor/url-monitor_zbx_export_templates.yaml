@@ -1,6 +1,6 @@
 zabbix_export:
   version: '5.4'
-  date: '2021-07-01T08:15:17Z'
+  date: '2021-07-01T09:00:45Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -64,7 +64,7 @@ zabbix_export:
                     and
                     last(/URL Monitor/http.responseCode[{#URL}],#1)<>200
                     )
-                  name: '{#HOST} HTTP server error detected'
+                  name: '{#ITEMNAME} HTTP server error detected'
                   opdata: '{ITEM.VALUE1}'
                   url: '{#URL}'
                   priority: HIGH
@@ -96,14 +96,14 @@ zabbix_export:
                 -
                   uuid: 243a1c43c2ee460eacfb11888af4d18d
                   expression: 'avg(/URL Monitor/http.responseTime[{#URL}],#3)>{$URL_LATENCY_WARNING}'
-                  name: '{#HOST} HTTP server high response time detected (> {$URL_LATENCY_WARNING})'
+                  name: '{#ITEMNAME} HTTP server high response time detected (> {$URL_LATENCY_WARNING})'
                   opdata: '{ITEM.VALUE1}'
                   url: '{#URL}'
                   priority: WARNING
                   description: 'Slow replies from {#URL}'
                   dependencies:
                     -
-                      name: '{#HOST} HTTP server error detected'
+                      name: '{#ITEMNAME} HTTP server error detected'
                       expression: |
                         nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
                         or
@@ -174,7 +174,7 @@ zabbix_export:
                 nodata(/URL Monitor/ssl.timeExpire[{#URL}],5m)=1
                 and
                 nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
-              name: '{#HOST} SSL certificate failed to retrieve'
+              name: '{#ITEMNAME} SSL certificate failed to retrieve'
               opdata: '{ITEM.VALUE1}'
               url: '{#URL}'
               priority: WARNING
@@ -185,14 +185,14 @@ zabbix_export:
                 max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
                 and
                 max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
-              name: '{#HOST} SSL certificate has EXPIRED on {ITEM.VALUE1}'
+              name: '{#ITEMNAME} SSL certificate has EXPIRED on {ITEM.VALUE1}'
               opdata: 'Expired on: {ITEM.VALUE1} ({ITEM.VALUE2} ago)'
               url: '{#URL}'
               priority: DISASTER
               description: 'SSL Certificate for {#URL} is expired'
               dependencies:
                 -
-                  name: '{#HOST} SSL certificate failed to retrieve'
+                  name: '{#ITEMNAME} SSL certificate failed to retrieve'
                   expression: |
                     nodata(/URL Monitor/ssl.timeExpire[{#URL}],5m)=1
                     and
@@ -203,14 +203,14 @@ zabbix_export:
                 max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
                 and
                 max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
-              name: '{#HOST} SSL certificate will expire on {ITEM.VALUE1}'
+              name: '{#ITEMNAME} SSL certificate will expire on {ITEM.VALUE1}'
               opdata: 'Will expire on: {ITEM.VALUE1} ({ITEM.VALUE2} remaining)'
               url: '{#URL}'
               priority: HIGH
               description: 'Configured Critical level: {$URL_SSL_EXPIRE_TIME_CRITICAL}'
               dependencies:
                 -
-                  name: '{#HOST} SSL certificate has EXPIRED on {ITEM.VALUE1}'
+                  name: '{#ITEMNAME} SSL certificate has EXPIRED on {ITEM.VALUE1}'
                   expression: |
                     max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
                     and
@@ -221,14 +221,14 @@ zabbix_export:
                 max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
                 and
                 max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_WARNING}
-              name: '{#HOST} SSL certificate will expire on {ITEM.VALUE1}'
+              name: '{#ITEMNAME} SSL certificate will expire on {ITEM.VALUE1}'
               opdata: 'Will expire on: {ITEM.VALUE1} ({ITEM.VALUE2} remaining)'
               url: '{#URL}'
               priority: WARNING
               description: 'Configured Warning level: {$URL_SSL_EXPIRE_TIME_WARNING}'
               dependencies:
                 -
-                  name: '{#HOST} SSL certificate will expire on {ITEM.VALUE1}'
+                  name: '{#ITEMNAME} SSL certificate will expire on {ITEM.VALUE1}'
                   expression: |
                     max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
                     and

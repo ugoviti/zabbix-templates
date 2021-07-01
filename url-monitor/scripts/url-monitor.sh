@@ -237,12 +237,14 @@ getSSLData() {
 }
 
 
+# monitor the given URL
 url.monitor() {
   detectURLParts "$1"
 
   # get HTTP request only for http and https protocols
   [[ "$SCHEMA" = "http" || "$SCHEMA" = "https" ]] && getHTTPData "$1"
-  # # get ssl expire date if it's an https url and the web server is reachable
+  
+  # get ssl expire date if it's an https url and the web server is reachable
   if   [[ "$SCHEMA" = "https" ]] && [[ "$curlRetVal" = "0" || "$curlRetVal" = "60" ]];then
     getSSLData "$1"
   elif [[ "$SCHEMA" = "tcp" ]];then
