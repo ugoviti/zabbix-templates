@@ -84,3 +84,9 @@ tcp://imap.example.com:993
 - `{$URL_LATENCY_WARNING}`: Default acceptable latency for loading URL (seconds)
 - `{$URL_SSL_EXPIRE_TIME_CRITICAL}`: Critical level for SSL certificate expiration time (days)
 - `{$URL_SSL_EXPIRE_TIME_WARNING}`: Warning level for SSL certificate expiration time (days)
+
+## Troubleshooting
+- If Zabbix can't parse the CSV file, test JSON output from the CLI:
+  - `/etc/zabbix/scripts/url-monitor.sh url.discovery /etc/zabbix/url-monitor.csv`
+- Test if the script works as expected from the CLI:
+  - `/etc/zabbix/scripts/url-monitor.sh url.monitor https://www.initzero.it`
