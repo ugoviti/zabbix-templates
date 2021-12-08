@@ -83,7 +83,7 @@ tcp://imap.example.com:993
 
 
 ## Template macros available
-- `{$URL_PATH_CSV}`: CSV file path or url of domains list (default: `/etc/zabbix/url-monitor.csv`. Example for remote file list: `http://yourserver.local/yourlfile.csv`)
+- `{$URL_PATH_CSV}`: CSV file path or url of domains list (default: `/etc/zabbix/url-monitor.csv`. Example for remote file download: `http://yourserver.local/yourfile.csv`)
 - `{$URL_LATENCY_WARNING}`: Default acceptable latency for loading URL (seconds) (default: `15s`)
 - `{$URL_SSL_EXPIRE_TIME_WARNING}`: Warning level for SSL certificate expiration time (days) (default: `7d`)
 - `{$URL_SSL_EXPIRE_TIME_CRITICAL}`: Critical level for SSL certificate expiration time (days) (default: `3d`)
