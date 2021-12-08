@@ -99,9 +99,9 @@ parseCSV() {
   uri_parser "$1"
   
   if [ -z "$uri_schema" ]; then
-      cat "$csv" | sed -e '/^#/d' -e '/^$/d' -e '/^{#/d'
+      cat "$csv" | dos2unix | sed -e '/^#/d' -e '/^$/d' -e '/^{#/d'
     else
-      curl -s "$csv" | sed -e '/^#/d' -e '/^$/d' -e '/^{#/d'
+      curl -s "$csv" | dos2unix | sed -e '/^#/d' -e '/^$/d' -e '/^{#/d'
   fi
 }
 

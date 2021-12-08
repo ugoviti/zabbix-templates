@@ -6,7 +6,7 @@ Monitor HTTP Web Servers reachability, response time, and SSL/HTTPS certificates
 
 ## Features
 - Zabbix Agent based (tested with Zabbix server >= 5.4)
-- Simple Linux bash script based template (commands required: openssl, curl)
+- Simple Linux bash script based template (NOTE: commands required: `openssl`, `curl`, `dos2unix`)
 - Easy Intallation and Configuration
 - LLD Discovery Items and Triggers based template
 - Multiple URL monitoring using one CSV file as input for LLD (you can specify a local file path or a HTTP URL)
