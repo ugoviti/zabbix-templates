@@ -6,7 +6,7 @@ Monitor HTTP Web Servers reachability, response time, and SSL/HTTPS certificates
 
 ## Features
 - Zabbix Agent based (tested with Zabbix server >= 5.4)
-- Simple Linux bash script based template (NOTE: commands required: `openssl`, `curl`, `dos2unix`)
+- Simple Linux bash script based template
 - Easy Intallation and Configuration
 - LLD Discovery Items and Triggers based template
 - Multiple URL monitoring using one CSV file as input for LLD (you can specify a local file path or a HTTP URL)
@@ -33,17 +33,20 @@ Monitor HTTP Web Servers reachability, response time, and SSL/HTTPS certificates
 - {#URL} URL response time
 
 ## Installation
-- Shell commands prerequisites: `curl` `openssl`
-- `git clone https://github.com/ugoviti/zabbix-templates.git`
-- `cd zabbix-templates/`
-- `git pull`
-- `cd url-monitor/`
-- `ZABBIX_SCRIPTS_DIR="/etc/zabbix/scripts"`
-- `ZABBIX_AGENT_DIR="/etc/zabbix/zabbix_agent2.d"`
-- `mkdir -p $ZABBIX_SCRIPTS_DIR $ZABBIX_AGENT_DIR`
-- `cp scripts/* $ZABBIX_SCRIPTS_DIR/`
-- `chmod 755 $ZABBIX_SCRIPTS_DIR/*`
-- `cp zabbix_agent*/*.conf $ZABBIX_AGENT_DIR/`
+- Shell commands prerequisites to install before using this template: `openssl`, `curl`, `dos2unix`
+- Install and Configure the main script into zabbiz agent client that will test the URLs:__
+```
+git clone https://github.com/ugoviti/zabbix-templates.git
+cd zabbix-templates/
+git pull
+cd url-monitor/
+ZABBIX_SCRIPTS_DIR="/etc/zabbix/scripts"
+ZABBIX_AGENT_DIR="/etc/zabbix/zabbix_agent2.d"
+mkdir -p $ZABBIX_SCRIPTS_DIR $ZABBIX_AGENT_DIR
+cp scripts/* $ZABBIX_SCRIPTS_DIR/
+chmod 755 $ZABBIX_SCRIPTS_DIR/*
+cp zabbix_agent*/*.conf $ZABBIX_AGENT_DIR/
+```
 - Change Timeout settings of Zabbix Agent config file `/etc/zabbix/zabbix_agentd.conf`: `Timeout=20` (default setting of 3 seconds is too small)
 - Restart zabbix-agent: `systemctl restart zabbix-agent2`
 - Import `url-monitor_zbx_export_templates.yaml` into Zabbix templates panel
