@@ -34,7 +34,7 @@ Monitor HTTP Web Servers reachability, response time, and SSL/HTTPS certificates
 
 ## Installation
 - Shell commands prerequisites to install before using this template: `openssl`, `curl`, `dos2unix`
-- Install and Configure the main script into zabbiz agent client that will test the URLs:__
+- Install and configure the main script into zabbix agent client that will test the URLs:
 ```
 git clone https://github.com/ugoviti/zabbix-templates.git
 cd zabbix-templates/
@@ -74,16 +74,16 @@ tcp://imap.example.com:993
 ```
 
 ### NOTES:
-  1. by default if no port is specified will be used the port '443'
-  2. by default if no schema is specified will be used the schema 'https'
-  3. http://www.initzero.it or www.initzero.it:80 are the same
-  4. https://www.initzero.it or https://www.initzero.it:443 or www.initzero.it or www.initzero.it:443 are the same
-  5. to monitor SMTP SSL certificates or not HTTP server, you can use the 'tcp://' schema
-  6. if the 'tcp://' schema is specified, the HTTP server check will be disabled and HTTP response code will be always 200 (only certificate check will be monitored)
+  1. by default if no port is specified will be used the port `443`
+  2. by default if no schema is specified will be used the schema `https`
+  3. `http://www.initzero.it` or `www.initzero.it:80` are the same
+  4. `https://www.initzero.it` or `https://www.initzero.it:443` or `www.initzero.it` or `www.initzero.it:443` are the same
+  5. to monitor SMTP SSL certificates or not HTTP server, you can use the `tcp://` schema
+  6. if the `tcp://` schema is specified, the HTTP server check will be disabled and HTTP response code will be always 200 (only certificate check will be monitored)
 
 
 ## Template macros available
-- `{$URL_PATH_CSV}`: CSV file path or url of domains list (default: '/etc/zabbix/url-monitor.csv' or for example: 'http://yourserver.local/url-monitor.csv')
+- `{$URL_PATH_CSV}`: CSV file path or url of domains list (default: `/etc/zabbix/url-monitor.csv` or for example: `http://yourserver.local/url-monitor.csv`)
 - `{$URL_LATENCY_WARNING}`: Default acceptable latency for loading URL (seconds)
 - `{$URL_SSL_EXPIRE_TIME_CRITICAL}`: Critical level for SSL certificate expiration time (days)
 - `{$URL_SSL_EXPIRE_TIME_WARNING}`: Warning level for SSL certificate expiration time (days)
