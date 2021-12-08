@@ -5,7 +5,7 @@ Monitor HTTP Web Servers reachability, response time, and SSL/HTTPS certificates
 ![URL Monitor Latest Data](url-monitor-latestdata.png)
 
 ## Features
-- Zabbix Agent based (tested with Zabbix server >= 5.4)
+- Zabbix Agent based (developed and tested with Zabbix server >= 5.4)
 - Simple Linux bash script based template
 - Easy Intallation and Configuration
 - LLD Discovery Items and Triggers based template
@@ -83,13 +83,13 @@ tcp://imap.example.com:993
 
 
 ## Template macros available
-- `{$URL_PATH_CSV}`: CSV file path or url of domains list (default: `/etc/zabbix/url-monitor.csv` or for example: `http://yourserver.local/url-monitor.csv`)
-- `{$URL_LATENCY_WARNING}`: Default acceptable latency for loading URL (seconds)
-- `{$URL_SSL_EXPIRE_TIME_CRITICAL}`: Critical level for SSL certificate expiration time (days)
-- `{$URL_SSL_EXPIRE_TIME_WARNING}`: Warning level for SSL certificate expiration time (days)
+- `{$URL_PATH_CSV}`: CSV file path or url of domains list (default: `/etc/zabbix/url-monitor.csv`. Example for remote file list: `http://yourserver.local/yourlfile.csv`)
+- `{$URL_LATENCY_WARNING}`: Default acceptable latency for loading URL (seconds) (default: `15s`)
+- `{$URL_SSL_EXPIRE_TIME_WARNING}`: Warning level for SSL certificate expiration time (days) (default: `7d`)
+- `{$URL_SSL_EXPIRE_TIME_CRITICAL}`: Critical level for SSL certificate expiration time (days) (default: `3d`)
 
 ## Troubleshooting
 - If Zabbix can't parse the CSV file, test JSON output from the CLI:
   - `/etc/zabbix/scripts/url-monitor.sh url.discovery /etc/zabbix/url-monitor.csv`
-- Test if the script works as expected from the CLI:
+- Test the output and if the script works as expected from the CLI:
   - `/etc/zabbix/scripts/url-monitor.sh url.monitor https://www.initzero.it`
