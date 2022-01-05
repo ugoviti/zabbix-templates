@@ -9,7 +9,7 @@ Monitor HTTP Web Servers reachability, response time, and SSL/HTTPS certificates
 - Simple Linux bash script based template
 - Easy Intallation and Configuration
 - LLD Discovery Items and Triggers based template
-- Multiple URL monitoring using one CSV file as input for LLD (you can specify a local file path or a HTTP URL)
+- Multiple URL monitoring using single CSV file as input for LLD (you can specify a local file path or a HTTP URL)
 - Accounting of Expire Date and Time Left of the expiring SSL certificates
 - 6 automatic types of trigger notifications (7 days left to expire, 3 days left to expire, certificate expired, http server unreachable, etc...)
 - Configurable macros
@@ -76,10 +76,10 @@ tcp://imap.example.com:993
 ### NOTES:
   1. by default if no port is specified will be used the port `443`
   2. by default if no schema is specified will be used the schema `https`
-  3. `http://www.initzero.it` or `www.initzero.it:80` are the same
+  3. `http://www.initzero.it` or `http://www.initzero.it:80` or `www.initzero.it:80` are the same
   4. `https://www.initzero.it` or `https://www.initzero.it:443` or `www.initzero.it` or `www.initzero.it:443` are the same
-  5. to monitor SMTP SSL certificates or not HTTP server, you can use the `tcp://` schema
-  6. if the `tcp://` schema is specified, the HTTP server check will be disabled and HTTP response code will be always 200 (only certificate check will be monitored)
+  5. to monitor SSL certificates expire dates for other (NON HTTPS) services like SMTP, IMAP etc , you can use the `tcp://` schema
+  6. if the `tcp://` schema is specified, the HTTP check will be disabled and HTTP response code will be always 200 (only certificate check will be monitored)
 
 
 ## Template macros available
