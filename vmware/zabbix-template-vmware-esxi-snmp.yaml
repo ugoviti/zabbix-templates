@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2022-06-24T15:16:09Z'
+  date: '2022-06-24T15:39:50Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -603,6 +603,7 @@ zabbix_export:
                 and
                 find(/ESXi OS SNMP/vmwVMPowerState.[{#SNMPINDEX}],,"regexp","powered on")=1
               name: 'Guest Tools not running on {#SNMPVALUE}'
+              opdata: 'Guest Tools State: {ITEM.LASTVALUE1}, Power State: {ITEM.LASTVALUE2}'
               priority: INFO
               tags:
                 -
