@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2022-06-24T10:16:15Z'
+  date: '2022-06-24T11:55:13Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -52,6 +52,22 @@ zabbix_export:
             -
               tag: component
               value: system
+          triggers:
+            -
+              uuid: 96e78f62aa5c49a49ef90e6972ee97ad
+              expression: 'last(/SNMP OS ESXi/sysName,#1)<>last(/SNMP OS ESXi/sysName,#2) and length(last(/SNMP OS ESXi/sysName))>0'
+              name: 'System name has changed'
+              event_name: 'System name has changed (new name: {ITEM.VALUE})'
+              priority: INFO
+              description: 'System name has changed. Ack to close.'
+              manual_close: 'YES'
+              tags:
+                -
+                  tag: scope
+                  value: notice
+                -
+                  tag: scope
+                  value: security
         -
           uuid: 3b7071ef813a4a33aa037c6f257bffbf
           name: 'System Uptime'
@@ -59,7 +75,8 @@ zabbix_export:
           snmp_oid: 'SNMPv2-MIB::sysUpTime.0'
           key: sysUpTime
           delay: 10m
-          history: 7d
+          history: 2w
+          trends: '0'
           units: uptime
           description: 'The time since the network management portion of the system was last re-initialized.'
           preprocessing:
@@ -71,6 +88,23 @@ zabbix_export:
             -
               tag: component
               value: system
+          triggers:
+            -
+              uuid: 5255d1aa5cd84059945e1d0ccf066f13
+              expression: 'last(/SNMP OS ESXi/sysUpTime)<10m'
+              name: 'has been restarted'
+              event_name: '{HOST.NAME} has been restarted (uptime < 10m)'
+              priority: WARNING
+              description: 'Uptime is less than 10 minutes.'
+              manual_close: 'YES'
+              dependencies:
+                -
+                  name: 'No SNMP data collection'
+                  expression: 'max(/SNMP OS ESXi/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              tags:
+                -
+                  tag: scope
+                  value: notice
         -
           uuid: 05114502f9ea452fa308dbda7732d466
           name: 'CPUs Sockets'
@@ -107,6 +141,39 @@ zabbix_export:
             -
               tag: component
               value: os
+        -
+          uuid: 2abc69a4f3f449d59394d666f32474ee
+          name: 'SNMP agent availability'
+          type: INTERNAL
+          key: 'zabbix[host,snmp,available]'
+          history: 7d
+          description: |
+            Availability of SNMP checks on the host. The value of this item corresponds to availability icons in the host list.
+            Possible value:
+            0 - not available
+            1 - available
+            2 - unknown
+          valuemap:
+            name: snmp.host.available
+          tags:
+            -
+              tag: component
+              value: health
+            -
+              tag: component
+              value: network
+          triggers:
+            -
+              uuid: 4a4cfb0d79cd49b6a92dc0129516f54f
+              expression: 'max(/SNMP OS ESXi/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              name: 'No SNMP data collection'
+              opdata: 'Current state: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              description: 'SNMP is not available for polling. Please check device connectivity and SNMP settings.'
+              tags:
+                -
+                  tag: scope
+                  value: availability
       discovery_rules:
         -
           uuid: d89e817d6ab34ede848e94e1c23b5f28
@@ -193,6 +260,9 @@ zabbix_export:
                 -
                   tag: datastore
                   value: '{#SNMPINDEX}'
+                -
+                  tag: space
+                  value: total
             -
               uuid: 417c4d8f29374942ad05e4ef4f0c3920
               name: 'Used space of Datastore {#SNMPINDEX} in blocks'
@@ -224,6 +294,9 @@ zabbix_export:
                 -
                   tag: datastore
                   value: '{#SNMPINDEX}'
+                -
+                  tag: space
+                  value: used
             -
               uuid: d6c9f88539124ab290c14deaa003accc
               name: 'Used space of Datastore {#SNMPINDEX} (%)'
@@ -240,6 +313,9 @@ zabbix_export:
                 -
                   tag: datastore
                   value: '{#SNMPINDEX}'
+                -
+                  tag: space
+                  value: used_percent
             -
               uuid: 471418c108574b569902ee78a45b1c15
               name: 'Free space of Datastore {#SNMPINDEX}'
@@ -255,6 +331,9 @@ zabbix_export:
                 -
                   tag: datastore
                   value: '{#SNMPINDEX}'
+                -
+                  tag: space
+                  value: free
           trigger_prototypes:
             -
               uuid: a353f0fd839145b49f4d1f281a02dd37
@@ -371,7 +450,7 @@ zabbix_export:
               snmp_oid: .1.3.6.1.2.1.25.2.2.0
               key: 'hrMemoryTotal[{#SNMPINDEX}]'
               delay: 10m
-              units: K
+              units: B
               preprocessing:
                 -
                   type: MULTIPLIER
@@ -490,8 +569,13 @@ zabbix_export:
               snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.5.{#SNMPINDEX}'
               key: 'vmwVMMemSize.[{#SNMPINDEX}]'
               delay: 1h
-              units: M
+              units: B
               description: 'Memory configured for this virtual machine. Memory > MAX Integer32 is reported as max integer32. VIM Property: memoryMB MOB: https://esx.example.com/mob/?moid=vmwVmIdx&doPath=config%2ehardware'
+              preprocessing:
+                -
+                  type: MULTIPLIER
+                  parameters:
+                    - '1048576'
               tags:
                 -
                   tag: component
@@ -541,3 +625,17 @@ zabbix_export:
           macro: '{$VOLUME_MAX_WARN}'
           value: '95'
           description: 'VMFS volume size warning threshold'
+      valuemaps:
+        -
+          uuid: 5952338fc8054d9f9a2ba1fb90d74f9c
+          name: snmp.host.available
+          mappings:
+            -
+              value: '0'
+              newvalue: 'not available'
+            -
+              value: '1'
+              newvalue: available
+            -
+              value: '2'
+              newvalue: unknown
