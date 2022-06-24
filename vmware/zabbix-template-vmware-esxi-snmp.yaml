@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2022-06-24T00:39:44Z'
+  date: '2022-06-24T10:00:44Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -11,12 +11,12 @@ zabbix_export:
       template: 'SNMP OS ESXi'
       name: 'SNMP OS ESXi'
       description: |
+        Repo: https://github.com/ugoviti/zabbix-templates/tree/main/vmware
+        Written by Ugo Viti <ugo.viti@initzero.it>
         Version: 20220622
         
         Based on work of:
         https://github.com/zabbix/community-templates/tree/main/Operating_Systems/VMWare/template_esxi_snmp_only_for_zabbix3.0/6.0
-        
-        Modified by Ugo Viti <ugo.viti@initzero.it>
       groups:
         -
           name: Templates
@@ -35,8 +35,8 @@ zabbix_export:
           inventory_link: NAME
           tags:
             -
-              tag: Application
-              value: General
+              tag: component
+              value: system
         -
           uuid: 3b7071ef813a4a33aa037c6f257bffbf
           name: 'System Uptime'
@@ -54,8 +54,8 @@ zabbix_export:
                 - '0.01'
           tags:
             -
-              tag: Application
-              value: General
+              tag: component
+              value: system
         -
           uuid: 05114502f9ea452fa308dbda7732d466
           name: 'CPUs Sockets'
@@ -66,8 +66,8 @@ zabbix_export:
           description: 'Number of physical CPUs on the system.'
           tags:
             -
-              tag: Application
-              value: Processors
+              tag: component
+              value: cpu
         -
           uuid: f4ca175b71054fb49757a69ba3236c27
           name: 'ESXi Build'
@@ -77,8 +77,8 @@ zabbix_export:
           delay: 1h
           tags:
             -
-              tag: Application
-              value: General
+              tag: component
+              value: os
         -
           uuid: b6e3b967ace14c2fb9b147ed811ae21f
           name: 'ESXi Version'
@@ -90,12 +90,12 @@ zabbix_export:
           value_type: TEXT
           tags:
             -
-              tag: Application
-              value: General
+              tag: component
+              value: os
       discovery_rules:
         -
           uuid: d89e817d6ab34ede848e94e1c23b5f28
-          name: 'Disk partitions'
+          name: 'Host Datastores'
           type: SNMP_AGENT
           snmp_oid: 'discovery[{#SNMPVALUE},hrStorageAllocationUnits]'
           key: hrStorageAlloc
@@ -106,6 +106,7 @@ zabbix_export:
                 macro: '{#SNMPVALUE}'
                 value: 1048576|4194304|8388608|2097152
                 formulaid: A
+          lifetime: 7d
           description: |
             The rule will discover all dis partitions matching the global regexp "Storage devices for SNMP discovery".
             
@@ -114,21 +115,21 @@ zabbix_export:
           item_prototypes:
             -
               uuid: 589ff08701c44627baeafb54a0ab553b
-              name: 'Allocation units of VMFS volume {#SNMPINDEX}'
+              name: 'Allocation units of Datastore {#SNMPINDEX}'
               type: SNMP_AGENT
               snmp_oid: '.1.3.6.1.2.1.25.2.3.1.4.{#SNMPINDEX}'
               key: 'hrStorageAllocationUnits[{#SNMPINDEX}]'
               delay: 1h
               tags:
                 -
-                  tag: Application
-                  value: 'Disk partitions'
+                  tag: component
+                  value: datastore
                 -
-                  tag: VMFS
-                  value: 'Volume {#SNMPINDEX}'
+                  tag: datastore
+                  value: '{#SNMPINDEX}'
             -
               uuid: 1a07a85ec61c4d959a865b2faf134f77
-              name: 'Mont point of VMFS volume {#SNMPINDEX}'
+              name: 'Mont point of Datastore {#SNMPINDEX}'
               type: SNMP_AGENT
               snmp_oid: '.1.3.6.1.2.1.25.2.3.1.3.{#SNMPINDEX}'
               key: 'hrStorageDescr[{#SNMPINDEX}]'
@@ -139,14 +140,14 @@ zabbix_export:
               description: 'A description of the type and instance of the storage described by this entry.'
               tags:
                 -
-                  tag: Application
-                  value: 'Disk partitions'
+                  tag: component
+                  value: datastore
                 -
-                  tag: VMFS
-                  value: 'Volume {#SNMPINDEX}'
+                  tag: datastore
+                  value: '{#SNMPINDEX}'
             -
               uuid: 6ae94a03d3b74380bf027b253a4f1a2d
-              name: 'Total size of VMFS volume {#SNMPINDEX} in blocks'
+              name: 'Total size of Datastore {#SNMPINDEX} in blocks'
               type: SNMP_AGENT
               snmp_oid: '.1.3.6.1.2.1.25.2.3.1.5.{#SNMPINDEX}'
               key: 'hrStorageSizeBlocks[{#SNMPINDEX}]'
@@ -156,14 +157,14 @@ zabbix_export:
               description: 'The size of the storage represented by this entry, in units of hrStorageAllocationUnits. This object is writable to allow remote configuration of the size of the storage area in those cases where such an operation makes sense and is possible on the underlying system. For example, the amount of main memory allocated to a buffer pool might be modified or the amount of disk space allocated to virtual memory might be modified.'
               tags:
                 -
-                  tag: Application
-                  value: 'Disk partitions'
+                  tag: component
+                  value: datastore
                 -
-                  tag: VMFS
-                  value: 'Volume {#SNMPINDEX}'
+                  tag: datastore
+                  value: '{#SNMPINDEX}'
             -
               uuid: 3de2bfc991a64660998cbe3382f8cff6
-              name: 'Total size of VMFS volume {#SNMPINDEX}'
+              name: 'Total size of Datastore {#SNMPINDEX}'
               type: CALCULATED
               key: 'hrStorageSize[{#SNMPINDEX}]'
               delay: 1h
@@ -173,14 +174,14 @@ zabbix_export:
               description: 'The size of the storage represented by this entry, in units of hrStorageAllocationUnits. This object is writable to allow remote configuration of the size of the storage area in those cases where such an operation makes sense and is possible on the underlying system. For example, the amount of main memory allocated to a buffer pool might be modified or the amount of disk space allocated to virtual memory might be modified.'
               tags:
                 -
-                  tag: Application
-                  value: 'Disk partitions'
+                  tag: component
+                  value: datastore
                 -
-                  tag: VMFS
-                  value: 'Volume {#SNMPINDEX}'
+                  tag: datastore
+                  value: '{#SNMPINDEX}'
             -
               uuid: 417c4d8f29374942ad05e4ef4f0c3920
-              name: 'Used disk of VMFS volume {#SNMPINDEX} in blocks'
+              name: 'Used space of Datastore {#SNMPINDEX} in blocks'
               type: SNMP_AGENT
               snmp_oid: '.1.3.6.1.2.1.25.2.3.1.6.{#SNMPINDEX}'
               key: 'hrStorageUsedBlocks[{#SNMPINDEX}]'
@@ -189,14 +190,14 @@ zabbix_export:
               description: 'The amount of the storage represented by this entry that is allocated, in units of hrStorageAllocationUnits.'
               tags:
                 -
-                  tag: Application
-                  value: 'Disk partitions'
+                  tag: component
+                  value: datastore
                 -
-                  tag: VMFS
-                  value: 'Volume {#SNMPINDEX}'
+                  tag: datastore
+                  value: '{#SNMPINDEX}'
             -
               uuid: 2bc64f0336b74771a99d3421c876c6ce
-              name: 'Used disk of VMFS volume {#SNMPINDEX}'
+              name: 'Used space of Datastore {#SNMPINDEX}'
               type: CALCULATED
               key: 'hrStorageUsed[{#SNMPINDEX}]'
               delay: 10m
@@ -205,14 +206,14 @@ zabbix_export:
               description: 'The amount of the storage represented by this entry that is allocated, in units of hrStorageAllocationUnits.'
               tags:
                 -
-                  tag: Application
-                  value: 'Disk partitions'
+                  tag: component
+                  value: datastore
                 -
-                  tag: VMFS
-                  value: 'Volume {#SNMPINDEX}'
+                  tag: datastore
+                  value: '{#SNMPINDEX}'
             -
               uuid: d6c9f88539124ab290c14deaa003accc
-              name: 'Used space % of VMFS volume {#SNMPINDEX}'
+              name: 'Used space of Datastore {#SNMPINDEX} (%)'
               type: CALCULATED
               key: 'vmfs.FreeSpacePer[{#SNMPINDEX}]'
               delay: 10m
@@ -221,14 +222,14 @@ zabbix_export:
               params: 'last(//hrStorageUsed[{#SNMPINDEX}])/last(//hrStorageSize[{#SNMPINDEX}])*100'
               tags:
                 -
-                  tag: Application
-                  value: 'Disk partitions'
+                  tag: component
+                  value: datastore
                 -
-                  tag: VMFS
-                  value: 'Volume {#SNMPINDEX}'
+                  tag: datastore
+                  value: '{#SNMPINDEX}'
             -
               uuid: 471418c108574b569902ee78a45b1c15
-              name: 'Free space on VMFS volume {#SNMPINDEX}'
+              name: 'Free space of Datastore {#SNMPINDEX}'
               type: CALCULATED
               key: 'vmfs.FreeSpace[{#SNMPINDEX}]'
               delay: 10m
@@ -236,11 +237,11 @@ zabbix_export:
               params: 'last(//hrStorageSize[{#SNMPINDEX}])-last(//hrStorageUsed[{#SNMPINDEX}])'
               tags:
                 -
-                  tag: Application
-                  value: 'Disk partitions'
+                  tag: component
+                  value: datastore
                 -
-                  tag: VMFS
-                  value: 'Volume {#SNMPINDEX}'
+                  tag: datastore
+                  value: '{#SNMPINDEX}'
           trigger_prototypes:
             -
               uuid: a353f0fd839145b49f4d1f281a02dd37
@@ -248,6 +249,13 @@ zabbix_export:
               name: 'Disk space is critically low for VMFS volume {#SNMPINDEX} (used >{$VOLUME_MAX_CRIT}%)'
               opdata: 'Space used: {ITEM.LASTVALUE1} of {ITEM.LASTVALUE2}'
               priority: AVERAGE
+              tags:
+                -
+                  tag: scope
+                  value: availability
+                -
+                  tag: scope
+                  value: capacity
             -
               uuid: 0df79b580b294f59b3880f448cd07662
               expression: '(100 * (last(/SNMP OS ESXi/hrStorageUsed[{#SNMPINDEX}]) / last(/SNMP OS ESXi/hrStorageSize[{#SNMPINDEX}]))) > {$VOLUME_MAX_WARN}'
@@ -258,11 +266,45 @@ zabbix_export:
                 -
                   name: 'Disk space is critically low for VMFS volume {#SNMPINDEX} (used >{$VOLUME_MAX_CRIT}%)'
                   expression: '(100 * (last(/SNMP OS ESXi/hrStorageUsed[{#SNMPINDEX}]) / last(/SNMP OS ESXi/hrStorageSize[{#SNMPINDEX}]))) > {$VOLUME_MAX_CRIT}'
+              tags:
+                -
+                  tag: scope
+                  value: availability
+                -
+                  tag: scope
+                  value: capacity
           graph_prototypes:
             -
+              uuid: 14e0777954fe427b8946152d333d205f
+              name: 'Space usage of volume {#SNMPINDEX}'
+              width: '600'
+              show_work_period: 'NO'
+              show_triggers: 'NO'
+              graph_items:
+                -
+                  drawtype: FILLED_REGION
+                  color: 00FF00
+                  calc_fnc: MIN
+                  item:
+                    host: 'SNMP OS ESXi'
+                    key: 'hrStorageSize[{#SNMPINDEX}]'
+                -
+                  sortorder: '1'
+                  drawtype: FILLED_REGION
+                  color: FF0000
+                  calc_fnc: MIN
+                  item:
+                    host: 'SNMP OS ESXi'
+                    key: 'hrStorageUsed[{#SNMPINDEX}]'
+            -
               uuid: 11c364284eda424b9ffa64907676508d
-              name: 'Storage Use  {#SNMPINDEX}'
-              type: STACKED
+              name: 'Space usage of volume {#SNMPINDEX} (%)'
+              width: '600'
+              yaxismax: '0'
+              show_work_period: 'NO'
+              show_triggers: 'NO'
+              type: PIE
+              show_3d: 'YES'
               graph_items:
                 -
                   color: C80000
@@ -271,7 +313,7 @@ zabbix_export:
                     key: 'vmfs.FreeSpacePer[{#SNMPINDEX}]'
         -
           uuid: 888331ea6d0245ddb9aecc319a4cbaf1
-          name: Memory
+          name: 'Host Memory'
           type: SNMP_AGENT
           snmp_oid: 'discovery[{#SNMPVALUE},hrStorageDescr]'
           key: hrStorageDescr
@@ -282,6 +324,7 @@ zabbix_export:
                 macro: '{#SNMPVALUE}'
                 value: 'Real Memory'
                 formulaid: A
+          lifetime: 7d
           item_prototypes:
             -
               uuid: 7e232fc67d42429f9feb70a3a14a0f1d
@@ -294,20 +337,20 @@ zabbix_export:
               params: 'last(//hrMemoryUsed[{#SNMPINDEX}])/last(//hrMemoryTotal[{#SNMPINDEX}])*100'
               tags:
                 -
-                  tag: Application
-                  value: Memory
+                  tag: component
+                  value: memory
             -
               uuid: 780a8f5aca1e4884a4287fda71f5a005
               name: 'Memory Free'
               type: CALCULATED
               key: 'hrMemoryFree[{#SNMPINDEX}]'
               delay: 10m
-              units: Bytes
+              units: B
               params: 'last(//hrMemoryTotal[{#SNMPINDEX}])-last(//hrMemoryUsed[{#SNMPINDEX}])'
               tags:
                 -
-                  tag: Application
-                  value: Memory
+                  tag: component
+                  value: memory
             -
               uuid: 48b5721206214cf088b77887f2e8f083
               name: 'Memory Total'
@@ -315,7 +358,7 @@ zabbix_export:
               snmp_oid: .1.3.6.1.2.1.25.2.2.0
               key: 'hrMemoryTotal[{#SNMPINDEX}]'
               delay: 10m
-              units: Bytes
+              units: K
               preprocessing:
                 -
                   type: MULTIPLIER
@@ -323,8 +366,8 @@ zabbix_export:
                     - '1024'
               tags:
                 -
-                  tag: Application
-                  value: Memory
+                  tag: component
+                  value: memory
             -
               uuid: 1761f7f849a841fcba64645ad2154fe3
               name: 'Memory Used'
@@ -332,7 +375,7 @@ zabbix_export:
               snmp_oid: '.1.3.6.1.2.1.25.2.3.1.6.{#SNMPINDEX}'
               key: 'hrMemoryUsed[{#SNMPINDEX}]'
               delay: 10m
-              units: Bytes
+              units: B
               preprocessing:
                 -
                   type: MULTIPLIER
@@ -340,21 +383,26 @@ zabbix_export:
                     - '1024'
               tags:
                 -
-                  tag: Application
-                  value: Memory
+                  tag: component
+                  value: memory
           trigger_prototypes:
             -
               uuid: a448dcdc648b495c85cd45768122c464
-              expression: 'last(/SNMP OS ESXi/hrMemoryUsed[{#SNMPINDEX}]) / last(/SNMP OS ESXi/hrMemoryTotal[{#SNMPINDEX}]) > 0.9'
-              name: 'Available memory on {HOST.NAME} in too low (>90%)'
+              expression: '(100*(last(/SNMP OS ESXi/hrMemoryUsed[{#SNMPINDEX}]) / last(/SNMP OS ESXi/hrMemoryTotal[{#SNMPINDEX}]))) > {$MEMORY_MAX_WARN}'
+              name: 'Available memory on {HOST.NAME} in too low (>{$MEMORY_MAX_WARN}%)'
               priority: HIGH
+              tags:
+                -
+                  tag: scope
+                  value: capacity
         -
           uuid: 936853122a8b4407a0cebce1ed6284b6
-          name: 'Virtual Machines'
+          name: 'Host Virtual Machines'
           type: SNMP_AGENT
           snmp_oid: 'discovery[{#SNMPVALUE},enterprises.6876.2.1.1.2]'
           key: vmwVmDisplayName
           delay: 10m
+          lifetime: 7d
           item_prototypes:
             -
               uuid: 4c5633a24f304763b963ad4263ef70b3
@@ -362,14 +410,17 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.9.{#SNMPINDEX}'
               key: 'vmwVMCPUs.[{#SNMPINDEX}]'
-              delay: 10m
+              delay: 1h
               description: 'Number of virtual CPUs assigned to this virtual machine. VIM Property: numCPU MOB: https://esx.example.com/mob/?moid=vmwVmIdx&doPath=config%2ehardware'
               tags:
                 -
-                  tag: Application
-                  value: 'Virtual Machines'
+                  tag: component
+                  value: cpu
                 -
-                  tag: VM
+                  tag: component
+                  value: vm
+                -
+                  tag: vm
                   value: '{#SNMPVALUE}'
             -
               uuid: bdb5d2f2e8754e49bf9d4d06155b8dd1
@@ -377,15 +428,18 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.4.{#SNMPINDEX}'
               key: 'vmwVMGuestOS.[{#SNMPINDEX}]'
-              delay: '3600'
+              delay: 1h
               trends: '0'
               value_type: TEXT
               tags:
                 -
-                  tag: Application
-                  value: 'Virtual Machines'
+                  tag: component
+                  value: os
                 -
-                  tag: VM
+                  tag: component
+                  value: vm
+                -
+                  tag: vm
                   value: '{#SNMPVALUE}'
             -
               uuid: 98ef9352c4d94340b4f173cf9e0625ef
@@ -393,15 +447,18 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.8.{#SNMPINDEX}'
               key: 'vmwVMGuestState.[{#SNMPINDEX}]'
-              delay: '30'
+              delay: 10m
               trends: '0'
               value_type: TEXT
               tags:
                 -
-                  tag: Application
-                  value: 'Virtual Machines'
+                  tag: component
+                  value: vm
                 -
-                  tag: VM
+                  tag: component
+                  value: vmware-tools
+                -
+                  tag: vm
                   value: '{#SNMPVALUE}'
               trigger_prototypes:
                 -
@@ -409,21 +466,28 @@ zabbix_export:
                   expression: 'find(/SNMP OS ESXi/vmwVMGuestState.[{#SNMPINDEX}],,"regexp","not running")=1'
                   name: 'Guest Tools not running on {#SNMPVALUE}'
                   priority: INFO
+                  tags:
+                    -
+                      tag: scope
+                      value: availability
             -
               uuid: 137ebda5660f40dcba7b7688414bc20b
               name: 'VM Memory Size of {#SNMPVALUE}'
               type: SNMP_AGENT
               snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.5.{#SNMPINDEX}'
               key: 'vmwVMMemSize.[{#SNMPINDEX}]'
-              delay: 10m
+              delay: 1h
               units: MB
               description: 'Memory configured for this virtual machine. Memory > MAX Integer32 is reported as max integer32. VIM Property: memoryMB MOB: https://esx.example.com/mob/?moid=vmwVmIdx&doPath=config%2ehardware'
               tags:
                 -
-                  tag: Application
-                  value: 'Virtual Machines'
+                  tag: component
+                  value: memory
                 -
-                  tag: VM
+                  tag: component
+                  value: vm
+                -
+                  tag: vm
                   value: '{#SNMPVALUE}'
             -
               uuid: 87235ab48b45455e981bcba5ecad27a9
@@ -431,17 +495,31 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.6.{#SNMPINDEX}'
               key: 'vmwVMState.[{#SNMPINDEX}]'
-              delay: '30'
+              delay: 10m
               trends: '0'
               value_type: TEXT
               tags:
                 -
-                  tag: Application
-                  value: 'Virtual Machines'
+                  tag: component
+                  value: power
                 -
-                  tag: VM
+                  tag: component
+                  value: vm
+                -
+                  tag: vm
                   value: '{#SNMPVALUE}'
+      tags:
+        -
+          tag: class
+          value: os
+        -
+          tag: target
+          value: esxi
       macros:
+        -
+          macro: '{$MEMORY_MAX_WARN}'
+          value: '90'
+          description: 'Memory usage warning threshold'
         -
           macro: '{$VOLUME_MAX_CRIT}'
           value: '98'
