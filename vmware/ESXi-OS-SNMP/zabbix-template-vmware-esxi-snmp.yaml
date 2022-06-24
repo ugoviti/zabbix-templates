@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2022-06-24T15:39:50Z'
+  date: '2022-06-24T22:14:13Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -375,7 +375,7 @@ zabbix_export:
               graph_items:
                 -
                   drawtype: FILLED_REGION
-                  color: 00FF00
+                  color: 4CAF50
                   calc_fnc: MIN
                   item:
                     host: 'ESXi OS SNMP'
@@ -383,14 +383,14 @@ zabbix_export:
                 -
                   sortorder: '1'
                   drawtype: FILLED_REGION
-                  color: FF0000
+                  color: FFFF00
                   calc_fnc: MIN
                   item:
                     host: 'ESXi OS SNMP'
                     key: 'hrStorageUsed[{#SNMPINDEX}]'
             -
               uuid: 11c364284eda424b9ffa64907676508d
-              name: 'Space usage of volume {#SNMPINDEX} (%)'
+              name: 'Space usage of volume {#SNMPINDEX} (percent)'
               width: '600'
               yaxismax: '0'
               show_work_period: 'NO'
@@ -399,10 +399,19 @@ zabbix_export:
               show_3d: 'YES'
               graph_items:
                 -
-                  color: C80000
+                  color: 00FF00
+                  calc_fnc: LAST
+                  type: GRAPH_SUM
                   item:
                     host: 'ESXi OS SNMP'
-                    key: 'vmfs.FreeSpacePer[{#SNMPINDEX}]'
+                    key: 'hrStorageSize[{#SNMPINDEX}]'
+                -
+                  sortorder: '1'
+                  color: FFFF00
+                  calc_fnc: LAST
+                  item:
+                    host: 'ESXi OS SNMP'
+                    key: 'hrStorageUsed[{#SNMPINDEX}]'
         -
           uuid: 888331ea6d0245ddb9aecc319a4cbaf1
           name: 'Host Memory'
@@ -487,6 +496,52 @@ zabbix_export:
                 -
                   tag: scope
                   value: capacity
+          graph_prototypes:
+            -
+              uuid: d067ce5937054c58864f197d19a231a9
+              name: 'Memory Usage ({#SNMPINDEX})'
+              width: '600'
+              percent_right: '95'
+              graph_items:
+                -
+                  drawtype: FILLED_REGION
+                  color: 0080FF
+                  calc_fnc: ALL
+                  item:
+                    host: 'ESXi OS SNMP'
+                    key: 'hrMemoryTotal[{#SNMPINDEX}]'
+                -
+                  sortorder: '1'
+                  drawtype: FILLED_REGION
+                  color: 00BFFF
+                  calc_fnc: ALL
+                  item:
+                    host: 'ESXi OS SNMP'
+                    key: 'hrMemoryUsed[{#SNMPINDEX}]'
+            -
+              uuid: 12fbeeea206a45b1882a2b43650635b6
+              name: 'Memory Usage ({#SNMPINDEX}) (percent)'
+              width: '400'
+              yaxismax: '0'
+              show_work_period: 'NO'
+              show_triggers: 'NO'
+              type: PIE
+              show_3d: 'YES'
+              graph_items:
+                -
+                  color: 0080FF
+                  calc_fnc: LAST
+                  type: GRAPH_SUM
+                  item:
+                    host: 'ESXi OS SNMP'
+                    key: 'hrMemoryTotal[{#SNMPINDEX}]'
+                -
+                  sortorder: '1'
+                  color: 00BFFF
+                  calc_fnc: LAST
+                  item:
+                    host: 'ESXi OS SNMP'
+                    key: 'hrMemoryUsed[{#SNMPINDEX}]'
         -
           uuid: 936853122a8b4407a0cebce1ed6284b6
           name: 'Host Virtual Machines'
@@ -629,6 +684,149 @@ zabbix_export:
           macro: '{$VOLUME_MAX_WARN}'
           value: '95'
           description: 'VMFS volume size warning threshold'
+      dashboards:
+        -
+          uuid: 4fdcf4070b9a4e28a58a7deeb8302586
+          name: ESXi
+          auto_start: 'NO'
+          pages:
+            -
+              widgets:
+                -
+                  type: GRAPH_PROTOTYPE
+                  width: '16'
+                  height: '8'
+                  fields:
+                    -
+                      type: INTEGER
+                      name: rows
+                      value: '2'
+                    -
+                      type: GRAPH_PROTOTYPE
+                      name: graphid
+                      value:
+                        host: 'ESXi OS SNMP'
+                        name: 'Space usage of volume {#SNMPINDEX}'
+                -
+                  type: GRAPH_PROTOTYPE
+                  x: '12'
+                  'y': '8'
+                  width: '8'
+                  height: '4'
+                  fields:
+                    -
+                      type: INTEGER
+                      name: columns
+                      value: '1'
+                    -
+                      type: GRAPH_PROTOTYPE
+                      name: graphid
+                      value:
+                        host: 'ESXi OS SNMP'
+                        name: 'Memory Usage ({#SNMPINDEX})'
+                -
+                  type: GRAPH_PROTOTYPE
+                  x: '12'
+                  'y': '12'
+                  width: '4'
+                  height: '4'
+                  fields:
+                    -
+                      type: INTEGER
+                      name: columns
+                      value: '1'
+                    -
+                      type: GRAPH_PROTOTYPE
+                      name: graphid
+                      value:
+                        host: 'ESXi OS SNMP'
+                        name: 'Memory Usage ({#SNMPINDEX}) (percent)'
+                -
+                  type: GRAPH_PROTOTYPE
+                  'y': '8'
+                  width: '12'
+                  height: '8'
+                  fields:
+                    -
+                      type: INTEGER
+                      name: columns
+                      value: '3'
+                    -
+                      type: INTEGER
+                      name: rows
+                      value: '2'
+                    -
+                      type: GRAPH_PROTOTYPE
+                      name: graphid
+                      value:
+                        host: 'ESXi OS SNMP'
+                        name: 'Space usage of volume {#SNMPINDEX} (percent)'
+                -
+                  type: ITEM
+                  x: '20'
+                  'y': '8'
+                  width: '4'
+                  height: '4'
+                  fields:
+                    -
+                      type: INTEGER
+                      name: decimal_size
+                      value: '25'
+                    -
+                      type: INTEGER
+                      name: adv_conf
+                      value: '1'
+                    -
+                      type: INTEGER
+                      name: value_size
+                      value: '25'
+                    -
+                      type: ITEM
+                      name: itemid
+                      value:
+                        host: 'ESXi OS SNMP'
+                        key: sysUpTime
+                -
+                  type: PLAIN_TEXT
+                  name: Info
+                  x: '16'
+                  width: '8'
+                  height: '8'
+                  fields:
+                    -
+                      type: INTEGER
+                      name: show_as_html
+                      value: '1'
+                    -
+                      type: ITEM
+                      name: itemids
+                      value:
+                        host: 'ESXi OS SNMP'
+                        key: vmwNumCpus
+                    -
+                      type: ITEM
+                      name: itemids
+                      value:
+                        host: 'ESXi OS SNMP'
+                        key: vmwProdBuild.0
+                    -
+                      type: ITEM
+                      name: itemids
+                      value:
+                        host: 'ESXi OS SNMP'
+                        key: vmwProdVersion.0
+                    -
+                      type: ITEM
+                      name: itemids
+                      value:
+                        host: 'ESXi OS SNMP'
+                        key: sysDescr
+                    -
+                      type: ITEM
+                      name: itemids
+                      value:
+                        host: 'ESXi OS SNMP'
+                        key: sysName
       valuemaps:
         -
           uuid: 5952338fc8054d9f9a2ba1fb90d74f9c
