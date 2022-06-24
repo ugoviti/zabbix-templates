@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2022-06-24T00:34:42Z'
+  date: '2022-06-24T00:39:44Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -23,7 +23,7 @@ zabbix_export:
       items:
         -
           uuid: f7091bec449f40f391cb153c9e7f4e71
-          name: 'Device name'
+          name: 'System Name'
           type: SNMP_AGENT
           snmp_oid: 'SNMPv2-MIB::sysName.0'
           key: sysName
@@ -39,7 +39,7 @@ zabbix_export:
               value: General
         -
           uuid: 3b7071ef813a4a33aa037c6f257bffbf
-          name: 'Device uptime'
+          name: 'System Uptime'
           type: SNMP_AGENT
           snmp_oid: 'SNMPv2-MIB::sysUpTime.0'
           key: sysUpTime
@@ -99,7 +99,7 @@ zabbix_export:
           type: SNMP_AGENT
           snmp_oid: 'discovery[{#SNMPVALUE},hrStorageAllocationUnits]'
           key: hrStorageAlloc
-          delay: 1h
+          delay: 10m
           filter:
             conditions:
               -
@@ -252,7 +252,7 @@ zabbix_export:
               uuid: 0df79b580b294f59b3880f448cd07662
               expression: '(100 * (last(/SNMP OS ESXi/hrStorageUsed[{#SNMPINDEX}]) / last(/SNMP OS ESXi/hrStorageSize[{#SNMPINDEX}]))) > {$VOLUME_MAX_WARN}'
               name: 'Disk space is low for VMFS volume {#SNMPINDEX} (used >{$VOLUME_MAX_WARN}%)'
-              opdata: 'used {ITEM.LASTVALUE1} of {ITEM.LASTVALUE2}'
+              opdata: 'Space used: {ITEM.LASTVALUE1} of {ITEM.LASTVALUE2}'
               priority: WARNING
               dependencies:
                 -
@@ -354,7 +354,7 @@ zabbix_export:
           type: SNMP_AGENT
           snmp_oid: 'discovery[{#SNMPVALUE},enterprises.6876.2.1.1.2]'
           key: vmwVmDisplayName
-          delay: 1h
+          delay: 10m
           item_prototypes:
             -
               uuid: 4c5633a24f304763b963ad4263ef70b3
