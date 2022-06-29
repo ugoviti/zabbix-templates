@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2022-06-27T20:57:23Z'
+  date: '2022-06-28T07:11:45Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -674,17 +674,17 @@ zabbix_export:
           value: esxi
       macros:
         -
-          macro: '{$MEMORY_MAX_WARN}'
+          macro: '{$ESX_MEMORY_MAX_WARN}'
           value: '90'
-          description: 'Memory usage warning threshold'
+          description: 'ESXi Server Memory usage warning threshold'
         -
-          macro: '{$VOLUME_MAX_CRIT}'
+          macro: '{$ESX_VOLUME_MAX_CRIT}'
           value: '98'
-          description: 'VMFS volume size critical threshold'
+          description: 'ESXi VMFS volume size critical threshold'
         -
-          macro: '{$VOLUME_MAX_WARN}'
+          macro: '{$ESX_VOLUME_MAX_WARN}'
           value: '95'
-          description: 'VMFS volume size warning threshold'
+          description: 'ESXi VMFS volume size warning threshold'
       dashboards:
         -
           uuid: 4fdcf4070b9a4e28a58a7deeb8302586
