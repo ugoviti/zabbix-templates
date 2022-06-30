@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2022-06-28T07:11:45Z'
+  date: '2022-06-30T07:04:32Z'
   groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
@@ -337,8 +337,8 @@ zabbix_export:
           trigger_prototypes:
             -
               uuid: a353f0fd839145b49f4d1f281a02dd37
-              expression: '(100 * (last(/ESXi OS SNMP/hrStorageUsed[{#SNMPINDEX}]) / last(/ESXi OS SNMP/hrStorageSize[{#SNMPINDEX}]))) > {$VOLUME_MAX_CRIT}'
-              name: 'Disk space is critically low for VMFS volume {#SNMPINDEX} (used >{$VOLUME_MAX_CRIT}%)'
+              expression: '(100 * (last(/ESXi OS SNMP/hrStorageUsed[{#SNMPINDEX}]) / last(/ESXi OS SNMP/hrStorageSize[{#SNMPINDEX}]))) > {$ESX_VOLUME_MAX_CRIT}'
+              name: 'Disk space is critically low for VMFS volume {#SNMPINDEX} (used >{$ESX_VOLUME_MAX_CRIT}%)'
               opdata: 'Space used: {ITEM.LASTVALUE1} of {ITEM.LASTVALUE2}'
               priority: AVERAGE
               tags:
@@ -350,14 +350,14 @@ zabbix_export:
                   value: capacity
             -
               uuid: 0df79b580b294f59b3880f448cd07662
-              expression: '(100 * (last(/ESXi OS SNMP/hrStorageUsed[{#SNMPINDEX}]) / last(/ESXi OS SNMP/hrStorageSize[{#SNMPINDEX}]))) > {$VOLUME_MAX_WARN}'
-              name: 'Disk space is low for VMFS volume {#SNMPINDEX} (used >{$VOLUME_MAX_WARN}%)'
+              expression: '(100 * (last(/ESXi OS SNMP/hrStorageUsed[{#SNMPINDEX}]) / last(/ESXi OS SNMP/hrStorageSize[{#SNMPINDEX}]))) > {$ESX_VOLUME_MAX_WARN}'
+              name: 'Disk space is low for VMFS volume {#SNMPINDEX} (used >{$ESX_VOLUME_MAX_WARN}%)'
               opdata: 'Space used: {ITEM.LASTVALUE1} of {ITEM.LASTVALUE2}'
               priority: WARNING
               dependencies:
                 -
-                  name: 'Disk space is critically low for VMFS volume {#SNMPINDEX} (used >{$VOLUME_MAX_CRIT}%)'
-                  expression: '(100 * (last(/ESXi OS SNMP/hrStorageUsed[{#SNMPINDEX}]) / last(/ESXi OS SNMP/hrStorageSize[{#SNMPINDEX}]))) > {$VOLUME_MAX_CRIT}'
+                  name: 'Disk space is critically low for VMFS volume {#SNMPINDEX} (used >{$ESX_VOLUME_MAX_CRIT}%)'
+                  expression: '(100 * (last(/ESXi OS SNMP/hrStorageUsed[{#SNMPINDEX}]) / last(/ESXi OS SNMP/hrStorageSize[{#SNMPINDEX}]))) > {$ESX_VOLUME_MAX_CRIT}'
               tags:
                 -
                   tag: scope
@@ -489,8 +489,8 @@ zabbix_export:
           trigger_prototypes:
             -
               uuid: a448dcdc648b495c85cd45768122c464
-              expression: '(100*(last(/ESXi OS SNMP/hrMemoryUsed[{#SNMPINDEX}]) / last(/ESXi OS SNMP/hrMemoryTotal[{#SNMPINDEX}]))) > {$MEMORY_MAX_WARN}'
-              name: 'Available memory on {HOST.NAME} in too low (>{$MEMORY_MAX_WARN}%)'
+              expression: '(100*(last(/ESXi OS SNMP/hrMemoryUsed[{#SNMPINDEX}]) / last(/ESXi OS SNMP/hrMemoryTotal[{#SNMPINDEX}]))) > {$ESX_MEMORY_MAX_WARN}'
+              name: 'Available memory on {HOST.NAME} in too low (>{$ESX_MEMORY_MAX_WARN}%)'
               opdata: 'Used: {ITEM.LASTVALUE1} Total: {ITEM.LASTVALUE2}'
               priority: HIGH
               tags:
