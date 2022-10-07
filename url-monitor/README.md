@@ -47,7 +47,7 @@ cp scripts/* $ZABBIX_SCRIPTS_DIR/
 chmod 755 $ZABBIX_SCRIPTS_DIR/*
 cp zabbix_agent*/*.conf $ZABBIX_AGENT_DIR/
 ```
-- Change Timeout settings of Zabbix Agent config file `/etc/zabbix/zabbix_agentd.conf`: `Timeout=20` (default setting of 3 seconds is too small)
+- Change Timeout settings of Zabbix Agent config file `/etc/zabbix/zabbix_agent2.conf`: `Timeout=20` (default setting of 3 seconds is too small)
 - Restart zabbix-agent: `systemctl restart zabbix-agent2`
 - Import `url-monitor_zbx_export_templates.yaml` into Zabbix templates panel
 - Assign Zabbix template to the host and customize the MACROS like`{$URL_PATH_CSV}` macro path with your CSV file and wait for automatic discovery
