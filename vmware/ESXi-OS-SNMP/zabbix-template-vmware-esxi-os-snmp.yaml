@@ -1,7 +1,7 @@
 zabbix_export:
-  version: '6.0'
-  date: '2022-06-30T07:04:32Z'
-  groups:
+  version: '6.2'
+  date: '2022-11-09T00:09:11Z'
+  template_groups:
     -
       uuid: 7df96b18c230490a9a0a9e2307226338
       name: Templates
@@ -13,7 +13,7 @@ zabbix_export:
       description: |
         Repo: https://github.com/ugoviti/zabbix-templates/tree/main/vmware
         Written by Ugo Viti <ugo.viti@initzero.it>
-        Version: 20220622
+        Version: 20221109
         
         Based on work of:
         https://github.com/zabbix/community-templates/tree/main/Operating_Systems/VMWare/template_esxi_snmp_only_for_zabbix3.0/6.0
@@ -21,6 +21,96 @@ zabbix_export:
         -
           name: Templates
       items:
+        -
+          uuid: 162650a329084d32ab72ab9cca1d6b31
+          name: 'ICMP ping'
+          type: SIMPLE
+          key: icmpping
+          history: 1w
+          valuemap:
+            name: 'Service state'
+          tags:
+            -
+              tag: component
+              value: health
+            -
+              tag: component
+              value: network
+          triggers:
+            -
+              uuid: cd250fa10fa64c67b6bc595a3d8e941d
+              expression: 'max(/ESXi OS SNMP/icmpping,#3)=0'
+              name: 'Unavailable by ICMP ping'
+              priority: HIGH
+              description: 'Last three attempts returned timeout.  Please check device connectivity.'
+              tags:
+                -
+                  tag: scope
+                  value: availability
+        -
+          uuid: dab04fa3e6a842c6a111e1de2aea47ce
+          name: 'ICMP loss'
+          type: SIMPLE
+          key: icmppingloss
+          history: 1w
+          value_type: FLOAT
+          units: '%'
+          tags:
+            -
+              tag: component
+              value: health
+            -
+              tag: component
+              value: network
+          triggers:
+            -
+              uuid: 7162c43fc3b64aa6a0c1b79537c2fd4d
+              expression: 'min(/ESXi OS SNMP/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/ESXi OS SNMP/icmppingloss,5m)<100'
+              name: 'High ICMP ping loss'
+              opdata: 'Loss: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              tags:
+                -
+                  tag: scope
+                  value: availability
+                -
+                  tag: scope
+                  value: performance
+        -
+          uuid: b6dd21ac89a4465aa1ada3324b3910bc
+          name: 'ICMP response time'
+          type: SIMPLE
+          key: icmppingsec
+          history: 1w
+          value_type: FLOAT
+          units: s
+          tags:
+            -
+              tag: component
+              value: health
+            -
+              tag: component
+              value: network
+          triggers:
+            -
+              uuid: c8cfab4a3532445cad131b3109077b8d
+              expression: 'avg(/ESXi OS SNMP/icmppingsec,5m)>{$ICMP_RESPONSE_TIME_WARN}'
+              name: 'High ICMP ping response time'
+              priority: WARNING
+              dependencies:
+                -
+                  name: 'High ICMP ping loss'
+                  expression: 'min(/ESXi OS SNMP/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/ESXi OS SNMP/icmppingloss,5m)<100'
+                -
+                  name: 'Unavailable by ICMP ping'
+                  expression: 'max(/ESXi OS SNMP/icmpping,#3)=0'
+              tags:
+                -
+                  tag: scope
+                  value: availability
+                -
+                  tag: scope
+                  value: performance
         -
           uuid: a5679c6bc75642d39b1aacc132fe629d
           name: 'System Description'
@@ -92,7 +182,7 @@ zabbix_export:
             -
               uuid: 5255d1aa5cd84059945e1d0ccf066f13
               expression: 'last(/ESXi OS SNMP/sysUpTime)<10m'
-              name: 'has been restarted'
+              name: 'ESXi host has been restarted'
               event_name: '{HOST.NAME} has been restarted (uptime < 10m)'
               priority: WARNING
               description: 'Uptime is less than 10 minutes.'
@@ -154,7 +244,7 @@ zabbix_export:
             1 - available
             2 - unknown
           valuemap:
-            name: snmp.host.available
+            name: zabbix.host.available
           tags:
             -
               tag: component
@@ -170,6 +260,10 @@ zabbix_export:
               opdata: 'Current state: {ITEM.LASTVALUE1}'
               priority: WARNING
               description: 'SNMP is not available for polling. Please check device connectivity and SNMP settings.'
+              dependencies:
+                -
+                  name: 'Unavailable by ICMP ping'
+                  expression: 'max(/ESXi OS SNMP/icmpping,#3)=0'
               tags:
                 -
                   tag: scope
@@ -383,7 +477,7 @@ zabbix_export:
                 -
                   sortorder: '1'
                   drawtype: FILLED_REGION
-                  color: FFFF00
+                  color: FF0000
                   calc_fnc: MIN
                   item:
                     host: 'ESXi OS SNMP'
@@ -399,7 +493,7 @@ zabbix_export:
               show_3d: 'YES'
               graph_items:
                 -
-                  color: 00FF00
+                  color: 4CAF50
                   calc_fnc: LAST
                   type: GRAPH_SUM
                   item:
@@ -407,7 +501,7 @@ zabbix_export:
                     key: 'hrStorageSize[{#SNMPINDEX}]'
                 -
                   sortorder: '1'
-                  color: FFFF00
+                  color: FF0000
                   calc_fnc: LAST
                   item:
                     host: 'ESXi OS SNMP'
@@ -685,6 +779,15 @@ zabbix_export:
           macro: '{$ESX_VOLUME_MAX_WARN}'
           value: '95'
           description: 'ESXi VMFS volume size warning threshold'
+        -
+          macro: '{$ICMP_LOSS_WARN}'
+          value: '20'
+        -
+          macro: '{$ICMP_RESPONSE_TIME_WARN}'
+          value: '0.15'
+        -
+          macro: '{$SNMP.TIMEOUT}'
+          value: 5m
       dashboards:
         -
           uuid: 4fdcf4070b9a4e28a58a7deeb8302586
@@ -830,8 +933,18 @@ zabbix_export:
                         key: sysName
       valuemaps:
         -
+          uuid: 21b509bfa7be4fa9b43d23a9a317bdca
+          name: 'Service state'
+          mappings:
+            -
+              value: '0'
+              newvalue: Down
+            -
+              value: '1'
+              newvalue: Up
+        -
           uuid: 5952338fc8054d9f9a2ba1fb90d74f9c
-          name: snmp.host.available
+          name: zabbix.host.available
           mappings:
             -
               value: '0'
