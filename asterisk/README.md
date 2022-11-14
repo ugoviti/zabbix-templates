@@ -38,10 +38,10 @@ Check Asterisk PBX engine using Zabbix Network Monitoring system
   - IAX2/SIP/PJSIP Peers/Endpoints high latency
 
 ## Installation for Zabbix Agent 1
-- `mkdir -p /etc/zabbix/zabbix_agentd.d/scripts/`
-- `cp zabbix_agentd.d/scripts/asterisk.sh /etc/zabbix/zabbix_agentd.d/scripts/asterisk.sh`
-- `chmod 755 /etc/zabbix/zabbix_agentd.d/scripts/asterisk.sh`
-- `cp zabbix_agentd.d/asterisk.conf /etc/zabbix/zabbix_agentd.d/asterisk.conf`
+- `mkdir -p /etc/zabbix/zabbix_agent2.d/scripts/`
+- `cp zabbix_agent2.d/scripts/asterisk.sh /etc/zabbix/zabbix_agent2.d/scripts/asterisk.sh`
+- `chmod 755 /etc/zabbix/zabbix_agent2.d/scripts/asterisk.sh`
+- `cp zabbix_agent2.d/asterisk.conf /etc/zabbix/zabbix_agent2.d/asterisk.conf`
 - Edit **sudoers** using `visudo` command and add:
 ```
 User_Alias ZABBIX = zabbix
@@ -62,10 +62,10 @@ For **zabbix-agent2** the default configuration dir is `/etc/zabbix/zabbix_agent
 - `{$ASTERISK_PEER_LATENCY_WARN}`: Alarm when a peer have high latency (ms)
 
 ## Troubleshooting
-If your Zabbix Agent installation doesn't include the ` /etc/zabbix/zabbix_agentd.d/*.conf` directory, add the following lines to `/etc/zabbix/zabbix_agentd.conf` file:
+If your Zabbix Agent installation doesn't include the ` /etc/zabbix/zabbix_agent2.d/*.conf` directory, add the following lines to `/etc/zabbix/zabbix_agent2.conf` file:
 
 ```
-Include=/etc/zabbix/zabbix_agentd.d/*.conf
+Include=/etc/zabbix/zabbix_agent2.d/*.conf
 ```
 ## BUGS
 Counting SIP/PJSIP/IAX2 Trunks is not reliable right now, works only if in the trunk name is alphanumeric (contains letters and number in the name)
