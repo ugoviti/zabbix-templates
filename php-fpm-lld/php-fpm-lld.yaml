@@ -1,7 +1,7 @@
 zabbix_export:
-  version: '6.0'
-  date: '2022-06-15T18:32:13Z'
-  groups:
+  version: '6.2'
+  date: '2022-12-20T23:28:55Z'
+  template_groups:
     -
       uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
       name: Templates/Applications
@@ -95,6 +95,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: cps
             -
               uuid: 92dbda0e11924934b98dff14131eaae5
               name: 'PHP-FPM Pool {#POOL}: Get ping page'
@@ -144,6 +147,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: queue
             -
               uuid: 0dcae992489041e99a94997254493708
               name: 'PHP-FPM Pool {#POOL}: Listen queue, len'
@@ -166,6 +172,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: queue-len
             -
               uuid: 3dd90739e30a49f48ef622a68b1b0dd5
               name: 'PHP-FPM Pool {#POOL}: Listen queue, max'
@@ -188,6 +197,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: queue-max
             -
               uuid: 24df63b7f54741529a72fdd017e6ee5e
               name: 'PHP-FPM Pool {#POOL}: Queue usage'
@@ -205,6 +217,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: queue-usage
               trigger_prototypes:
                 -
                   uuid: ec8ca1da8d58409fa6ae95aaf43d789f
@@ -243,6 +258,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: childrens-max
             -
               uuid: 9fbb7af03dc442f18bdc152310d1dc3e
               name: 'PHP-FPM Pool {#POOL}: Pool name'
@@ -297,6 +315,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: ping
               trigger_prototypes:
                 -
                   uuid: 1db01caa3ae84b51b76a5b8c5f105edc
@@ -330,6 +351,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: procs-active
             -
               uuid: 26adfa6289354c83a37c73a4876b0a51
               name: 'PHP-FPM Pool {#POOL}: Processes, idle'
@@ -352,6 +376,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: procs-idle
             -
               uuid: de5be3fed17a479e9f99951133858411
               name: 'PHP-FPM Pool {#POOL}: Processes, max active'
@@ -374,6 +401,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: procs-max
             -
               uuid: c27cec61839347d1870095e4762f0d58
               name: 'PHP-FPM Pool {#POOL}: Processes, total'
@@ -396,6 +426,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: procs-total
             -
               uuid: 3b8be19bd8864b0c9481e3c1d2f69036
               name: 'PHP-FPM Pool {#POOL}: Process manager'
@@ -424,6 +457,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: process-manager
               trigger_prototypes:
                 -
                   uuid: c2e7782fef3d42c48a77f3a0678dbfa4
@@ -463,10 +499,13 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: slow-requests
               trigger_prototypes:
                 -
                   uuid: eb507054225f4caab2a32ae7a722c263
-                  expression: 'min(/PHP-FPM by HTTP with LLD/php-fpm.slow_requests[{#POOL}],#5)>{$PHP_FPM.SLOW_REQUEST.WARN.MAX}'
+                  expression: 'min(/PHP-FPM by HTTP with LLD/php-fpm.slow_requests[{#POOL}],#3)>{$PHP_FPM.SLOW_REQUEST.WARN.MAX}'
                   name: 'PHP-FPM Pool {#POOL}: Detected slow requests'
                   priority: WARNING
                   description: 'PHP-FPM detected slow request. A slow request means that it took more time to execute than expected (defined in the configuration of your pool).'
@@ -497,6 +536,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: start-time
             -
               uuid: b7de56b4d5364bd7a8262eaa5279d1b8
               name: 'PHP-FPM Pool {#POOL}: Uptime'
@@ -520,6 +562,9 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: uptime
               trigger_prototypes:
                 -
                   uuid: 97a4bd9f9fc1457ba0c1cf45790279d2
@@ -579,12 +624,15 @@ zabbix_export:
                 -
                   tag: pool
                   value: '{#POOL}'
+                -
+                  tag: type
+                  value: version
               trigger_prototypes:
                 -
                   uuid: 3cad8b9a9cd24b3280f2f4e0aaffbc80
                   expression: '(last(/PHP-FPM by HTTP with LLD/php-fpm.version[{#POOL}],#1)<>last(/PHP-FPM by HTTP with LLD/php-fpm.version[{#POOL}],#2))=1 and length(last(/PHP-FPM by HTTP with LLD/php-fpm.version[{#POOL}]))>0'
                   name: 'PHP-FPM Pool {#POOL}: Version has changed'
-                  event_name: 'PHP-FPM: Version has changed (new version: {ITEM.VALUE})'
+                  event_name: 'PHP-FPM: {#POOL} PHP version has changed (new version: {ITEM.VALUE})'
                   priority: INFO
                   description: 'PHP-FPM version has changed. Ack to close.'
                   manual_close: 'YES'
@@ -622,29 +670,17 @@ zabbix_export:
               name: 'PHP-FPM Pool {#POOL}: Process'
               graph_items:
                 -
-                  sortorder: '1'
-                  color: F63100
+                  color: FFBF00
                   item:
                     host: 'PHP-FPM by HTTP with LLD'
                     key: 'php-fpm.processes_total[{#POOL}]'
                 -
-                  sortorder: '2'
-                  color: 1A7C11
-                  item:
-                    host: 'PHP-FPM by HTTP with LLD'
-                    key: 'php-fpm.processes_max_active[{#POOL}]'
-                -
-                  sortorder: '3'
-                  color: A54F10
+                  sortorder: '1'
+                  color: FF4000
+                  calc_fnc: ALL
                   item:
                     host: 'PHP-FPM by HTTP with LLD'
                     key: 'php-fpm.processes_active[{#POOL}]'
-                -
-                  sortorder: '4'
-                  color: 2774A4
-                  item:
-                    host: 'PHP-FPM by HTTP with LLD'
-                    key: 'php-fpm.processes_idle[{#POOL}]'
             -
               uuid: 80b96b777889418a854493da23bd33ea
               name: 'PHP-FPM Pool {#POOL}: Queue'
@@ -691,7 +727,7 @@ zabbix_export:
           description: 'The maximum PHP-FPM queue usage percent for trigger expression.'
         -
           macro: '{$PHP_FPM.SLOW_REQUEST.WARN.MAX}'
-          value: '2'
+          value: '1'
           description: 'Threshold of the maximum slow requests admissible'
       dashboards:
         -
