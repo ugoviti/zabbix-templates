@@ -206,6 +206,9 @@ zabbix_export:
                 -
                   tag: component
                   value: raw
+                -
+                  tag: url
+                  value: '{#ITEMNAME}'
           trigger_prototypes:
             -
               uuid: da5d3edee6a5400fb77a9fd8b24c68ca
