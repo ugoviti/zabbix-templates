@@ -248,8 +248,8 @@ getHTTPData() {
 
   # compose the data var
   #data+="\"http_schema\":\"${SCHEMA}\", "
-  [[ ! -z "${curlData[0]}" ]] && data+="\"http_code\":\"${curlData[0]}\", "
-  [[ ! -z "${curlData[1]}" ]] && data+="\"time_total\":\"${curlData[1]}\", "
+  [[ ! -z "${curlData[0]}" ]] && data+="\"http_code\": ${curlData[0]}, "
+  [[ ! -z "${curlData[1]}" ]] && data+="\"time_total\": ${curlData[1]}, "
 }
 
 # check ssl certificate expiration
@@ -258,8 +258,8 @@ getSSLData() {
   ssl_time_expire="$(ssl.time_expire)"
   ssl_time_left="$(ssl.time_left)"
 
-  [ ! -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\":\"$ssl_time_expire\", "
-  [ ! -z "$ssl_time_left" ] && data+="\"ssl_time_left\":\"$ssl_time_left\", "
+  [ ! -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\": $ssl_time_expire, "
+  [ ! -z "$ssl_time_left" ] && data+="\"ssl_time_left\": $ssl_time_left, "
 }
 
 
@@ -275,21 +275,17 @@ url.monitor() {
     getSSLData "$1"
   elif [[ "$SCHEMA" = "tcp" ]];then
     # always save http code 200 if checking SSL certificate only
-    data+="\"http_code\":\"200\", "
-    data+="\"time_total\":\"0\", "
+    data+="\"http_code\": 200, "
+    data+="\"time_total\": 0, "
     getSSLData "$1"
   fi
 
   # when no ssl certificate get detected, save ssl_time_expire and ssl_time_left to default 0 (never)
-  [ -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\":\"0\", "
-  [ -z "$ssl_time_left" ] && data+="\"ssl_time_left\":\"0\", "
+  #[ -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\": 0, "
+  #[ -z "$ssl_time_left" ] && data+="\"ssl_time_left\": 0, "
 
   # print json for zabbix
-  echo "{
-  \"data\": [
-      { $(echo $data | sed 'H;1h;$!d;x;s/\(.*\),/\1/') }
-  ]
-}"
+  echo "{ \"data\": [{ $(echo $data | sed 'H;1h;$!d;x;s/\(.*\),/\1/') }] }"
 }
 
 # execute the given command
