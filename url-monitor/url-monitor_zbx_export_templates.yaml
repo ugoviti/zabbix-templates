@@ -48,6 +48,9 @@ zabbix_export:
                 key: 'url.check[url.monitor,{#URL}]'
               tags:
                 -
+                  tag: application
+                  value: url-monitor
+                -
                   tag: component
                   value: http
                 -
@@ -94,6 +97,9 @@ zabbix_export:
               master_item:
                 key: 'url.check[url.monitor,{#URL}]'
               tags:
+                -
+                  tag: application
+                  value: url-monitor
                 -
                   tag: component
                   value: http
@@ -142,6 +148,9 @@ zabbix_export:
                 key: 'url.check[url.monitor,{#URL}]'
               tags:
                 -
+                  tag: application
+                  value: url-monitor
+                -
                   tag: component
                   value: ssl
                 -
@@ -167,6 +176,9 @@ zabbix_export:
                 key: 'url.check[url.monitor,{#URL}]'
               tags:
                 -
+                  tag: application
+                  value: url-monitor
+                -
                   tag: component
                   value: ssl
                 -
@@ -177,7 +189,7 @@ zabbix_export:
                   value: '{#ITEMNAME}'
             -
               uuid: 2067f2c99a114074a922a66c4aee75ea
-              name: '{#ITEMNAME} Dataset'
+              name: '{#ITEMNAME} Get raw data'
               key: 'url.check[url.monitor,{#URL}]'
               history: 1h
               trends: '0'
@@ -186,6 +198,9 @@ zabbix_export:
               valuemap:
                 name: 'HTTP Response codes'
               tags:
+                -
+                  tag: application
+                  value: url-monitor
                 -
                   tag: component
                   value: raw
