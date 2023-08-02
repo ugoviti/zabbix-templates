@@ -16,7 +16,7 @@ zabbix_export:
         
         Project Page: https://github.com/ugoviti/zabbix-templates/tree/master/url-monitor
         
-        version: 20230523
+        version: 20230802
       groups:
         - name: Templates
       discovery_rules:
@@ -140,6 +140,7 @@ zabbix_export:
               type: DEPENDENT
               key: 'ssl.timeLeft[{#URL}]'
               delay: '0'
+              value_type: FLOAT
               units: s
               description: 'Check expiry date of SSL certificate for domain {#HOST}:{#PORT}'
               preprocessing:
