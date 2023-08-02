@@ -286,8 +286,8 @@ url.monitor() {
 
   # compose the data var
   #data+="\"http_schema\":\"${SCHEMA}\", "
-  [ ! -z "${http_code}" ]     && data+="\"http_code\": ${http_code}, "
-  [ ! -z "${time_total}" ]    && data+="\"time_total\": ${time_total}, "
+  [ ! -z "$http_code" ]       && data+="\"http_code\": $http_code, "
+  [ ! -z "$time_total" ]      && data+="\"time_total\": $time_total, "
   [ ! -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\": $ssl_time_expire, "
   [ ! -z "$ssl_time_left" ]   && data+="\"ssl_time_left\": $ssl_time_left, "
 
