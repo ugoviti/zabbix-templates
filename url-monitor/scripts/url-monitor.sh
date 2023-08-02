@@ -133,6 +133,7 @@ detectURLParts() {
     esac
   fi
 
+  URL="$1"
   SCHEMA="$uri_schema"
   HOST="$uri_host"
   PORT="$uri_port"
@@ -226,7 +227,7 @@ getHTTPData() {
   # FIXME: this doesn't works:
   #[ ! -z "$curlUserAgent" ]      && curlArgs+=" -H 'User-Agent: $curlUserAgent'"
 
-  curlResponse="$(curl -L -s -w "%{http_code};%{time_total}" -H "User-Agent: $curlUserAgent" $curlArgs "$1" -o /dev/null)"
+  curlResponse="$(curl -L -s -w "%{http_code};%{time_total}" -H "User-Agent: $curlUserAgent" $curlArgs "$URL" -o /dev/null)"
   curlRetVal=$?
 
   # parse curl
@@ -244,7 +245,7 @@ getHTTPData() {
 
   # get ssl expire date if it's an https url and the web server is reachable
   if   [[ "$SCHEMA" = "https" ]] && [[ "$curlRetVal" = "0" || "$curlRetVal" = "60" ]];then
-    getSSLData "$1"
+    getSSLData
   fi
 
   # if the certified is expired and the curl return code is 60 change $curlRetVal to 200
@@ -253,10 +254,8 @@ getHTTPData() {
   # failback and map generic error to http code 1
   [[ "${curlData[0]}" = "000" && "$curlRetVal" = "0" ]] && curlData[0]="1"
 
-  # compose the data var
-  #data+="\"http_schema\":\"${SCHEMA}\", "
-  [[ ! -z "${curlData[0]}" ]] && data+="\"http_code\": ${curlData[0]}, "
-  [[ ! -z "${curlData[1]}" ]] && data+="\"time_total\": ${curlData[1]}, "
+  [ ! -z "${curlData[0]}" ] && http_code="${curlData[0]}"
+  [ ! -z "${curlData[1]}" ] && time_total="${curlData[1]}"
 }
 
 # check ssl certificate expiration
@@ -264,9 +263,6 @@ getSSLData() {
   sslExpireDate=$(getSSLExpireDate)
   ssl_time_expire="$(ssl.time_expire)"
   ssl_time_left="$(ssl.time_left)"
-
-  [ ! -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\": $ssl_time_expire, "
-  [ ! -z "$ssl_time_left" ] && data+="\"ssl_time_left\": $ssl_time_left, "
 }
 
 
@@ -276,17 +272,24 @@ url.monitor() {
 
   # get HTTP request only for http and https protocols
   if [[ "$SCHEMA" = "http" || "$SCHEMA" = "https" ]];then
-    getHTTPData "$1"
+    getHTTPData
   elif [[ "$SCHEMA" = "tcp" ]];then
     # always save http code 200 if checking SSL certificate only
     data+="\"http_code\": 200, "
     data+="\"time_total\": 0, "
-    getSSLData "$1"
+    getSSLData
   fi
 
   # when no ssl certificate get detected, save ssl_time_expire and ssl_time_left to default 0 (never)
   #[ -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\": 0, "
   #[ -z "$ssl_time_left" ] && data+="\"ssl_time_left\": 0, "
+
+  # compose the data var
+  #data+="\"http_schema\":\"${SCHEMA}\", "
+  [ ! -z "${http_code}" ]     && data+="\"http_code\": ${http_code}, "
+  [ ! -z "${time_total}" ]    && data+="\"time_total\": ${time_total}, "
+  [ ! -z "$ssl_time_expire" ] && data+="\"ssl_time_expire\": $ssl_time_expire, "
+  [ ! -z "$ssl_time_left" ]   && data+="\"ssl_time_left\": $ssl_time_left, "
 
   # print json for zabbix
   echo "{ \"data\": [{ $(echo $data | sed 'H;1h;$!d;x;s/\(.*\),/\1/') }] }"
