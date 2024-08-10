@@ -1,0 +1,805 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 03ab673d830c494283070f8b186cdf0b
+      template: 'VMWare ESXi Host by SNMP'
+      name: 'VMWare ESXi Host by SNMP'
+      description: |
+        Description: Template for VMWare ESXi Host via SNMP
+        Author: Ugo Viti <u.viti@wearequantico.it>
+        
+        Repo: https://github.com/ugoviti/zabbix-templates/tree/main/vmware
+        Version: 20240810
+      groups:
+        - name: Templates
+      items:
+        - uuid: d10cc447cc984fef98317312bfe4a29b
+          name: 'ICMP ping'
+          type: SIMPLE
+          key: icmpping
+          history: 1w
+          valuemap:
+            name: 'Service state'
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: host
+            - tag: component
+              value: network
+          triggers:
+            - uuid: e3373625ebb34f19906fb60d52ff1d25
+              expression: 'max(/VMWare ESXi Host by SNMP/icmpping,#3)=0'
+              name: 'Unavailable by ICMP ping'
+              priority: HIGH
+              description: 'Last three attempts returned timeout.  Please check device connectivity.'
+              tags:
+                - tag: scope
+                  value: availability
+        - uuid: f2059f78628a479793f7bbd1cfc76e33
+          name: 'ICMP loss'
+          type: SIMPLE
+          key: icmppingloss
+          history: 1w
+          value_type: FLOAT
+          units: '%'
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: host
+            - tag: component
+              value: network
+          triggers:
+            - uuid: 8d44c674e7424bf5809268a2862561fc
+              expression: 'min(/VMWare ESXi Host by SNMP/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/VMWare ESXi Host by SNMP/icmppingloss,5m)<100'
+              name: 'High ICMP ping loss'
+              opdata: 'Loss: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              tags:
+                - tag: scope
+                  value: availability
+                - tag: scope
+                  value: performance
+        - uuid: d2c3b5eed3044324affd17663907b065
+          name: 'ICMP response time'
+          type: SIMPLE
+          key: icmppingsec
+          history: 1w
+          value_type: FLOAT
+          units: s
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: host
+            - tag: component
+              value: network
+          triggers:
+            - uuid: aef9bc91f9da45c3be6756d8abbd7880
+              expression: 'avg(/VMWare ESXi Host by SNMP/icmppingsec,5m)>{$ICMP_RESPONSE_TIME_WARN}'
+              name: 'High ICMP ping response time'
+              priority: WARNING
+              dependencies:
+                - name: 'High ICMP ping loss'
+                  expression: 'min(/VMWare ESXi Host by SNMP/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/VMWare ESXi Host by SNMP/icmppingloss,5m)<100'
+                - name: 'Unavailable by ICMP ping'
+                  expression: 'max(/VMWare ESXi Host by SNMP/icmpping,#3)=0'
+              tags:
+                - tag: scope
+                  value: availability
+                - tag: scope
+                  value: performance
+        - uuid: b64cef3adc174885bb40996bdeb31c86
+          name: 'System Description'
+          type: SNMP_AGENT
+          snmp_oid: 'SNMPv2-MIB::sysDescr.0'
+          key: sysDescr
+          delay: 1h
+          history: 7d
+          value_type: TEXT
+          description: 'The operating system description for this managed node'
+          tags:
+            - tag: component
+              value: host
+            - tag: component
+              value: system
+        - uuid: f3c2bab84df04788ba2618a731b860bd
+          name: 'System Name'
+          type: SNMP_AGENT
+          snmp_oid: 'SNMPv2-MIB::sysName.0'
+          key: sysName
+          delay: 1h
+          history: 7d
+          value_type: CHAR
+          description: 'An administratively-assigned name for this managed node. By convention, this is the node''s fully-qualified domain name.  If the name is unknown, the value is the zero-length string.'
+          inventory_link: NAME
+          tags:
+            - tag: component
+              value: host
+            - tag: component
+              value: system
+          triggers:
+            - uuid: 0a63db6a96b448f285e514474d8fce10
+              expression: 'last(/VMWare ESXi Host by SNMP/sysName,#1)<>last(/VMWare ESXi Host by SNMP/sysName,#2) and length(last(/VMWare ESXi Host by SNMP/sysName))>0'
+              name: 'System name has changed'
+              event_name: 'System name has changed (new name: {ITEM.VALUE})'
+              priority: INFO
+              description: 'System name has changed. Ack to close.'
+              manual_close: 'YES'
+              tags:
+                - tag: scope
+                  value: notice
+                - tag: scope
+                  value: security
+        - uuid: b0689c6a2d934113b34641db5f9583c5
+          name: 'System Uptime'
+          type: SNMP_AGENT
+          snmp_oid: 'SNMPv2-MIB::sysUpTime.0'
+          key: sysUpTime
+          delay: 10m
+          history: 2w
+          trends: '0'
+          units: uptime
+          description: 'The time since the network management portion of the system was last re-initialized.'
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.01'
+          tags:
+            - tag: component
+              value: host
+            - tag: component
+              value: system
+          triggers:
+            - uuid: 2a6c606cbe3e41d098d191fc3c031172
+              expression: 'last(/VMWare ESXi Host by SNMP/sysUpTime)<10m'
+              name: 'ESXi host has been restarted'
+              event_name: '{HOST.NAME} has been restarted (uptime < 10m)'
+              priority: WARNING
+              description: 'Uptime is less than 10 minutes.'
+              manual_close: 'YES'
+              dependencies:
+                - name: 'No SNMP data collection'
+                  expression: 'max(/VMWare ESXi Host by SNMP/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: f24c7776c6d6421e8c26f3ba2722e88a
+          name: 'CPUs Sockets'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.6876.3.1.1.0
+          key: vmwNumCpus
+          delay: 1h
+          description: 'Number of physical CPUs on the system.'
+          tags:
+            - tag: component
+              value: cpu
+            - tag: component
+              value: host
+        - uuid: 28804ce738cf4fffa68cc3fcc19a267e
+          name: 'ESXi Build'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.6876.1.4.0
+          key: vmwProdBuild.0
+          delay: 1h
+          tags:
+            - tag: component
+              value: host
+            - tag: component
+              value: os
+        - uuid: b1a41883c972497ca336ba6c11b892b7
+          name: 'ESXi Version'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.6876.1.2.0
+          key: vmwProdVersion.0
+          delay: 1h
+          value_type: TEXT
+          tags:
+            - tag: component
+              value: host
+            - tag: component
+              value: os
+        - uuid: 6bc40d6724ae42dca5b391f143137e6a
+          name: 'SNMP agent availability'
+          type: INTERNAL
+          key: 'zabbix[host,snmp,available]'
+          history: 7d
+          description: |
+            Availability of SNMP checks on the host. The value of this item corresponds to availability icons in the host list.
+            Possible value:
+            0 - not available
+            1 - available
+            2 - unknown
+          valuemap:
+            name: zabbix.host.available
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: host
+            - tag: component
+              value: network
+          triggers:
+            - uuid: dbab480a06584bc4999b5a661ab41b89
+              expression: 'max(/VMWare ESXi Host by SNMP/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              name: 'No SNMP data collection'
+              opdata: 'Current state: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              description: 'SNMP is not available for polling. Please check device connectivity and SNMP settings.'
+              dependencies:
+                - name: 'Unavailable by ICMP ping'
+                  expression: 'max(/VMWare ESXi Host by SNMP/icmpping,#3)=0'
+              tags:
+                - tag: scope
+                  value: availability
+      discovery_rules:
+        - uuid: d9cff3cf60a541bc832b8de66a160ad7
+          name: 'Host Datastores'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#STORAGETYPE},hrStorageType,{#STORAGEDESCR},hrStorageDescr,{#STORAGEALLOCATIONUNITS},hrStorageAllocationUnits]'
+          key: esxi.HostDatastoresDiscovery
+          delay: 1h
+          filter:
+            evaltype: AND
+            conditions:
+              - macro: '{#STORAGETYPE}'
+                value: 'HOST-RESOURCES-TYPES::hrStorageRam$'
+                operator: NOT_MATCHES_REGEX
+                formulaid: A
+              - macro: '{#STORAGETYPE}'
+                value: 'HOST-RESOURCES-TYPES::hrStorageRamDisk$'
+                operator: NOT_MATCHES_REGEX
+                formulaid: B
+          lifetime: 7d
+          description: 'This rule will discover all storage attached to the esxi host'
+          item_prototypes:
+            - uuid: 254435eae9074bdaaf88a55cfb248456
+              name: 'Free space of Datastore {#SNMPINDEX}'
+              type: CALCULATED
+              key: 'vmfs.FreeSpace[{#SNMPINDEX}]'
+              delay: 15m
+              history: 7d
+              units: B
+              params: 'last(//vmfs.hrStorageSize[{#SNMPINDEX}]) - last(//vmfs.hrStorageUsed[{#SNMPINDEX}])'
+              description: 'HOST-RESOURCES-MIB::hrStorageType: {#SNMPINDEX}'
+              tags:
+                - tag: component
+                  value: storage
+                - tag: datastore
+                  value: '{#SNMPINDEX}'
+                - tag: mount
+                  value: '{#STORAGEDESCR}'
+                - tag: space
+                  value: free
+            - uuid: 2e8dc6196844428bb7c2b53c1ff8c3d7
+              name: 'Mount point of Datastore {#SNMPINDEX}'
+              type: SNMP_AGENT
+              snmp_oid: 'hrStorageDescr.{#SNMPINDEX}'
+              key: 'vmfs.hrStorageDescr[{#SNMPINDEX}]'
+              delay: 15m
+              history: 7d
+              value_type: TEXT
+              description: |
+                A description of the type and instance of the storage described by this entry.
+                
+                HOST-RESOURCES-MIB::hrStorageType: {#SNMPINDEX}
+              tags:
+                - tag: component
+                  value: storage
+                - tag: datastore
+                  value: '{#SNMPINDEX}'
+                - tag: mount
+                  value: '{#STORAGEDESCR}'
+            - uuid: 9ea316098621438fbfa5412a32cd9277
+              name: 'Total size of Datastore {#SNMPINDEX}'
+              type: SNMP_AGENT
+              snmp_oid: 'hrStorageSize.{#SNMPINDEX}'
+              key: 'vmfs.hrStorageSize[{#SNMPINDEX}]'
+              delay: 15m
+              history: 7d
+              units: B
+              description: |
+                The size of the storage represented by this entry, in units of hrStorageAllocationUnits. This object is writable to allow remote configuration of the size of the storage area in those cases where such an operation makes sense and is possible on the underlying system. For example, the amount of main memory allocated to a buffer pool might be modified or the amount of disk space allocated to virtual memory might be modified.
+                
+                HOST-RESOURCES-MIB::hrStorageType: {#SNMPINDEX}
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '{#STORAGEALLOCATIONUNITS}'
+              tags:
+                - tag: component
+                  value: storage
+                - tag: datastore
+                  value: '{#SNMPINDEX}'
+                - tag: mount
+                  value: '{#STORAGEDESCR}'
+                - tag: space
+                  value: total
+            - uuid: 11c2b8cf9dde405780727d822fba52cb
+              name: 'Usage space of Datastore {#SNMPINDEX} (%)'
+              type: CALCULATED
+              key: 'vmfs.hrStorageUsed.percent[{#SNMPINDEX}]'
+              delay: 15m
+              history: 7d
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//vmfs.hrStorageUsed[{#SNMPINDEX}]) / last(//vmfs.hrStorageSize[{#SNMPINDEX}]) * 100'
+              description: 'HOST-RESOURCES-MIB::hrStorageType: {#SNMPINDEX}'
+              tags:
+                - tag: component
+                  value: storage
+                - tag: datastore
+                  value: '{#SNMPINDEX}'
+                - tag: mount
+                  value: '{#STORAGEDESCR}'
+            - uuid: 3203f7183e6e4b83bf6944db8bb5dfd6
+              name: 'Used space of Datastore {#SNMPINDEX}'
+              type: SNMP_AGENT
+              snmp_oid: 'hrStorageUsed.{#SNMPINDEX}'
+              key: 'vmfs.hrStorageUsed[{#SNMPINDEX}]'
+              delay: 15m
+              history: 7d
+              units: B
+              description: |
+                The amount of the storage represented by this entry that is allocated, in units of hrStorageAllocationUnits.
+                
+                HOST-RESOURCES-MIB::hrStorageType: {#SNMPINDEX}
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '{#STORAGEALLOCATIONUNITS}'
+              tags:
+                - tag: component
+                  value: storage
+                - tag: datastore
+                  value: '{#SNMPINDEX}'
+                - tag: mount
+                  value: '{#STORAGEDESCR}'
+          trigger_prototypes:
+            - uuid: 34d383b0f6e347728815fc735d4d746e
+              expression: '((last(/VMWare ESXi Host by SNMP/vmfs.hrStorageUsed[{#SNMPINDEX}]) / last(/VMWare ESXi Host by SNMP/vmfs.hrStorageSize[{#SNMPINDEX}])) * 100 ) > {$ESX_VOLUME_MAX_CRIT}'
+              name: 'Disk space is critically low for datastore {#SNMPINDEX} (used >{$ESX_VOLUME_MAX_CRIT}%)'
+              opdata: 'Space used: {ITEM.LASTVALUE1} of {ITEM.LASTVALUE2}'
+              priority: HIGH
+              description: 'Mount point: {#STORAGEDESCR}'
+              tags:
+                - tag: mount
+                  value: '{#STORAGEDESCR}'
+                - tag: scope
+                  value: availability
+                - tag: scope
+                  value: capacity
+            - uuid: 5c5dfbda8ba84ae394b5f870de13ef30
+              expression: '((last(/VMWare ESXi Host by SNMP/vmfs.hrStorageUsed[{#SNMPINDEX}]) / last(/VMWare ESXi Host by SNMP/vmfs.hrStorageSize[{#SNMPINDEX}])) * 100 ) > {$ESX_VOLUME_MAX_WARN}'
+              name: 'Disk space is low for datastore {#SNMPINDEX} (used >{$ESX_VOLUME_MAX_WARN}%)'
+              opdata: 'Space used: {ITEM.LASTVALUE1} of {ITEM.LASTVALUE2}'
+              priority: WARNING
+              description: 'Mount point: {#STORAGEDESCR}'
+              dependencies:
+                - name: 'Disk space is critically low for datastore {#SNMPINDEX} (used >{$ESX_VOLUME_MAX_CRIT}%)'
+                  expression: '((last(/VMWare ESXi Host by SNMP/vmfs.hrStorageUsed[{#SNMPINDEX}]) / last(/VMWare ESXi Host by SNMP/vmfs.hrStorageSize[{#SNMPINDEX}])) * 100 ) > {$ESX_VOLUME_MAX_CRIT}'
+              tags:
+                - tag: mount
+                  value: '{#STORAGEDESCR}'
+                - tag: scope
+                  value: availability
+                - tag: scope
+                  value: capacity
+          graph_prototypes:
+            - uuid: 804b29c115144dfabf2f9c9176e53354
+              name: 'Space usage of datastore {#SNMPINDEX} (%)'
+              width: '600'
+              yaxismax: '0'
+              show_work_period: 'NO'
+              show_triggers: 'NO'
+              type: PIE
+              show_3d: 'YES'
+              graph_items:
+                - color: 199C0D
+                  calc_fnc: LAST
+                  type: GRAPH_SUM
+                  item:
+                    host: 'VMWare ESXi Host by SNMP'
+                    key: 'vmfs.hrStorageSize[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  color: F63100
+                  calc_fnc: LAST
+                  item:
+                    host: 'VMWare ESXi Host by SNMP'
+                    key: 'vmfs.hrStorageUsed[{#SNMPINDEX}]'
+            - uuid: 6a7c7d4ed9d745f7874f9dd9203be51d
+              name: 'Space used of datastore {#SNMPINDEX}: {#STORAGEDESCR}'
+              width: '600'
+              show_work_period: 'NO'
+              show_triggers: 'NO'
+              graph_items:
+                - drawtype: FILLED_REGION
+                  color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: 'VMWare ESXi Host by SNMP'
+                    key: 'vmfs.hrStorageSize[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  drawtype: FILLED_REGION
+                  color: F63100
+                  calc_fnc: ALL
+                  item:
+                    host: 'VMWare ESXi Host by SNMP'
+                    key: 'vmfs.hrStorageUsed[{#SNMPINDEX}]'
+        - uuid: 6ddcb949cf92416bb641af4880cd5ae4
+          name: 'Host Memory'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#SNMPVALUE},hrStorageType]'
+          key: esxi.HostMemoryDiscovery
+          delay: 1h
+          filter:
+            conditions:
+              - macro: '{#SNMPVALUE}'
+                value: 'HOST-RESOURCES-TYPES::hrStorageRam$'
+                formulaid: A
+          lifetime: 3d
+          description: 'Host Memory must be discovered and parsed because ESXi SNMP expose the system RAM Memory via hrStorageType OID'
+          item_prototypes:
+            - uuid: c1dde326f3ed4472805d2a8da96d4815
+              name: 'Host Memory Usage (%)'
+              type: CALCULATED
+              key: 'hrMemoryFreePerc[{#SNMPINDEX}]'
+              delay: 10m
+              value_type: FLOAT
+              units: '%'
+              params: 'last(//hrMemoryUsed[{#SNMPINDEX}])/last(//hrMemoryTotal[{#SNMPINDEX}])*100'
+              description: 'HOST-RESOURCES-MIB::hrStorageType: {#SNMPINDEX}'
+              tags:
+                - tag: component
+                  value: host
+                - tag: component
+                  value: memory
+            - uuid: d5f1457640864cbfb68f34bf611819b6
+              name: 'Host Memory Free'
+              type: CALCULATED
+              key: 'hrMemoryFree[{#SNMPINDEX}]'
+              delay: 10m
+              units: B
+              params: 'last(//hrMemoryTotal[{#SNMPINDEX}])-last(//hrMemoryUsed[{#SNMPINDEX}])'
+              description: 'HOST-RESOURCES-MIB::hrStorageType: {#SNMPINDEX}'
+              tags:
+                - tag: component
+                  value: host
+                - tag: component
+                  value: memory
+            - uuid: 79517aa5b2ea43f9bc160d1eea95f702
+              name: 'Host Memory Total'
+              type: SNMP_AGENT
+              snmp_oid: 'hrStorageSize.{#SNMPINDEX}'
+              key: 'hrMemoryTotal[{#SNMPINDEX}]'
+              delay: 10m
+              units: B
+              description: 'HOST-RESOURCES-MIB::hrStorageType: {#SNMPINDEX}'
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '1024'
+              tags:
+                - tag: component
+                  value: host
+                - tag: component
+                  value: memory
+            - uuid: ccd1eb74427d4da3a7e793b4f5b30bc5
+              name: 'Host Memory Used'
+              type: SNMP_AGENT
+              snmp_oid: 'hrStorageUsed.{#SNMPINDEX}'
+              key: 'hrMemoryUsed[{#SNMPINDEX}]'
+              delay: 10m
+              units: B
+              description: 'HOST-RESOURCES-MIB::hrStorageType: {#SNMPINDEX}'
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '1024'
+              tags:
+                - tag: component
+                  value: host
+                - tag: component
+                  value: memory
+          trigger_prototypes:
+            - uuid: 44e2187de3604269b07eac8cd00d3bf7
+              expression: '(100*(last(/VMWare ESXi Host by SNMP/hrMemoryUsed[{#SNMPINDEX}]) / last(/VMWare ESXi Host by SNMP/hrMemoryTotal[{#SNMPINDEX}]))) > {$ESX_MEMORY_MAX_WARN}'
+              name: 'Available memory on {HOST.NAME} is low (>{$ESX_MEMORY_MAX_WARN}%)'
+              opdata: 'Used: {ITEM.LASTVALUE1} Total: {ITEM.LASTVALUE2}'
+              priority: AVERAGE
+              tags:
+                - tag: scope
+                  value: capacity
+          graph_prototypes:
+            - uuid: 149fe5bd0dcf430bb5f787946145eecf
+              name: 'Memory usage (%) (id:{#SNMPINDEX})'
+              width: '400'
+              yaxismax: '0'
+              show_work_period: 'NO'
+              show_triggers: 'NO'
+              type: PIE
+              show_3d: 'YES'
+              graph_items:
+                - color: 1B5E20
+                  calc_fnc: LAST
+                  type: GRAPH_SUM
+                  item:
+                    host: 'VMWare ESXi Host by SNMP'
+                    key: 'hrMemoryTotal[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  color: 0040FF
+                  calc_fnc: LAST
+                  item:
+                    host: 'VMWare ESXi Host by SNMP'
+                    key: 'hrMemoryUsed[{#SNMPINDEX}]'
+            - uuid: 4d89274717c8422eba363a5838a423a5
+              name: 'Memory used (id:{#SNMPINDEX})'
+              width: '600'
+              percent_right: '95'
+              graph_items:
+                - drawtype: FILLED_REGION
+                  color: 1B5E20
+                  calc_fnc: ALL
+                  item:
+                    host: 'VMWare ESXi Host by SNMP'
+                    key: 'hrMemoryTotal[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  drawtype: FILLED_REGION
+                  color: 0040FF
+                  calc_fnc: ALL
+                  item:
+                    host: 'VMWare ESXi Host by SNMP'
+                    key: 'hrMemoryUsed[{#SNMPINDEX}]'
+        - uuid: b0e0792e28564f6b82a596bd216c3383
+          name: 'Host Virtual Machines'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#SNMPVALUE},enterprises.6876.2.1.1.2]'
+          key: esxi.VirtualMachinesDiscovery
+          delay: 30m
+          lifetime: 7d
+          item_prototypes:
+            - uuid: 81efaea51dd448929cd40b4daf2eed63
+              name: 'VM CPUs of {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.9.{#SNMPINDEX}'
+              key: 'esxi.VMCPUs.[{#SNMPINDEX}]'
+              delay: 1h
+              description: 'Number of virtual CPUs assigned to this virtual machine. VIM Property: numCPU MOB: https://esx.example.com/mob/?moid=vmwVmIdx&doPath=config%2ehardware'
+              tags:
+                - tag: component
+                  value: cpu
+                - tag: component
+                  value: vm
+                - tag: vm
+                  value: '{#SNMPVALUE}'
+            - uuid: f697ead29ec646b685aca32a115421b3
+              name: 'VM Guest OS of {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.4.{#SNMPINDEX}'
+              key: 'esxi.VMGuestOS.[{#SNMPINDEX}]'
+              delay: 1h
+              value_type: TEXT
+              tags:
+                - tag: component
+                  value: os
+                - tag: component
+                  value: vm
+                - tag: vm
+                  value: '{#SNMPVALUE}'
+            - uuid: 0314c27e065844d7941dd98bdf0aa5ec
+              name: 'VM Guest State of {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.8.{#SNMPINDEX}'
+              key: 'esxi.VMGuestState.[{#SNMPINDEX}]'
+              delay: 10m
+              value_type: TEXT
+              tags:
+                - tag: component
+                  value: vm
+                - tag: component
+                  value: vmware-tools
+                - tag: vm
+                  value: '{#SNMPVALUE}'
+            - uuid: 975ecc885e3649e48ead89a6605c5d88
+              name: 'VM Memory Size of {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.5.{#SNMPINDEX}'
+              key: 'esxi.VMMemSize.[{#SNMPINDEX}]'
+              delay: 1h
+              units: B
+              description: 'Memory configured for this virtual machine. Memory > MAX Integer32 is reported as max integer32. VIM Property: memoryMB MOB: https://esx.example.com/mob/?moid=vmwVmIdx&doPath=config%2ehardware'
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '1048576'
+              tags:
+                - tag: component
+                  value: memory
+                - tag: component
+                  value: vm
+                - tag: vm
+                  value: '{#SNMPVALUE}'
+            - uuid: 9f0c5ddf279b44cb8a9ca51802713cd9
+              name: 'VM Power State of {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.6876.2.1.1.6.{#SNMPINDEX}'
+              key: 'esxi.VMPowerState.[{#SNMPINDEX}]'
+              delay: 10m
+              value_type: TEXT
+              tags:
+                - tag: component
+                  value: power
+                - tag: component
+                  value: vm
+                - tag: vm
+                  value: '{#SNMPVALUE}'
+          trigger_prototypes:
+            - uuid: 67fdfbfeba4149a799da2fcac2f9fa12
+              expression: |
+                find(/VMWare ESXi Host by SNMP/esxi.VMGuestState.[{#SNMPINDEX}],,"regexp","not running")=1
+                and
+                find(/VMWare ESXi Host by SNMP/esxi.VMPowerState.[{#SNMPINDEX}],,"regexp","powered on")=1
+              name: 'Guest Tools not running on {#SNMPVALUE}'
+              opdata: 'Tools State: {ITEM.LASTVALUE1}, Power State: {ITEM.LASTVALUE2}'
+              priority: INFO
+              tags:
+                - tag: scope
+                  value: availability
+      tags:
+        - tag: class
+          value: os
+        - tag: target
+          value: esxi
+      macros:
+        - macro: '{$ESX_MEMORY_MAX_WARN}'
+          value: '90'
+          description: 'ESXi Server Memory usage warning threshold'
+        - macro: '{$ESX_VOLUME_MAX_CRIT}'
+          value: '98'
+          description: 'ESXi VMFS volume size critical threshold'
+        - macro: '{$ESX_VOLUME_MAX_WARN}'
+          value: '95'
+          description: 'ESXi VMFS volume size warning threshold'
+        - macro: '{$ICMP_LOSS_WARN}'
+          value: '20'
+          description: 'Ping packet loss'
+        - macro: '{$ICMP_RESPONSE_TIME_WARN}'
+          value: '0.15'
+          description: 'Ping latency warning'
+        - macro: '{$SNMP.TIMEOUT}'
+          value: 5m
+          description: 'Ping timeout'
+      dashboards:
+        - uuid: 6cd00e53ab124e30b023ccfc5759f355
+          name: 'ESXi Host Status'
+          auto_start: 'NO'
+          pages:
+            - name: 'Host Status'
+              widgets:
+                - type: graphprototype
+                  width: '6'
+                  height: '4'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid
+                      value:
+                        host: 'VMWare ESXi Host by SNMP'
+                        name: 'Memory used (id:{#SNMPINDEX})'
+                - type: graphprototype
+                  'y': '4'
+                  width: '12'
+                  height: '12'
+                  fields:
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid
+                      value:
+                        host: 'VMWare ESXi Host by SNMP'
+                        name: 'Space used of datastore {#SNMPINDEX}: {#STORAGEDESCR}'
+                    - type: INTEGER
+                      name: rows
+                      value: '3'
+                - type: graphprototype
+                  x: '6'
+                  width: '6'
+                  height: '4'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid
+                      value:
+                        host: 'VMWare ESXi Host by SNMP'
+                        name: 'Memory usage (%) (id:{#SNMPINDEX})'
+                - type: plaintext
+                  name: Info
+                  x: '12'
+                  width: '8'
+                  height: '4'
+                  fields:
+                    - type: ITEM
+                      name: itemids
+                      value:
+                        host: 'VMWare ESXi Host by SNMP'
+                        key: sysDescr
+                    - type: ITEM
+                      name: itemids
+                      value:
+                        host: 'VMWare ESXi Host by SNMP'
+                        key: sysName
+                    - type: ITEM
+                      name: itemids
+                      value:
+                        host: 'VMWare ESXi Host by SNMP'
+                        key: vmwNumCpus
+                    - type: INTEGER
+                      name: show_as_html
+                      value: '1'
+                    - type: INTEGER
+                      name: show_lines
+                      value: '3'
+                - type: graphprototype
+                  x: '12'
+                  'y': '4'
+                  width: '8'
+                  height: '12'
+                  fields:
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid
+                      value:
+                        host: 'VMWare ESXi Host by SNMP'
+                        name: 'Space usage of datastore {#SNMPINDEX} (%)'
+                    - type: INTEGER
+                      name: rows
+                      value: '3'
+                - type: item
+                  x: '20'
+                  width: '2'
+                  fields:
+                    - type: INTEGER
+                      name: adv_conf
+                      value: '1'
+                    - type: INTEGER
+                      name: decimal_size
+                      value: '25'
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: 'VMWare ESXi Host by SNMP'
+                        key: sysUpTime
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: units_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: units_size
+                      value: '10'
+                    - type: INTEGER
+                      name: value_size
+                      value: '25'
+      valuemaps:
+        - uuid: f4623fc8b9864847b31fe97837778b68
+          name: 'Service state'
+          mappings:
+            - value: '0'
+              newvalue: Down
+            - value: '1'
+              newvalue: Up
+        - uuid: 45853f8d670a43cdbc29cf5c35e51c60
+          name: zabbix.host.available
+          mappings:
+            - value: '0'
+              newvalue: 'not available'
+            - value: '1'
+              newvalue: available
+            - value: '2'
+              newvalue: unknown
