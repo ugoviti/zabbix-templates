@@ -1,5 +1,5 @@
 # Zabbix Template URL Monitor for HTTP Web Servers and SSL Certificates
-Monitor HTTP Web Servers reachability, response time, and SSL/HTTPS certificates expire time using Zabbix Network Monitoring system
+This Zabbix template enables comprehensive monitoring of HTTP web server availability, response times, and SSL certificate expiration dates. It is designed to simplify the monitoring process by utilizing a straightforward Bash script, making it ideal for users of Zabbix server version 5.4 and above.
 
 ![URL Monitor Dashboard](url-monitor-dashboard.png)
 ![URL Monitor Latest Data](url-monitor-latestdata.png)
@@ -33,7 +33,7 @@ Monitor HTTP Web Servers reachability, response time, and SSL/HTTPS certificates
 - {#URL} URL response time
 
 ## Installation
-- Shell commands prerequisites to install before using this template: `openssl`, `curl`, `dos2unix`
+- External commands required to install before using this template: `openssl`, `curl`, `dos2unix`
 - Install and configure the main script into zabbix agent client that will test the URLs:
 ```
 git clone https://github.com/ugoviti/zabbix-templates.git
@@ -53,7 +53,6 @@ cp zabbix_agent*/*.conf $ZABBIX_AGENT_DIR/
 - Assign Zabbix template to the host and customize the MACROS like`{$URL_PATH_CSV}` macro path with your CSV file and wait for automatic discovery
 
 ## CSV File template example
-
 Default file path: `/etc/zabbix/url-monitor.csv`
 ```
 http://www.initzero.it

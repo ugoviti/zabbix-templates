@@ -8,15 +8,19 @@ zabbix_export:
       template: 'URL Monitor'
       name: 'URL Monitor'
       description: |
-        Zabbix Template URL Monitor for HTTP Web Servers and SSL Certificates made by InitZero
+        This Zabbix template enables comprehensive monitoring of HTTP web server availability, response times, and SSL certificate expiration dates. It is designed to simplify the monitoring process by utilizing a straightforward Bash script.
         
-        - HTTP response time
+        Main features:
+        
+        - LLD Discovery
         - HTTP response code
-        - SSL certificate expiration check
+        - HTTP response time
+        - SSL certificate expiration date
+        - SSL certificate expiration time left
         
-        Project Page: https://github.com/ugoviti/zabbix-templates/tree/master/url-monitor
+        project url: https://github.com/ugoviti/zabbix-templates/tree/master/url-monitor
         
-        version: 20230802
+        version: 20240816
       groups:
         - name: Templates
       discovery_rules:
@@ -30,7 +34,6 @@ zabbix_export:
               name: '{#ITEMNAME} HTTP response code'
               type: DEPENDENT
               key: 'http.responseCode[{#URL}]'
-              delay: '0'
               description: 'URL Monitor for: {#URL}'
               valuemap:
                 name: 'HTTP Response codes'
@@ -52,7 +55,7 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: 249c98d582814fe2967216bcffad0128
                   expression: |
-                    nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
+                    nodata(/URL Monitor/http.responseCode[{#URL}],10m)=1
                     or
                     (
                     min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
@@ -73,7 +76,6 @@ zabbix_export:
               name: '{#ITEMNAME} HTTP response time'
               type: DEPENDENT
               key: 'http.responseTime[{#URL}]'
-              delay: '0'
               value_type: FLOAT
               units: s
               description: 'URL Monitor for: {#URL}'
@@ -103,7 +105,7 @@ zabbix_export:
                   dependencies:
                     - name: '{#ITEMNAME} HTTP server error detected'
                       expression: |
-                        nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
+                        nodata(/URL Monitor/http.responseCode[{#URL}],10m)=1
                         or
                         (
                         min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
@@ -116,7 +118,6 @@ zabbix_export:
               name: '{#ITEMNAME} SSL expiration date'
               type: DEPENDENT
               key: 'ssl.timeExpire[{#URL}]'
-              delay: '0'
               units: unixtime
               description: 'Check expiry date of SSL certificate for domain {#HOST}:{#PORT}'
               preprocessing:
@@ -139,7 +140,6 @@ zabbix_export:
               name: '{#ITEMNAME} SSL expiration time left'
               type: DEPENDENT
               key: 'ssl.timeLeft[{#URL}]'
-              delay: '0'
               value_type: FLOAT
               units: s
               description: 'Check expiry date of SSL certificate for domain {#HOST}:{#PORT}'
@@ -163,7 +163,6 @@ zabbix_export:
               name: '{#ITEMNAME} Get raw data'
               key: 'url.check[url.monitor,{#URL}]'
               history: 1h
-              trends: '0'
               value_type: TEXT
               description: 'URL Monitor for: {#URL}'
               tags:
@@ -176,9 +175,9 @@ zabbix_export:
           trigger_prototypes:
             - uuid: da5d3edee6a5400fb77a9fd8b24c68ca
               expression: |
-                nodata(/URL Monitor/ssl.timeExpire[{#URL}],5m)=1
+                nodata(/URL Monitor/ssl.timeExpire[{#URL}],10m)=1
                 and
-                nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
+                nodata(/URL Monitor/http.responseCode[{#URL}],10m)=1
               name: '{#ITEMNAME} SSL certificate failed to retrieve'
               opdata: '{ITEM.VALUE1}'
               url: '{#URL}'
@@ -197,9 +196,9 @@ zabbix_export:
               dependencies:
                 - name: '{#ITEMNAME} SSL certificate failed to retrieve'
                   expression: |
-                    nodata(/URL Monitor/ssl.timeExpire[{#URL}],5m)=1
+                    nodata(/URL Monitor/ssl.timeExpire[{#URL}],10m)=1
                     and
-                    nodata(/URL Monitor/http.responseCode[{#URL}],5m)=1
+                    nodata(/URL Monitor/http.responseCode[{#URL}],10m)=1
             - uuid: 420919c495584031b8e3e180c92f7df0
               expression: |
                 max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
@@ -277,14 +276,14 @@ zabbix_export:
                     - type: INTEGER
                       name: columns
                       value: '3'
-                    - type: INTEGER
-                      name: rows
-                      value: '7'
                     - type: GRAPH_PROTOTYPE
                       name: graphid
                       value:
                         host: 'URL Monitor'
                         name: '{#URL} URL response time'
+                    - type: INTEGER
+                      name: rows
+                      value: '7'
             - name: 'SSL Monitor'
               widgets:
                 - type: graphprototype
@@ -295,17 +294,17 @@ zabbix_export:
                     - type: INTEGER
                       name: columns
                       value: '3'
+                    - type: ITEM_PROTOTYPE
+                      name: itemid
+                      value:
+                        host: 'URL Monitor'
+                        key: 'ssl.timeLeft[{#URL}]'
                     - type: INTEGER
                       name: rows
                       value: '2'
                     - type: INTEGER
                       name: source_type
                       value: '3'
-                    - type: ITEM_PROTOTYPE
-                      name: itemid
-                      value:
-                        host: 'URL Monitor'
-                        key: 'ssl.timeLeft[{#URL}]'
       valuemaps:
         - uuid: c0606612ff73441ab80bcdcb0f55822a
           name: 'HTTP Response codes'
