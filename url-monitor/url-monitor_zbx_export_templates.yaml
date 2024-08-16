@@ -319,6 +319,8 @@ zabbix_export:
               newvalue: 'Connection timed out'
             - value: '60'
               newvalue: 'SSL certificate problem'
+            - value: '92'
+              newvalue: 'HTTP/2 stream 1 was not closed cleanly'
             - value: '200'
               newvalue: Ok
             - value: '301'
