@@ -20,7 +20,7 @@ zabbix_export:
         
         project url: https://github.com/ugoviti/zabbix-templates/tree/master/url-monitor
         
-        version: 20240816
+        version: 20241109
       groups:
         - name: Templates
       discovery_rules:
