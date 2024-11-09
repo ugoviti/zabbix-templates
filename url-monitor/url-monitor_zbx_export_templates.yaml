@@ -1,5 +1,5 @@
 zabbix_export:
-  version: '6.4'
+  version: '7.0'
   template_groups:
     - uuid: 7df96b18c230490a9a0a9e2307226338
       name: Templates
@@ -29,11 +29,14 @@ zabbix_export:
           key: 'url.discovery[url.discovery,{$URL_PATH_CSV}]'
           delay: 30m
           lifetime: 1d
+          enabled_lifetime_type: DISABLE_NEVER
           item_prototypes:
             - uuid: b4cc919388b64589bfd195186727fe76
               name: '{#ITEMNAME} HTTP response code'
               type: DEPENDENT
               key: 'http.responseCode[{#URL}]'
+              delay: '0'
+              history: 90d
               description: 'URL Monitor for: {#URL}'
               valuemap:
                 name: 'HTTP Response codes'
@@ -55,19 +58,27 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: 249c98d582814fe2967216bcffad0128
                   expression: |
-                    nodata(/URL Monitor/http.responseCode[{#URL}],10m)=1
-                    or
-                    (
                     min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                     and
                     max(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                     and
                     last(/URL Monitor/http.responseCode[{#URL}],#1)<>200
-                    )
                   name: '{#ITEMNAME} HTTP server error detected'
                   opdata: '{ITEM.VALUE1}'
                   url: '{#URL}'
-                  priority: HIGH
+                  priority: AVERAGE
+                  description: |
+                    Unable to connect to {#URL}
+                    
+                    Last three attempts returned timeout.  Please check URL connectivity.
+                  dependencies:
+                    - name: '{#ITEMNAME} HTTP server unreachable for {$URL_UNREACHABLE_TIME}'
+                      expression: 'nodata(/URL Monitor/http.responseCode[{#URL}],{$URL_UNREACHABLE_TIME})=1'
+                - uuid: fa49f68a41c440759190157e4ee09aff
+                  expression: 'nodata(/URL Monitor/http.responseCode[{#URL}],{$URL_UNREACHABLE_TIME})=1'
+                  name: '{#ITEMNAME} HTTP server unreachable for {$URL_UNREACHABLE_TIME}'
+                  url: '{#URL}'
+                  priority: DISASTER
                   description: |
                     Unable to connect to {#URL}
                     
@@ -76,6 +87,8 @@ zabbix_export:
               name: '{#ITEMNAME} HTTP response time'
               type: DEPENDENT
               key: 'http.responseTime[{#URL}]'
+              delay: '0'
+              history: 90d
               value_type: FLOAT
               units: s
               description: 'URL Monitor for: {#URL}'
@@ -96,8 +109,8 @@ zabbix_export:
                   value: '{#ITEMNAME}'
               trigger_prototypes:
                 - uuid: 243a1c43c2ee460eacfb11888af4d18d
-                  expression: 'avg(/URL Monitor/http.responseTime[{#URL}],#3)>{$URL_LATENCY_WARNING}'
-                  name: '{#ITEMNAME} HTTP server high response time detected (> {$URL_LATENCY_WARNING})'
+                  expression: 'avg(/URL Monitor/http.responseTime[{#URL}],#3)>{$URL_LATENCY_TIME}'
+                  name: '{#ITEMNAME} HTTP server high response time detected (> {$URL_LATENCY_TIME})'
                   opdata: '{ITEM.VALUE1}'
                   url: '{#URL}'
                   priority: WARNING
@@ -105,19 +118,17 @@ zabbix_export:
                   dependencies:
                     - name: '{#ITEMNAME} HTTP server error detected'
                       expression: |
-                        nodata(/URL Monitor/http.responseCode[{#URL}],10m)=1
-                        or
-                        (
                         min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                         and
                         max(/URL Monitor/http.responseCode[{#URL}],#3)<>200
                         and
                         last(/URL Monitor/http.responseCode[{#URL}],#1)<>200
-                        )
             - uuid: af5c8739fa42454a9d35ffe8ce162412
               name: '{#ITEMNAME} SSL expiration date'
               type: DEPENDENT
               key: 'ssl.timeExpire[{#URL}]'
+              delay: '0'
+              history: 90d
               units: unixtime
               description: 'Check expiry date of SSL certificate for domain {#HOST}:{#PORT}'
               preprocessing:
@@ -140,6 +151,8 @@ zabbix_export:
               name: '{#ITEMNAME} SSL expiration time left'
               type: DEPENDENT
               key: 'ssl.timeLeft[{#URL}]'
+              delay: '0'
+              history: 90d
               value_type: FLOAT
               units: s
               description: 'Check expiry date of SSL certificate for domain {#HOST}:{#PORT}'
@@ -162,9 +175,12 @@ zabbix_export:
             - uuid: 2067f2c99a114074a922a66c4aee75ea
               name: '{#ITEMNAME} Get raw data'
               key: 'url.check[url.monitor,{#URL}]'
+              delay: 2m
               history: 1h
               value_type: TEXT
+              trends: '0'
               description: 'URL Monitor for: {#URL}'
+              timeout: 30s
               tags:
                 - tag: application
                   value: url-monitor
@@ -181,8 +197,11 @@ zabbix_export:
               name: '{#ITEMNAME} SSL certificate failed to retrieve'
               opdata: '{ITEM.VALUE1}'
               url: '{#URL}'
-              priority: WARNING
+              priority: AVERAGE
               description: 'Unable to connect to {#URL}'
+              dependencies:
+                - name: '{#ITEMNAME} HTTP server unreachable for {$URL_UNREACHABLE_TIME}'
+                  expression: 'nodata(/URL Monitor/http.responseCode[{#URL}],{$URL_UNREACHABLE_TIME})=1'
             - uuid: 435c3b1e7c3140f3b69e7a7344283f0e
               expression: |
                 max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
@@ -249,7 +268,7 @@ zabbix_export:
         - tag: target
           value: ssl
       macros:
-        - macro: '{$URL_LATENCY_WARNING}'
+        - macro: '{$URL_LATENCY_TIME}'
           value: 15s
           description: 'Default acceptable latency for loading URL (seconds)'
         - macro: '{$URL_PATH_CSV}'
@@ -261,6 +280,9 @@ zabbix_export:
         - macro: '{$URL_SSL_EXPIRE_TIME_WARNING}'
           value: 7d
           description: 'Warning level for SSL certificate expiration time (days)'
+        - macro: '{$URL_UNREACHABLE_TIME}'
+          value: 10m
+          description: 'Critical timeout due to unreachable URL (minutes)'
       dashboards:
         - uuid: f8259da7c38546ef84eb8c954a9870f3
           name: 'URL Monitor'
@@ -270,7 +292,7 @@ zabbix_export:
               widgets:
                 - type: graphprototype
                   name: 'Web URL Monitor'
-                  width: '23'
+                  width: '69'
                   height: '32'
                   fields:
                     - type: INTEGER
@@ -281,6 +303,9 @@ zabbix_export:
                       value:
                         host: 'URL Monitor'
                         name: '{#URL} URL response time'
+                    - type: STRING
+                      name: reference
+                      value: AAACJ
                     - type: INTEGER
                       name: rows
                       value: '7'
@@ -288,7 +313,7 @@ zabbix_export:
               widgets:
                 - type: graphprototype
                   name: 'SSL Monitor'
-                  width: '23'
+                  width: '69'
                   height: '10'
                   fields:
                     - type: INTEGER
@@ -299,6 +324,9 @@ zabbix_export:
                       value:
                         host: 'URL Monitor'
                         key: 'ssl.timeLeft[{#URL}]'
+                    - type: STRING
+                      name: reference
+                      value: AAACK
                     - type: INTEGER
                       name: rows
                       value: '2'

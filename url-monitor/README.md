@@ -22,8 +22,9 @@ This Zabbix template enables comprehensive monitoring of HTTP web server availab
 - {#HOST} SSL certificate expiration time left
 
 ### Triggers
+- {#HOST} HTTP server unreachable for {$URL_UNREACHABLE_TIME}
 - {#HOST} HTTP server error detected
-- {#HOST} HTTP server high response time detected (> {$URL_LATENCY_WARNING})
+- {#HOST} HTTP server high response time detected (> {$URL_LATENCY_TIME})
 - {#HOST} SSL certificate failed to retrieve
 - {#HOST} SSL certificate will expire on {ITEM.VALUE1} (< {$URL_SSL_EXPIRE_TIME_WARNING})
 - {#HOST} SSL certificate will expire on {ITEM.VALUE1} (< {$URL_SSL_EXPIRE_TIME_CRITICAL})
@@ -83,7 +84,8 @@ tcp://imap.example.com:993
 
 ## Template macros available
 - `{$URL_PATH_CSV}`: CSV file path or url of domains list (default: `/etc/zabbix/url-monitor.csv`. Example for remote file download: `http://yourserver.local/yourfile.csv`)
-- `{$URL_LATENCY_WARNING}`: Default acceptable latency for loading URL (seconds) (default: `15s`)
+- `{$URL_UNREACHABLE_TIME}`: Critical timeout due to unreachable URL (minutes) (default: `10m`)
+- `{$URL_LATENCY_TIME}`: Default acceptable latency for loading URL (seconds) (default: `15s`)
 - `{$URL_SSL_EXPIRE_TIME_WARNING}`: Warning level for SSL certificate expiration time (days) (default: `7d`)
 - `{$URL_SSL_EXPIRE_TIME_CRITICAL}`: Critical level for SSL certificate expiration time (days) (default: `3d`)
 
