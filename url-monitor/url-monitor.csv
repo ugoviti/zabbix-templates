@@ -1,4 +1,4 @@
-# Zabbix URL Monitor example configuration
+## Zabbix URL Monitor example configuration
 
 # CSV fields format:
 #URL;OPTION1;OPTIONS2;OPTIONS2;so on...
