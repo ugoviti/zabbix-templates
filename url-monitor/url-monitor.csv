@@ -1,0 +1,40 @@
+# Zabbix URL Monitor example configuration
+
+# CSV fields format:
+#URL;OPTION1;OPTIONS2;OPTIONS2;so on...
+
+# every line is an URL to monitor
+http://www.wearequantico.it
+
+https://expired.badssl.com;URL_SSL_ALLOW_EXPIRED=true
+
+https://www.wearequantico.it
+
+# this is a comment and will be excluded
+
+# follow an example with different port
+http://www.otherdomain.fqdn:8080
+https://unifi.example.com:8443
+https://www.amazon.it/gp/bestsellers/?ref_=nav_em_cs_bestsellers_0_1_1_2
+
+# also this is valid:
+google.com
+google.com:80
+google.com:443
+
+# for mail servers or non HTTP servers use the schema 'tcp://'
+tcp://smtp.example.com:465
+
+# or for IMAPS
+tcp://imap.example.com:993
+
+# example for a internal https site with Self Signed Certificates
+https://vcenter.contoso.local;URL_SSL_ALLOW_SELFSIGNED=true
+
+# examples with BAD SSL overrides
+https://expired.badssl.com;URL_SSL_ALLOW_EXPIRED=true
+https://wrong.host.badssl.com;URL_SSL_ALLOW_INVALID=true
+https://self-signed.badssl.com;URL_SSL_ALLOW_SELFSIGNED=true
+
+# mixed options
+https://superfish.badssl.com;URL_SSL_ALLOW_EXPIRED=false;URL_SSL_ALLOW_INVALID=true;URL_SSL_ALLOW_SELFSIGNED=true

@@ -55,23 +55,8 @@ cp zabbix_agent*/*.conf $ZABBIX_AGENT_DIR/
 
 ## CSV File template example
 Default file path: `/etc/zabbix/url-monitor.csv`
-```
-http://www.initzero.it
-https://www.initzero.it
-https://www.wearequantico.it
-# this is a comment and will be excluded
-# follow an example with different port
-http://www.otherdomain.fqdn:8080
-https://www.amazon.it/gp/bestsellers/?ref_=nav_em_cs_bestsellers_0_1_1_2
-# also this is valid:
-google.com
-google.com:80
-google.com:443
-# for mail servers or non HTTP servers use the schema 'tcp://'
-tcp://smtp.example.com:465
-# or for IMAPS
-tcp://imap.example.com:993
-```
+
+Look inside the `url-monitor.csv` file for examples
 
 ### NOTES:
   1. by default if no port is specified will be used the port `443`
