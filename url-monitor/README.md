@@ -16,15 +16,16 @@ This Zabbix template enables comprehensive monitoring of HTTP web server availab
 - Automatic graphs and dashboard for response time metrics
 
 ### Items
-- {#HOST} HTTP response code
-- {#HOST} HTTP response time
+- {#HOST} HTTP/S response code
+- {#HOST} HTTP/S response message
+- {#HOST} HTTP/S response time
 - {#HOST} SSL certificate expiration date
 - {#HOST} SSL certificate expiration time left
 
 ### Triggers
-- {#HOST} HTTP server unreachable for {$URL_UNREACHABLE_TIME}
-- {#HOST} HTTP server error detected
-- {#HOST} HTTP server high response time detected (> {$URL_LATENCY_TIME})
+- {#HOST} HTTP/S server unreachable for {$URL_UNREACHABLE_TIME}
+- {#HOST} HTTP/S bad response code from server
+- {#HOST} HTTP/S server high response time detected (> {$URL_LATENCY_TIME})
 - {#HOST} SSL certificate failed to retrieve
 - {#HOST} SSL certificate will expire on {ITEM.VALUE1} (< {$URL_SSL_EXPIRE_TIME_WARNING})
 - {#HOST} SSL certificate will expire on {ITEM.VALUE1} (< {$URL_SSL_EXPIRE_TIME_CRITICAL})
@@ -61,8 +62,8 @@ Look inside the `url-monitor.csv` file for examples
 ### NOTES:
   1. by default if no port is specified will be used the port `443`
   2. by default if no schema is specified will be used the schema `https`
-  3. `http://www.initzero.it` or `http://www.initzero.it:80` or `www.initzero.it:80` are the same
-  4. `https://www.initzero.it` or `https://www.initzero.it:443` or `www.initzero.it` or `www.initzero.it:443` are the same
+  3. `http://www.wearequantico.it` or `http://www.wearequantico.it:80` or `www.wearequantico.it:80` are the same
+  4. `https://www.wearequantico.it` or `https://www.wearequantico.it:443` or `www.wearequantico.it` or `www.wearequantico.it:443` are the same
   5. to monitor SSL certificates expire dates for other (NON HTTPS) services like SMTP, IMAP etc , you can use the `tcp://` schema
   6. if the `tcp://` schema is specified, the HTTP check will be disabled and HTTP response code will be always 200 (only certificate check will be monitored)
 
@@ -73,9 +74,11 @@ Look inside the `url-monitor.csv` file for examples
 - `{$URL_LATENCY_TIME}`: Default acceptable latency for loading URL (seconds) (default: `15s`)
 - `{$URL_SSL_EXPIRE_TIME_WARNING}`: Warning level for SSL certificate expiration time (days) (default: `7d`)
 - `{$URL_SSL_EXPIRE_TIME_CRITICAL}`: Critical level for SSL certificate expiration time (days) (default: `3d`)
+- `{$URL_SSL_ALLOW_EXPIRED}`: Allow expired SSL certificates (no warnings on expired certs) (you can override this using CSV file options)
+- `{$URL_SSL_ALLOW_INVALID}` Allow invalid or self signed SSL certificates (you can override this using CSV file options)
 
 ## Troubleshooting
 - If Zabbix can't parse the CSV file, test JSON output from the CLI:
   - `/etc/zabbix/scripts/url-monitor.sh url.discovery /etc/zabbix/url-monitor.csv`
 - Test the output and if the script works as expected from the CLI:
-  - `/etc/zabbix/scripts/url-monitor.sh url.monitor https://www.initzero.it`
+  - `/etc/zabbix/scripts/url-monitor.sh url.monitor https://www.wearequantico.it`

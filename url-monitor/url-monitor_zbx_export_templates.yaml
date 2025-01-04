@@ -21,7 +21,7 @@ zabbix_export:
         project url: https://github.com/ugoviti/zabbix-templates/tree/master/url-monitor
       vendor:
         name: Quantico
-        version: 2025.01.02
+        version: 2025.01.04
       groups:
         - name: Templates
       discovery_rules:
@@ -62,10 +62,7 @@ zabbix_export:
                   name: '{#ITEMNAME} HTTP/S server unreachable for {$URL_UNREACHABLE_TIME}'
                   url: '{#URL}'
                   priority: DISASTER
-                  description: |
-                    Unable to connect to {#URL}
-                    
-                    Last three attempts returned timeout.  Please check URL connectivity.
+                  description: 'Unable to connect to {#URL}'
             - uuid: feacce5a9730447b8b2a7f3cb4b0b698
               name: '{#ITEMNAME} HTTP/S response message'
               type: DEPENDENT
@@ -123,7 +120,7 @@ zabbix_export:
                   priority: WARNING
                   description: 'Slow replies from {#URL}'
                   dependencies:
-                    - name: '{#ITEMNAME} HTTP/S response code error detected'
+                    - name: '{#ITEMNAME} HTTP/S bad response code from server'
                       expression: |
                         (
                           min(/URL Monitor/http.responseCode[{#URL}],#3)<>200
@@ -132,9 +129,17 @@ zabbix_export:
                         )
                         and not 
                         (
-                          last(/URL Monitor/http.responseCode[{#URL}],#1)=60
+                          (
+                            {#URL_SSL_ALLOW_INVALID}="true"
+                            or 
+                            (
+                              {#URL_SSL_ALLOW_INVALID}<>"false"
+                              and
+                              {$URL_SSL_ALLOW_INVALID}="true"
+                            )
+                          )
                           and
-                          {#URL_SSL_ALLOW_SELFSIGNED}="true"
+                          last(/URL Monitor/http.responseCode[{#URL}],#1)=60
                         )
                         and 
                         last(/URL Monitor/http.responseMessage[{#URL}],#1)<>""
@@ -199,7 +204,6 @@ zabbix_export:
                 
                 Allow Expired: {#URL_SSL_ALLOW_EXPIRED}
                 Allow Invalid: {#URL_SSL_ALLOW_INVALID}
-                Allow SelfSigned: {#URL_SSL_ALLOW_SELFSIGNED}
               timeout: 30s
               tags:
                 - tag: application
@@ -218,13 +222,21 @@ zabbix_export:
                 )
                 and not 
                 (
-                  last(/URL Monitor/http.responseCode[{#URL}],#1)=60
+                  (
+                    {#URL_SSL_ALLOW_INVALID}="true"
+                    or 
+                    (
+                      {#URL_SSL_ALLOW_INVALID}<>"false"
+                      and
+                      {$URL_SSL_ALLOW_INVALID}="true"
+                    )
+                  )
                   and
-                  {#URL_SSL_ALLOW_SELFSIGNED}="true"
+                  last(/URL Monitor/http.responseCode[{#URL}],#1)=60
                 )
                 and 
                 last(/URL Monitor/http.responseMessage[{#URL}],#1)<>""
-              name: '{#ITEMNAME} HTTP/S response code error detected'
+              name: '{#ITEMNAME} HTTP/S bad response code from server'
               opdata: 'Response: {ITEM.LASTVALUE1}, Details: {ITEM.LASTVALUE4}'
               url: '{#URL}'
               priority: AVERAGE
@@ -250,9 +262,21 @@ zabbix_export:
                   expression: 'nodata(/URL Monitor/http.responseCode[{#URL}],{$URL_UNREACHABLE_TIME})=1'
             - uuid: 435c3b1e7c3140f3b69e7a7344283f0e
               expression: |
-                max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
-                and
-                max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
+                (
+                  max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                  and
+                  max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
+                )
+                and not 
+                (
+                  {#URL_SSL_ALLOW_EXPIRED}="true"
+                  or 
+                  (
+                    {#URL_SSL_ALLOW_EXPIRED}<>"false"
+                    and
+                    {$URL_SSL_ALLOW_EXPIRED}="true"
+                  )
+                )
               name: '{#ITEMNAME} SSL certificate has EXPIRED on {ITEM.VALUE1}'
               opdata: 'Expired on: {ITEM.VALUE1} ({ITEM.VALUE2} ago)'
               url: '{#URL}'
@@ -266,9 +290,21 @@ zabbix_export:
                     nodata(/URL Monitor/http.responseCode[{#URL}],10m)=1
             - uuid: 420919c495584031b8e3e180c92f7df0
               expression: |
-                max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
-                and
-                max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
+                (
+                  max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                  and
+                  max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
+                )
+                and not 
+                (
+                  {#URL_SSL_ALLOW_EXPIRED}="true"
+                  or 
+                  (
+                    {#URL_SSL_ALLOW_EXPIRED}<>"false"
+                    and
+                    {$URL_SSL_ALLOW_EXPIRED}="true"
+                  )
+                )
               name: '{#ITEMNAME} SSL certificate will expire on {ITEM.VALUE1}'
               opdata: 'Will expire on: {ITEM.VALUE1} ({ITEM.VALUE2} remaining)'
               url: '{#URL}'
@@ -277,14 +313,38 @@ zabbix_export:
               dependencies:
                 - name: '{#ITEMNAME} SSL certificate has EXPIRED on {ITEM.VALUE1}'
                   expression: |
-                    max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
-                    and
-                    max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
+                    (
+                      max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                      and
+                      max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<0d
+                    )
+                    and not 
+                    (
+                      {#URL_SSL_ALLOW_EXPIRED}="true"
+                      or 
+                      (
+                        {#URL_SSL_ALLOW_EXPIRED}<>"false"
+                        and
+                        {$URL_SSL_ALLOW_EXPIRED}="true"
+                      )
+                    )
             - uuid: 4bccbaea16d1417abdb9c9aa5732fad4
               expression: |
-                max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
-                and
-                max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_WARNING}
+                (
+                  max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                  and
+                  max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_WARNING}
+                )
+                and not 
+                (
+                  {#URL_SSL_ALLOW_EXPIRED}="true"
+                  or 
+                  (
+                    {#URL_SSL_ALLOW_EXPIRED}<>"false"
+                    and
+                    {$URL_SSL_ALLOW_EXPIRED}="true"
+                  )
+                )
               name: '{#ITEMNAME} SSL certificate will expire on {ITEM.VALUE1}'
               opdata: 'Will expire on: {ITEM.VALUE1} ({ITEM.VALUE2} remaining)'
               url: '{#URL}'
@@ -293,9 +353,21 @@ zabbix_export:
               dependencies:
                 - name: '{#ITEMNAME} SSL certificate will expire on {ITEM.VALUE1}'
                   expression: |
-                    max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
-                    and
-                    max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
+                    (
+                      max(/URL Monitor/ssl.timeExpire[{#URL}],#2)>0
+                      and
+                      max(/URL Monitor/ssl.timeLeft[{#URL}],#2)<{$URL_SSL_EXPIRE_TIME_CRITICAL}
+                    )
+                    and not 
+                    (
+                      {#URL_SSL_ALLOW_EXPIRED}="true"
+                      or 
+                      (
+                        {#URL_SSL_ALLOW_EXPIRED}<>"false"
+                        and
+                        {$URL_SSL_ALLOW_EXPIRED}="true"
+                      )
+                    )
           graph_prototypes:
             - uuid: 007e18b4c84d48e6a0d80a2accf2bf27
               name: '{#URL} URL response time'
@@ -322,13 +394,10 @@ zabbix_export:
           description: 'URLs CSV file path (http URL or local path)'
         - macro: '{$URL_SSL_ALLOW_EXPIRED}'
           value: 'false'
-          description: 'Allow SSL expired certificates (no warnings on expired certs)'
+          description: 'Allow expired SSL certificates (no warnings on expired certs)'
         - macro: '{$URL_SSL_ALLOW_INVALID}'
           value: 'false'
-          description: 'Allow SSL certificates with wrong common name'
-        - macro: '{$URL_SSL_ALLOW_SELFSIGNED}'
-          value: 'false'
-          description: 'Allow SSL Self Signed certificates'
+          description: 'Allow invalid or self signed SSL certificates'
         - macro: '{$URL_SSL_EXPIRE_TIME_CRITICAL}'
           value: 3d
           description: 'Critical level for SSL certificate expiration time (days)'
@@ -400,6 +469,8 @@ zabbix_export:
               newvalue: 'Failed to connect'
             - value: '28'
               newvalue: 'Connection timed out'
+            - value: '52'
+              newvalue: 'Empty reply'
             - value: '60'
               newvalue: 'SSL certificate problem'
             - value: '92'
