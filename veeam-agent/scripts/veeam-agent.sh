@@ -212,7 +212,7 @@ veeam-agent.check.job() {
     if [ "$JOB_STATUS" == "Success" ]; then
       RESULTS+=";DESCRIPTION=Job ended with success"
     else
-      VEEAM_LOG=$(veeamconfig session log --id "$JOB_LAST_SESSION_ID" | grep -v "\[info\]")
+      VEEAM_LOG=$(veeamconfig session log --id "$JOB_LAST_SESSION_ID" | grep -v "\[info\]" | grep -v "Processing finished" | sed 's/^[^]]*\] //')
       RESULTS+=";DESCRIPTION=Job ended with errors: $VEEAM_LOG"
     fi
     # print results
