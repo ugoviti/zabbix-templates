@@ -155,7 +155,7 @@ veeam-agent.check.job() {
   JOB_ID="$(veeamconfig job list | awk "/^$JOB_NAME/ {print \$2}")"
 
   if [ -z "$JOB_ID" ]; then
-    RESULTS+=";JOB_STATUS=FAILED"
+    RESULTS+=";JOB_STATUS=Failed"
     RESULTS+=";DESCRIPTION=No configured jobs found"
     # print results
     echo ${RESULTS}
@@ -212,7 +212,8 @@ veeam-agent.check.job() {
     if [ "$JOB_STATUS" == "Success" ]; then
       RESULTS+=";DESCRIPTION=Job ended with success"
     else
-      RESULTS+=";DESCRIPTION=Job ended with errors"
+      VEEAM_LOG=$(veeamconfig session log --id "$JOB_LAST_SESSION_ID" | grep -v "\[info\]")
+      RESULTS+=";DESCRIPTION=Job ended with errors: $VEEAM_LOG"
     fi
     # print results
     echo ${RESULTS}
