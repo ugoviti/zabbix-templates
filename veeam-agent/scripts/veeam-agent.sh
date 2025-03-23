@@ -26,42 +26,93 @@ elif [ -z "$args" ];then
   exit 1
 fi
 
-# print CSV formatted list removing blank and commented lines
+convertSize() {
+  local input="$@"
+  # Remove any leading/trailing whitespace
+  input=$(echo "$input" | xargs)
+
+  # Use regex to extract the numeric value and the unit.
+  # The regex accepts an optional space between the number and the unit.
+  if [[ $input =~ ^([0-9]+(\.[0-9]+)?)\ ?([KMGTP]?B)$ ]]; then
+    local value="${BASH_REMATCH[1]}"
+    local unit=$(echo "${BASH_REMATCH[3]}" | tr '[:lower:]' '[:upper:]')
+
+    # Determine multiplier based on unit (using 1024 as the conversion factor)
+    local multiplier=1
+    case "$unit" in
+      B)   multiplier=1 ;;
+      KB)  multiplier=1024 ;;
+      MB)  multiplier=$((1024*1024)) ;;
+      GB)  multiplier=$((1024*1024*1024)) ;;
+      TB)  multiplier=$((1024*1024*1024*1024)) ;;
+      PB)  multiplier=$((1024*1024*1024*1024*1024)) ;;
+      *) echo "Unknown unit: $unit" >&2; return 1 ;;
+    esac
+
+    # Multiply the value by the multiplier using awk (for floating point math)
+    local bytes
+    bytes=$(awk -v val="$value" -v mult="$multiplier" 'BEGIN { printf "%.0f", val * mult }')
+    echo "$bytes"
+  else
+    echo "Invalid format: '$input'" >&2
+    return 1
+  fi
+}
+
 veeam-agent.lld.jobs() {
   # Initialize RESULTS variable
   unset RESULTS
 
-  # Check if there are any jobs listed by veeamconfig
-  JOB_LIST=$(veeamconfig job list)
+  # Get job list and format columns with semicolons
+  JOB_LIST=$(veeamconfig job list | sed 's/  \+/;/g' | tail -n +2)
 
   # Check if there are no jobs
   if [[ -z "$JOB_LIST" ]]; then
-    RESULTS+="JOB_STATUS=FAILED"
-    RESULTS+=";DESCRIPTION=No configured jobs found"
-    # print results
-    echo ${RESULTS}
+    RESULTS="JOB_STATUS=FAILED;DESCRIPTION=No configured jobs found"
+    printf "%s\n" "$RESULTS"
   else
-    # Parse the job list and extract Name, ID, Type, Repository
-    echo "$JOB_LIST" | tail -n +2 | while read LINE; do
-      # Extract each field
-      JOB_NAME=$(echo "$LINE" | awk '{print $1}')
-      JOB_ID=$(echo "$LINE" | awk '{print $2}')
-      JOB_TYPE=$(echo "$LINE" | awk '{print $3}')
-      JOB_REPOSITORY=$(echo "$LINE" | awk '{print $4}')
-
-      RESULTS+="JOB_NAME=$JOB_NAME"
+    # Parse the job list
+    while IFS=';' read -r JOB_NAME JOB_ID JOB_TYPE JOB_REPOSITORY; do
+      RESULTS="JOB_NAME=$JOB_NAME"
       RESULTS+=";JOB_ID=$JOB_ID"
       RESULTS+=";JOB_TYPE=$JOB_TYPE"
       RESULTS+=";JOB_REPOSITORY=$JOB_REPOSITORY"
 
-      # print results
-      echo ${RESULTS}
-      unset RESULTS
-    done
+      # Print results
+      printf "%s\n" "$RESULTS"
+    done <<< "$JOB_LIST"
   fi
 }
 
-# print CSV formatted list removing blank and commented lines
+
+veeam-agent.lld.repos() {
+  # Initialize RESULTS variable
+  unset RESULTS
+
+  # Get repository list and format columns with semicolons
+  REPO_LIST=$(veeamconfig repository list | sed 's/  \+/;/g' | tail -n +2)
+
+  # Check if there are no repositories
+  if [[ -z "$REPO_LIST" ]]; then
+    RESULTS="JOB_STATUS=FAILED;DESCRIPTION=No configured repositories found"
+    printf "%s\n" "$RESULTS"
+  else
+    # Parse the repository list
+    while IFS=';' read -r REPO_NAME REPO_ID REPO_LOCATION REPO_TYPE REPO_ACCESSIBLE REPO_BACKUP_SERVER; do
+      RESULTS="REPO_NAME=$REPO_NAME"
+      RESULTS+=";REPO_ID=$REPO_ID"
+      RESULTS+=";REPO_LOCATION=$REPO_LOCATION"
+      RESULTS+=";REPO_TYPE=$REPO_TYPE"
+      RESULTS+=";REPO_ACCESSIBLE=$REPO_ACCESSIBLE"
+      RESULTS+=";REPO_BACKUP_SERVER=$REPO_BACKUP_SERVER"
+
+      # Print results
+      printf "%s\n" "$RESULTS"
+    done <<< "$REPO_LIST"
+  fi
+}
+
+
 veeam-agent.check.info() {
   # Initialize RESULTS variable
   unset RESULTS
@@ -86,8 +137,6 @@ veeam-agent.check.info() {
   unset RESULTS
 }
 
-
-# print CSV formatted list removing blank and commented lines
 veeam-agent.check.job() {
   JOB_NAME=$1
 
@@ -119,23 +168,36 @@ veeam-agent.check.job() {
     #JOB_ID=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Job ID:\s*\K.*')  # Extract the Job ID
     #JOB_OIB_ID=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^OIB ID:\s*\K.*')  # Extract the OIB ID
     JOB_STATUS=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^State:\s*\K.*')  # Extract the Session State
-    JOB_CREATION_TIME=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Creation time:\s*\K.*')  # Extract the Creation Time
-    JOB_START_TIME=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Start time:\s*\K.*')  # Extract the Start Time
-    JOB_END_TIME=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^End time:\s*\K.*')  # Extract the End Time
-    JOB_PROCESSED_DATA=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Processed:\s*\K.*')  # Extract the Processed Data
-    JOB_TRANSFERRED_DATA=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Transferred:\s*\K.*')  # Extract the Transferred Data
-    JOB_ATTEMPT=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Attempt:\s*\K.*')  # Extract the Retry Attempt Number
-    #JOB_LAST_ATTEMPT=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Is last attempt:\s*\K.*')  # Extract if it's the last retry attempt
+    JOB_TIME_CREATION=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Creation time:\s*\K.*')  # Extract the Creation Time
+    JOB_TIME_START=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Start time:\s*\K.*')  # Extract the Start Time
+    JOB_TIME_END=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^End time:\s*\K.*')  # Extract the End Time
+    JOB_DATA_PROCESSED=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Processed:\s*\K.*')  # Extract the Processed Data
+    JOB_DATA_TRANSFERRED=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Transferred:\s*\K.*')  # Extract the Transferred Data
+    JOB_RETRY_ATTEMPT=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Attempt:\s*\K.*')  # Extract the Retry Attempt Number
+    #JOB_RETRY_ATTEMPT_LAST=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Is last attempt:\s*\K.*')  # Extract if it's the last retry attempt
+
+    # calc other vars
+    JOB_TIME_CREATION_UNIXTIME=$(date -d "$JOB_TIME_CREATION" +%s)
+    JOB_TIME_START_UNIXTIME=$(date -d "$JOB_TIME_START" +%s)
+    JOB_TIME_END_UNIXTIME=$(date -d "$JOB_TIME_END" +%s)
+    JOB_TIME_DURATION_UNIXTIME=$(( JOB_TIME_END_UNIXTIME - JOB_TIME_START_UNIXTIME ))
+    JOB_DATA_PROCESSED_BYTES=$(convertSize "$JOB_DATA_PROCESSED")
+    JOB_DATA_TRANSFERRED_BYTES=$(convertSize "$JOB_DATA_TRANSFERRED")
 
     # add results sets
     RESULTS+=";JOB_STATUS=$JOB_STATUS"
     RESULTS+=";JOB_SESSION_ID=$JOB_LAST_SESSION_ID"
-    RESULTS+=";JOB_CREATION_TIME=$JOB_CREATION_TIME"
-    RESULTS+=";JOB_START_TIME=$JOB_START_TIME"
-    RESULTS+=";JOB_END_TIME=$JOB_END_TIME"
-    RESULTS+=";JOB_PROCESSED_DATA=$JOB_PROCESSED_DATA"
-    RESULTS+=";JOB_TRANSFERRED_DATA=$JOB_TRANSFERRED_DATA"
-    RESULTS+=";JOB_ATTEMPT=$JOB_ATTEMPT"
+    RESULTS+=";JOB_TIME_CREATION=$JOB_TIME_CREATION_UNIXTIME"
+    RESULTS+=";JOB_TIME_START=$JOB_TIME_START_UNIXTIME"
+    RESULTS+=";JOB_TIME_END=$JOB_TIME_END_UNIXTIME"
+    RESULTS+=";JOB_TIME_DURATION=$JOB_TIME_DURATION_UNIXTIME"
+    RESULTS+=";JOB_DATA_PROCESSED=$JOB_DATA_PROCESSED_BYTES"
+    RESULTS+=";JOB_DATA_TRANSFERRED=$JOB_DATA_TRANSFERRED_BYTES"
+    RESULTS+=";JOB_RETRY_ATTEMPT=$JOB_RETRY_ATTEMPT"
+
+    # test
+    #JOB_TIME_ISO8861=$(date -d "$JOB_TIME_REFORMATTED" +"%Y-%m-%dT%H:%M:%S")
+    #JOB_TIME_UNIX=$(date -d "$JOB_TIME_REFORMATTED" +%s)
 
     # search log file path
     SESSION_DIR=$(find "$LOG_DIR"/"$JOB_NAME" -mindepth 1 -maxdepth 1 -type d -not -name "*.tar.gz" -printf "%T@ %f\n" | sort -nr | awk 'NR==1{print $2}')
@@ -193,7 +255,7 @@ veeam-agent.lld() {
   [ ! -e "$LOG_DIR" ] && echo "ERROR: LOG DIR doesn't exist: $LOG_DIR" && exit 1
 
   case $method in
-    jobs)
+    jobs|repos)
       printJSON veeam-agent.lld.${method} lld
     ;;
     *)
