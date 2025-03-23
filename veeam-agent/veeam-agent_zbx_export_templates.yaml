@@ -1,0 +1,543 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+    - uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    - uuid: 81ed732e530f4d3b803cf1a0788245b8
+      template: 'Veeam Agent'
+      name: 'Veeam Agent'
+      description: |
+        This template is designed to interact with Veeam Agent for Zabbix, providing functionalities such as discovering Veeam license information, checking job statuses, and retrieving detailed logs for Veeam backup jobs
+        
+        project url: https://github.com/ugoviti/zabbix-templates/tree/master/zabbix-agent
+      vendor:
+        name: Quantico
+        version: 2025.03.23
+      groups:
+        - name: Templates
+        - name: Templates/Applications
+      items:
+        - uuid: 4be5d6a415064f3290e2f1850cd4d609
+          name: 'Veeam Agent Get raw data License'
+          key: veeam-agent.check.info
+          delay: 60m
+          value_type: TEXT
+          trends: '0'
+          tags:
+            - tag: application
+              value: veeam-agent
+            - tag: component
+              value: raw
+          triggers:
+            - uuid: 973a203a92bd4dfeb050ece61e47cfb3
+              expression: 'nodata(/Veeam Agent/veeam-agent.check.info,12h)=1'
+              name: 'No Veeam Agent data collection since 12h'
+              priority: WARNING
+        - uuid: b63379ecf6b0445ebf7b8e42591fca88
+          name: 'Veeam Agent License Email'
+          type: DEPENDENT
+          key: 'veeam-agent.info[LicenseEmail]'
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.data[0].VEEAM_LICENSE_EMAIL'
+          master_item:
+            key: veeam-agent.check.info
+          tags:
+            - tag: application
+              value: veeam-agent
+            - tag: component
+              value: info
+            - tag: veeam-info
+              value: license
+        - uuid: c8fbdbb4910d4a4fba5a81c9f4354a1e
+          name: 'Veeam Agent License Expiration Days Left'
+          type: DEPENDENT
+          key: 'veeam-agent.info[LicenseExpirationTime]'
+          delay: '0'
+          history: 12h
+          trends: '0'
+          units: days
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '(\d{4}/\d{2}/\d{2})'
+                - \1
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  // Function to convert a date in 'YYYY/MM/DD' format to a Unix timestamp
+                  function convertToUnixTimestamp(dateString) {
+                      var dateParts = dateString.split('/'); // Split string by '/'
+                      var year = parseInt(dateParts[0]); // Get the year
+                      var month = parseInt(dateParts[1]) - 1; // Get the month (subtract 1 because JavaScript months are 0-indexed)
+                      var day = parseInt(dateParts[2]); // Get the day
+                  
+                      // Create a Date object with the specified year, month, and day
+                      var dateObj = new Date(year, month, day);
+                  
+                      // Return the Unix timestamp (in milliseconds)
+                      return dateObj.getTime(); // Unix timestamp in milliseconds
+                  }
+                  
+                  // Main preprocessing function for extracting the date and calculating remaining days
+                  var dateString = value.match(/\d{4}\/\d{2}\/\d{2}/); // Use regular expression to extract the date in 'YYYY/MM/DD' format
+                  if (dateString) { // If a valid date string is found
+                      var expirationTimestamp = convertToUnixTimestamp(dateString[0]); // Convert the expiration date to Unix timestamp
+                  
+                      var currentTimestamp = new Date().getTime(); // Get current Unix timestamp (in milliseconds)
+                  
+                      // Calculate the difference in milliseconds
+                      var timeDifference = expirationTimestamp - currentTimestamp;
+                  
+                      // Convert the time difference from milliseconds to days
+                      var daysRemaining = Math.floor(timeDifference / (1000 * 60 * 60 * 24)); // 1000 ms * 60 s * 60 m * 24 h
+                  
+                      // Return the remaining days
+                      return daysRemaining;
+                  } else {
+                      return null; // If no valid date is found, return null
+                  }
+                  
+          master_item:
+            key: 'veeam-agent.info[LicenseExpiration]'
+          tags:
+            - tag: application
+              value: veeam-agent
+            - tag: component
+              value: info
+            - tag: veeam-info
+              value: license
+        - uuid: a4edd29276bd45d6b8e95c2d395f60aa
+          name: 'Veeam Agent License Expiration'
+          type: DEPENDENT
+          key: 'veeam-agent.info[LicenseExpiration]'
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.data[0].VEEAM_LICENSE_EXPIRATION'
+            - type: REGEX
+              parameters:
+                - '(\d{4}/\d{2}/\d{2})'
+                - \1
+          master_item:
+            key: veeam-agent.check.info
+          tags:
+            - tag: application
+              value: veeam-agent
+            - tag: component
+              value: info
+            - tag: veeam-info
+              value: license
+          triggers:
+            - uuid: 92010a48d0024c64b8cce0ed9eb69d3a
+              expression: 'last(/Veeam Agent/veeam-agent.info[LicenseExpiration]) < {$VEEAM_LICENSE_EXPIRE_WARN}'
+              name: 'Veeam Agent Backup License will expire in {$VEEAM_LICENSE_EXPIRE_WARN} days'
+              priority: WARNING
+        - uuid: 7537d30444b548b9b58d9f14dd88bc71
+          name: 'Veeam Agent License Owner'
+          type: DEPENDENT
+          key: 'veeam-agent.info[LicenseOwner]'
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.data[0].VEEAM_LICENSE_OWNER'
+          master_item:
+            key: veeam-agent.check.info
+          tags:
+            - tag: application
+              value: veeam-agent
+            - tag: component
+              value: info
+            - tag: veeam-info
+              value: license
+        - uuid: 2c705cb02f104127acc312f0cfb1c402
+          name: 'Veeam Agent License Source'
+          type: DEPENDENT
+          key: 'veeam-agent.info[LicenseSource]'
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.data[0].VEEAM_LICENSE_SOURCE'
+          master_item:
+            key: veeam-agent.check.info
+          tags:
+            - tag: application
+              value: veeam-agent
+            - tag: component
+              value: info
+            - tag: veeam-info
+              value: license
+        - uuid: 82a685a8a67344e2aaefa82e37e7b722
+          name: 'Veeam Agent License Status'
+          type: DEPENDENT
+          key: 'veeam-agent.info[LicenseStatus]'
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.data[0].VEEAM_LICENSE_STATUS'
+          master_item:
+            key: veeam-agent.check.info
+          tags:
+            - tag: application
+              value: veeam-agent
+            - tag: component
+              value: info
+            - tag: veeam-info
+              value: license
+        - uuid: 540ab0eb2ab64165a537f9ad6672d7f8
+          name: 'Veeam Agent Mode'
+          type: DEPENDENT
+          key: 'veeam-agent.info[Mode]'
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.data[0].VEEAM_MODE'
+          master_item:
+            key: veeam-agent.check.info
+          tags:
+            - tag: application
+              value: veeam-agent
+            - tag: component
+              value: info
+            - tag: veeam-info
+              value: license
+      discovery_rules:
+        - uuid: 5feb06be59e241acadfcc08f226e1da1
+          name: 'Veeam Agent Jobs Discovery'
+          key: veeam-agent.lld.jobs
+          delay: 60m
+          lifetime: 30d
+          enabled_lifetime_type: DISABLE_NEVER
+          item_prototypes:
+            - uuid: 5ae99a84bf724758b4f67dec8e621221
+              name: 'Veeam Agent Get raw data job {#JOB_NAME}'
+              key: 'veeam-agent.check.job[{#JOB_NAME}]'
+              delay: 30m
+              value_type: TEXT
+              trends: '0'
+              description: |
+                Job ID: {#JOB_ID}
+                Job Type: {#JOB_TYPE}
+                Job Repository: {#JOB_REPOSITORY}
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: raw
+            - uuid: a93822dbc1ba4e359ab7ce48646cae1e
+              name: 'Veeam Agent job {#JOB_NAME} data processed'
+              type: DEPENDENT
+              key: 'veeam-agent.job.data_processed[{#JOB_NAME}]'
+              delay: '0'
+              trends: '0'
+              units: b
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].JOB_DATA_PROCESSED'
+              master_item:
+                key: 'veeam-agent.check.job[{#JOB_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-job
+                  value: '{#JOB_NAME}'
+            - uuid: d047eee8ad1549ca87e0617ad64378c6
+              name: 'Veeam Agent job {#JOB_NAME} data transfered'
+              type: DEPENDENT
+              key: 'veeam-agent.job.data_transfered[{#JOB_NAME}]'
+              delay: '0'
+              trends: '0'
+              units: b
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].JOB_DATA_TRANSFERRED'
+              master_item:
+                key: 'veeam-agent.check.job[{#JOB_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-job
+                  value: '{#JOB_NAME}'
+            - uuid: 6bd83e7cdc7a4c35ba8f8b89f5327cde
+              name: 'Veeam Agent job {#JOB_NAME} description'
+              type: DEPENDENT
+              key: 'veeam-agent.job.description[{#JOB_NAME}]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              description: |
+                Job ID: {#JOB_ID}
+                Job Type: {#JOB_TYPE}
+                Job Repository: {#JOB_REPOSITORY}
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].DESCRIPTION'
+              master_item:
+                key: 'veeam-agent.check.job[{#JOB_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-job
+                  value: '{#JOB_NAME}'
+            - uuid: 1ffdea3a8ea2427cae2e2935f69d7b82
+              name: 'Veeam Agent job {#JOB_NAME} log file'
+              type: DEPENDENT
+              key: 'veeam-agent.job.logfile[{#JOB_NAME}]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].LOG_FILE'
+              master_item:
+                key: 'veeam-agent.check.job[{#JOB_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-job
+                  value: '{#JOB_NAME}'
+            - uuid: 7b8bf868595b4755b14e204b7336c0ed
+              name: 'Veeam Agent job {#JOB_NAME} status'
+              type: DEPENDENT
+              key: 'veeam-agent.job.status[{#JOB_NAME}]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].JOB_STATUS'
+              master_item:
+                key: 'veeam-agent.check.job[{#JOB_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-job
+                  value: '{#JOB_NAME}'
+            - uuid: e76bc11facb1429389848d6487f5e1c1
+              name: 'Veeam Agent job {#JOB_NAME} time duration'
+              type: DEPENDENT
+              key: 'veeam-agent.job.time_duration[{#JOB_NAME}]'
+              delay: '0'
+              trends: '0'
+              units: seconds
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].JOB_TIME_DURATION'
+              master_item:
+                key: 'veeam-agent.check.job[{#JOB_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-job
+                  value: '{#JOB_NAME}'
+            - uuid: 59c2550b79ef4e9f83a1e91b27392946
+              name: 'Veeam Agent job {#JOB_NAME} time end'
+              type: DEPENDENT
+              key: 'veeam-agent.job.time_end[{#JOB_NAME}]'
+              delay: '0'
+              trends: '0'
+              units: unixtime
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].JOB_TIME_END'
+              master_item:
+                key: 'veeam-agent.check.job[{#JOB_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-job
+                  value: '{#JOB_NAME}'
+              trigger_prototypes:
+                - uuid: abf1641f6ed246c8a674cb825c6e94c2
+                  expression: 'now() - last(/Veeam Agent/veeam-agent.job.time_end[{#JOB_NAME}]) > {$VEEAM_JOB_HOURS_WARN}'
+                  name: 'No Veeam Agent Backup job running since {$VEEAM_JOB_HOURS_WARN}'
+                  opdata: '{ITEM.LASTVALUE1}'
+                  priority: WARNING
+            - uuid: c4e79935775a4ade9c980cdd3766bea3
+              name: 'Veeam Agent job {#JOB_NAME} time start'
+              type: DEPENDENT
+              key: 'veeam-agent.job.time_start[{#JOB_NAME}]'
+              delay: '0'
+              trends: '0'
+              units: unixtime
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].JOB_TIME_START'
+              master_item:
+                key: 'veeam-agent.check.job[{#JOB_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-job
+                  value: '{#JOB_NAME}'
+          trigger_prototypes:
+            - uuid: e3882601af8545d09b12f7c6f0cd75e0
+              expression: |
+                last(/Veeam Agent/veeam-agent.job.status[{#JOB_NAME}])<>"Success"
+                or
+                nodata(/Veeam Agent/veeam-agent.job.description[{#JOB_NAME}],24h)=1
+              name: 'Veeam Agent Backup job {#JOB_NAME} failed'
+              opdata: '{ITEM.LASTVALUE2}'
+              priority: HIGH
+              manual_close: 'YES'
+        - uuid: e1f1aab2bdac40b1987c20b82dd3df6e
+          name: 'Veeam Agent Repositories Discovery'
+          key: veeam-agent.lld.repos
+          delay: 60m
+          lifetime: 30d
+          enabled_lifetime_type: DISABLE_NEVER
+          item_prototypes:
+            - uuid: e64e617e211046a0b211d196680ed840
+              name: 'Veeam Agent Get raw data repository {#REPO_NAME}'
+              key: 'veeam-agent.check.repo[{#REPO_NAME}]'
+              delay: 30m
+              value_type: TEXT
+              trends: '0'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: raw
+            - uuid: f1cc8ac46edd477dbb6d882b9b674f77
+              name: 'Veeam Agent repository {#REPO_NAME} accessible'
+              type: DEPENDENT
+              key: 'veeam-agent.repo.accessible[{#REPO_NAME}]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].REPO_ACCESSIBLE'
+              master_item:
+                key: 'veeam-agent.check.repo[{#REPO_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-repository
+                  value: '{#REPO_NAME}'
+              trigger_prototypes:
+                - uuid: 6eef9e3e0bbd4ccfb05da4d35aaaac70
+                  expression: 'last(/Veeam Agent/veeam-agent.repo.accessible[{#REPO_NAME}]) <> "true"'
+                  name: 'Veeam Agent repository {#REPO_NAME} is not accessible'
+                  priority: HIGH
+            - uuid: 808ff5a47407452e975e75d0e2fe7d05
+              name: 'Veeam Agent repository {#REPO_NAME} ID'
+              type: DEPENDENT
+              key: 'veeam-agent.repo.id[{#REPO_NAME}]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].REPO_ID'
+              master_item:
+                key: 'veeam-agent.check.repo[{#REPO_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-repository
+                  value: '{#REPO_NAME}'
+            - uuid: 3425c550f1c7439983b524067c1dd366
+              name: 'Veeam Agent repository {#REPO_NAME} location'
+              type: DEPENDENT
+              key: 'veeam-agent.repo.location[{#REPO_NAME}]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].REPO_LOCATION'
+              master_item:
+                key: 'veeam-agent.check.repo[{#REPO_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-repository
+                  value: '{#REPO_NAME}'
+            - uuid: 6e8cbb832c5341e79608c50fb54f95e0
+              name: 'Veeam Agent repository {#REPO_NAME} type'
+              type: DEPENDENT
+              key: 'veeam-agent.repo.type[{#REPO_NAME}]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].REPO_TYPE'
+              master_item:
+                key: 'veeam-agent.check.repo[{#REPO_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-repository
+                  value: '{#REPO_NAME}'
+      tags:
+        - tag: class
+          value: application
+        - tag: target
+          value: veeam-agent
+      macros:
+        - macro: '{$VEEAM_JOB_HOURS_WARN}'
+          value: '32'
+          description: 'Warn if no backup occurs in the specified time'
+        - macro: '{$VEEAM_LICENSE_EXPIRE_WARN}'
+          value: '14'
+          description: 'Warn days before license expires'

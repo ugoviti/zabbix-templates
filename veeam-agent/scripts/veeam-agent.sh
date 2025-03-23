@@ -2,7 +2,7 @@
 ## Veeam Agent for Zabbix
 ## This script is designed to interact with Veeam Agent for Zabbix, providing functionalities such as discovering Veeam license information, checking job statuses, and retrieving detailed logs for Veeam backup jobs.
 ## author: Ugo Viti <u.viti@wearequantico.it>
-version=20250322
+version=20250323
 
 ## INSTALL:
 ## gpasswd -a zabbix veeam
@@ -113,28 +113,33 @@ veeam-agent.lld.repos() {
 }
 
 
-veeam-agent.check.info() {
+veeam-agent.check.repo() {
+  REPO_NAME=$1
+
   # Initialize RESULTS variable
   unset RESULTS
 
-  VEEAM_LICENSE=$(veeamconfig license show)
-  VEEAM_LICENSE_SOURCE=$(echo "$VEEAM_LICENSE" | grep -i "License source" | sed 's/.*License source: \(.*\)/\1/')
-  VEEAM_MODE=$(echo "$VEEAM_LICENSE" | grep -i "Mode" | sed 's/.*Mode: \(.*\)/\1/')
-  VEEAM_LICENSE_EXPIRATION=$(echo "$VEEAM_LICENSE" | grep -i "Support expiration" | sed 's/.*Support expiration: \(.*\)/\1/')
-  VEEAM_LICENSE_STATUS=$(echo "$VEEAM_LICENSE" | grep -i "Status" | sed 's/.*Status: \(.*\)/\1/')
-  VEEAM_LICENSE_OWNER=$(echo "$VEEAM_LICENSE" | grep -i "Issued to" | sed 's/.*Issued to: \(.*\)/\1/')
-  VEEAM_LICENSE_EMAIL=$(echo "$VEEAM_LICENSE" | grep -i "E-mail" | sed 's/.*E-mail: \(.*\)/\1/')
+  # Get repository list and format columns with semicolons
+  REPO_LIST=$(veeamconfig repository list | sed 's/  \+/;/g' | tail -n +2 | grep "^$REPO_NAME")
 
-  RESULTS+="VEEAM_LICENSE_SOURCE=$VEEAM_LICENSE_SOURCE"
-  RESULTS+=";VEEAM_MODE=$VEEAM_MODE"
-  RESULTS+=";VEEAM_LICENSE_EXPIRATION=$VEEAM_LICENSE_EXPIRATION"
-  RESULTS+=";VEEAM_LICENSE_STATUS=$VEEAM_LICENSE_STATUS"
-  RESULTS+=";VEEAM_LICENSE_OWNER=$VEEAM_LICENSE_OWNER"
-  RESULTS+=";VEEAM_LICENSE_EMAIL=$VEEAM_LICENSE_EMAIL"
+  # Check if there are no repositories
+  if [[ -z "$REPO_LIST" ]]; then
+    RESULTS="JOB_STATUS=FAILED;DESCRIPTION=No configured repositories found"
+    printf "%s\n" "$RESULTS"
+  else
+    # Parse the repository list
+    while IFS=';' read -r REPO_NAME REPO_ID REPO_LOCATION REPO_TYPE REPO_ACCESSIBLE REPO_BACKUP_SERVER; do
+      RESULTS="REPO_NAME=$REPO_NAME"
+      RESULTS+=";REPO_ID=$REPO_ID"
+      RESULTS+=";REPO_LOCATION=$REPO_LOCATION"
+      RESULTS+=";REPO_TYPE=$REPO_TYPE"
+      RESULTS+=";REPO_ACCESSIBLE=$REPO_ACCESSIBLE"
+      RESULTS+=";REPO_BACKUP_SERVER=$REPO_BACKUP_SERVER"
 
-  # print results
-  echo ${RESULTS}
-  unset RESULTS
+      # Print results
+      printf "%s\n" "$RESULTS"
+    done <<< "$REPO_LIST"
+  fi
 }
 
 veeam-agent.check.job() {
@@ -215,6 +220,31 @@ veeam-agent.check.job() {
   fi
 }
 
+veeam-agent.check.info() {
+  # Initialize RESULTS variable
+  unset RESULTS
+
+  VEEAM_LICENSE=$(veeamconfig license show)
+  VEEAM_LICENSE_SOURCE=$(echo "$VEEAM_LICENSE" | grep -i "License source" | sed 's/.*License source: \(.*\)/\1/')
+  VEEAM_MODE=$(echo "$VEEAM_LICENSE" | grep -i "Mode" | sed 's/.*Mode: \(.*\)/\1/')
+  VEEAM_LICENSE_EXPIRATION=$(echo "$VEEAM_LICENSE" | grep -i "Support expiration" | sed 's/.*Support expiration: \(.*\)/\1/')
+  VEEAM_LICENSE_STATUS=$(echo "$VEEAM_LICENSE" | grep -i "Status" | sed 's/.*Status: \(.*\)/\1/')
+  VEEAM_LICENSE_OWNER=$(echo "$VEEAM_LICENSE" | grep -i "Issued to" | sed 's/.*Issued to: \(.*\)/\1/')
+  VEEAM_LICENSE_EMAIL=$(echo "$VEEAM_LICENSE" | grep -i "E-mail" | sed 's/.*E-mail: \(.*\)/\1/')
+
+  RESULTS+="VEEAM_LICENSE_SOURCE=$VEEAM_LICENSE_SOURCE"
+  RESULTS+=";VEEAM_MODE=$VEEAM_MODE"
+  RESULTS+=";VEEAM_LICENSE_EXPIRATION=$VEEAM_LICENSE_EXPIRATION"
+  RESULTS+=";VEEAM_LICENSE_STATUS=$VEEAM_LICENSE_STATUS"
+  RESULTS+=";VEEAM_LICENSE_OWNER=$VEEAM_LICENSE_OWNER"
+  RESULTS+=";VEEAM_LICENSE_EMAIL=$VEEAM_LICENSE_EMAIL"
+
+  # print results
+  echo ${RESULTS}
+  unset RESULTS
+}
+
+
 printJSON() {
   local cmd="$1"
   shift
@@ -255,9 +285,13 @@ veeam-agent.lld() {
   [ ! -e "$LOG_DIR" ] && echo "ERROR: LOG DIR doesn't exist: $LOG_DIR" && exit 1
 
   case $method in
-    jobs|repos)
+    jobs)
       printJSON veeam-agent.lld.${method} lld
     ;;
+    repos)
+      printJSON veeam-agent.lld.${method} lld
+    ;;
+
     *)
       echo "ERROR: wrong discovery method specified... exiting"
       exit 1
@@ -269,16 +303,21 @@ veeam-agent.lld() {
 veeam-agent.check() {
   local method="$1"
   shift
-  local job="$1"
+  local obj="$1"
   shift
   [ ! -z "$1" ] && local LOG_DIR="$1"
   [ ! -e "$LOG_DIR" ] && echo "ERROR: LOG DIR doesn't exist: $LOG_DIR" && exit 1
 
   case $method in
     job)
-      [ -z "${job}" ] && echo "ERROR: job name to check not specified... exiting" && exit 1
-      printJSON veeam-agent.check.${method} ${job}
+      [ -z "${obj}" ] && echo "ERROR: job name to check not specified... exiting" && exit 1
+      printJSON veeam-agent.check.${method} ${obj}
     ;;
+    repo)
+      [ -z "${obj}" ] && echo "ERROR: repo name to check not specified... exiting" && exit 1
+      printJSON veeam-agent.check.${method} ${obj}
+    ;;
+
     info)
       printJSON veeam-agent.check.${method}
     ;;
