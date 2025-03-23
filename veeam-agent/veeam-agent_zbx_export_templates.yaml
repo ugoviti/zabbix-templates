@@ -104,7 +104,6 @@ zabbix_export:
                   } else {
                       return null; // If no valid date is found, return null
                   }
-                  
           master_item:
             key: 'veeam-agent.info[LicenseExpiration]'
           tags:
@@ -234,7 +233,8 @@ zabbix_export:
             - uuid: 5ae99a84bf724758b4f67dec8e621221
               name: 'Veeam Agent Get raw data job {#JOB_NAME}'
               key: 'veeam-agent.check.job[{#JOB_NAME}]'
-              delay: 30m
+              delay: 5m
+              history: 7d
               value_type: TEXT
               trends: '0'
               description: |
@@ -251,7 +251,6 @@ zabbix_export:
               type: DEPENDENT
               key: 'veeam-agent.job.data_processed[{#JOB_NAME}]'
               delay: '0'
-              trends: '0'
               units: b
               preprocessing:
                 - type: JSONPATH
@@ -271,7 +270,6 @@ zabbix_export:
               type: DEPENDENT
               key: 'veeam-agent.job.data_transfered[{#JOB_NAME}]'
               delay: '0'
-              trends: '0'
               units: b
               preprocessing:
                 - type: JSONPATH
@@ -355,7 +353,6 @@ zabbix_export:
               type: DEPENDENT
               key: 'veeam-agent.job.time_duration[{#JOB_NAME}]'
               delay: '0'
-              trends: '0'
               units: seconds
               preprocessing:
                 - type: JSONPATH
@@ -392,8 +389,8 @@ zabbix_export:
                   value: '{#JOB_NAME}'
               trigger_prototypes:
                 - uuid: abf1641f6ed246c8a674cb825c6e94c2
-                  expression: 'now() - last(/Veeam Agent/veeam-agent.job.time_end[{#JOB_NAME}]) > {$VEEAM_JOB_HOURS_WARN}'
-                  name: 'No Veeam Agent Backup job running since {$VEEAM_JOB_HOURS_WARN}'
+                  expression: '(now() - last(/Veeam Agent/veeam-agent.job.time_end[{#JOB_NAME}])) > ({$VEEAM_JOB_HOURS_WARN}*60*60)'
+                  name: 'Veeam Agent Backup job {#JOB_NAME} not running since {$VEEAM_JOB_HOURS_WARN}h'
                   opdata: '{ITEM.LASTVALUE1}'
                   priority: WARNING
             - uuid: c4e79935775a4ade9c980cdd3766bea3
