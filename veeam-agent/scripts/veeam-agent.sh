@@ -18,7 +18,7 @@ if [ -z "$cmd" ];then
   echo "ERROR: missing command... exiting"
   echo
   echo "USAGE:"
-  echo "$0 discovery"
+  echo "$0 lld"
   echo "$0 check"
   exit 1
 elif [ -z "$args" ];then
@@ -27,7 +27,42 @@ elif [ -z "$args" ];then
 fi
 
 # print CSV formatted list removing blank and commented lines
-veeam.discovery.info() {
+veeam-agent.lld.jobs() {
+  # Initialize RESULTS variable
+  unset RESULTS
+
+  # Check if there are any jobs listed by veeamconfig
+  JOB_LIST=$(veeamconfig job list)
+
+  # Check if there are no jobs
+  if [[ -z "$JOB_LIST" ]]; then
+    RESULTS+="JOB_STATUS=FAILED"
+    RESULTS+=";DESCRIPTION=No configured jobs found"
+    # print results
+    echo ${RESULTS}
+  else
+    # Parse the job list and extract Name, ID, Type, Repository
+    echo "$JOB_LIST" | tail -n +2 | while read LINE; do
+      # Extract each field
+      JOB_NAME=$(echo "$LINE" | awk '{print $1}')
+      JOB_ID=$(echo "$LINE" | awk '{print $2}')
+      JOB_TYPE=$(echo "$LINE" | awk '{print $3}')
+      JOB_REPOSITORY=$(echo "$LINE" | awk '{print $4}')
+
+      RESULTS+="JOB_NAME=$JOB_NAME"
+      RESULTS+=";JOB_ID=$JOB_ID"
+      RESULTS+=";JOB_TYPE=$JOB_TYPE"
+      RESULTS+=";JOB_REPOSITORY=$JOB_REPOSITORY"
+
+      # print results
+      echo ${RESULTS}
+      unset RESULTS
+    done
+  fi
+}
+
+# print CSV formatted list removing blank and commented lines
+veeam-agent.check.info() {
   # Initialize RESULTS variable
   unset RESULTS
 
@@ -52,44 +87,25 @@ veeam.discovery.info() {
 }
 
 
-
 # print CSV formatted list removing blank and commented lines
-veeam.discovery.jobs() {
-  # Initialize RESULTS variable
-  unset RESULTS
-
-  # Check if there are any directories in $LOG_DIR
-  if [ $(find "$LOG_DIR" -mindepth 1 -maxdepth 1 -type d | wc -l) -eq 0 ]; then
-    RESULTS+="JOB_STATUS=FAILED"
-    RESULTS+=";DESCRIPTION=No configured jobs found"
-    # print results
-    echo ${RESULTS}
-  else
-    ls -t "$LOG_DIR" | while read JOB_NAME; do
-      SESSIONS_DIR="$LOG_DIR"/"$JOB_NAME"
-
-      RESULTS+="JOB_NAME=$JOB_NAME"
-      RESULTS+=";SESSIONS_DIR=$SESSIONS_DIR"
-
-      # print results
-      echo ${RESULTS}
-      unset RESULTS
-    done
-  fi
-}
-
-
-# print CSV formatted list removing blank and commented lines
-veeam.check.job() {
+veeam-agent.check.job() {
   JOB_NAME=$1
 
   # Initialize RESULTS variable
   unset RESULTS
 
+  # create the RESULTS CSV
+  RESULTS+="JOB_NAME=$JOB_NAME"
+
   # Check if there are any directories in $LOG_DIR
   if [ $(find "$LOG_DIR" -mindepth 1 -maxdepth 1 -type d | wc -l) -eq 0 ]; then
-    RESULTS+="JOB_STATUS=FAILED"
+    RESULTS+=";JOB_STATUS=FAILED"
     RESULTS+=";DESCRIPTION=No configured jobs found"
+    # print results
+    echo ${RESULTS}
+  elif [ ! -e "${LOG_DIR}/${JOB_NAME}" ]; then
+    RESULTS+=";JOB_STATUS=FAILED"
+    RESULTS+=";DESCRIPTION=Unable to find job log directory: $LOG_DIR/$JOB_NAME"
     # print results
     echo ${RESULTS}
   else
@@ -97,7 +113,6 @@ veeam.check.job() {
       SESSION_DIR=$(find "$LOG_DIR"/"$JOB_NAME" -mindepth 1 -maxdepth 1 -type d -not -name "*.tar.gz" -printf "%T@ %f\n" | sort -nr | awk 'NR==1{print $2}')
       LOG_FILE="$LOG_DIR/$JOB_NAME/$SESSION_DIR/Job.log"
 
-      RESULTS+="JOB_NAME=$JOB_NAME"
       RESULTS+=";LOG_FILE=$LOG_FILE"
 
       # Search for JOB STATUS and extract the value
@@ -146,11 +161,12 @@ veeam.check.job() {
 printJSON() {
   local cmd="$1"
   shift
-  local args="$@"
+  local type="$1"
+  shift
   echo "{
 \"data\":
   ["
-  $cmd $args | while IFS=';' read -ra FIELDS; do
+  $cmd $type | while IFS=';' read -ra FIELDS; do
     unset JSON
 
     # Process each field
@@ -159,7 +175,11 @@ printJSON() {
       KEY=$(echo "$KEY" | tr '[:lower:]' '[:upper:]')
 
       # Aggiungi la coppia chiave-valore al JSON
-      JSON+="\"{#${KEY}}\":\"${VALUE}\","
+      if [ "$type" == "lld" ]; then
+          JSON+="\"{#${KEY}}\":\"${VALUE}\","
+        else
+          JSON+="\"${KEY}\":\"${VALUE}\","
+      fi
     done
 
     # Rimuovi la virgola finale e stampa il JSON
@@ -170,20 +190,16 @@ printJSON() {
 }
 
 
-## discovery rules
-veeam.discovery() {
+## lld rules
+veeam-agent.lld() {
   local method="$1"
   shift
   [ ! -z "$1" ] && local LOG_DIR="$1"
-
   [ ! -e "$LOG_DIR" ] && echo "ERROR: LOG DIR doesn't exist: $LOG_DIR" && exit 1
 
   case $method in
     jobs)
-      printJSON veeam.discovery.${method}
-    ;;
-    info)
-      printJSON veeam.discovery.${method}
+      printJSON veeam-agent.lld.${method} lld
     ;;
     *)
       echo "ERROR: wrong discovery method specified... exiting"
@@ -192,20 +208,33 @@ veeam.discovery() {
   esac
 }
 
-## jobs check
-veeam.check() {
+## check rules
+veeam-agent.check() {
+  local method="$1"
+  shift
   local job="$1"
   shift
   [ ! -z "$1" ] && local LOG_DIR="$1"
-
   [ ! -e "$LOG_DIR" ] && echo "ERROR: LOG DIR doesn't exist: $LOG_DIR" && exit 1
 
-  printJSON veeam.check.job ${job}
+  case $method in
+    job)
+      [ -z "${job}" ] && echo "ERROR: job name to check not specified... exiting" && exit 1
+      printJSON veeam-agent.check.${method} ${job}
+    ;;
+    info)
+      printJSON veeam-agent.check.${method}
+    ;;
+    *)
+      echo "ERROR: wrong check method specified... exiting"
+      exit 1
+      ;;
+  esac
 }
 
 
 
 # execute the given command
 #set -x
-veeam.${cmd} ${args}
+veeam-agent.${cmd} ${args}
 exit $?
