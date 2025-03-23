@@ -97,64 +97,59 @@ veeam-agent.check.job() {
   # create the RESULTS CSV
   RESULTS+="JOB_NAME=$JOB_NAME"
 
-  # Check if there are any directories in $LOG_DIR
-  if [ $(find "$LOG_DIR" -mindepth 1 -maxdepth 1 -type d | wc -l) -eq 0 ]; then
+  # extract the unique job id using job name as source
+  JOB_ID="$(veeamconfig job list | awk "/^$JOB_NAME/ {print \$2}")"
+
+  if [ -z "$JOB_ID" ]; then
     RESULTS+=";JOB_STATUS=FAILED"
     RESULTS+=";DESCRIPTION=No configured jobs found"
     # print results
     echo ${RESULTS}
-  elif [ ! -e "${LOG_DIR}/${JOB_NAME}" ]; then
-    RESULTS+=";JOB_STATUS=FAILED"
-    RESULTS+=";DESCRIPTION=Unable to find job log directory: $LOG_DIR/$JOB_NAME"
+  else
+    # Retrieve the last session id
+    #JOB_LAST_SESSION_INFO="$(veeamconfig session list --jobid "$JOB_ID" --7 | grep "^$JOB_NAME" | tail -n1)"
+    JOB_LAST_SESSION_ID="$(veeamconfig session list --jobid "$JOB_ID" | awk "/^$JOB_NAME/ {print \$3}" | tail -n1)"
+
+    # Retrieve the last session informations
+    JOB_LAST_SESSION_INFO=$(veeamconfig session info --id "$JOB_LAST_SESSION_ID" | sed 's/^[ \t]*//')
+
+    # Extract values directly using grep with regex
+    #JOB_SESSION_ID=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^ID:\s*\K.*')  # Extract the Session ID
+    #JOB_NAME=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Job name:\s*\K.*')  # Extract the Job Name
+    #JOB_ID=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Job ID:\s*\K.*')  # Extract the Job ID
+    #JOB_OIB_ID=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^OIB ID:\s*\K.*')  # Extract the OIB ID
+    JOB_STATUS=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^State:\s*\K.*')  # Extract the Session State
+    JOB_CREATION_TIME=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Creation time:\s*\K.*')  # Extract the Creation Time
+    JOB_START_TIME=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Start time:\s*\K.*')  # Extract the Start Time
+    JOB_END_TIME=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^End time:\s*\K.*')  # Extract the End Time
+    JOB_PROCESSED_DATA=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Processed:\s*\K.*')  # Extract the Processed Data
+    JOB_TRANSFERRED_DATA=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Transferred:\s*\K.*')  # Extract the Transferred Data
+    JOB_ATTEMPT=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Attempt:\s*\K.*')  # Extract the Retry Attempt Number
+    #JOB_LAST_ATTEMPT=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Is last attempt:\s*\K.*')  # Extract if it's the last retry attempt
+
+    # add results sets
+    RESULTS+=";JOB_STATUS=$JOB_STATUS"
+    RESULTS+=";JOB_SESSION_ID=$JOB_LAST_SESSION_ID"
+    RESULTS+=";JOB_CREATION_TIME=$JOB_CREATION_TIME"
+    RESULTS+=";JOB_START_TIME=$JOB_START_TIME"
+    RESULTS+=";JOB_END_TIME=$JOB_END_TIME"
+    RESULTS+=";JOB_PROCESSED_DATA=$JOB_PROCESSED_DATA"
+    RESULTS+=";JOB_TRANSFERRED_DATA=$JOB_TRANSFERRED_DATA"
+    RESULTS+=";JOB_ATTEMPT=$JOB_ATTEMPT"
+
+    # search log file path
+    SESSION_DIR=$(find "$LOG_DIR"/"$JOB_NAME" -mindepth 1 -maxdepth 1 -type d -not -name "*.tar.gz" -printf "%T@ %f\n" | sort -nr | awk 'NR==1{print $2}')
+    LOG_FILE="$LOG_DIR/$JOB_NAME/$SESSION_DIR/Job.log"
+    RESULTS+=";LOG_FILE=$LOG_FILE"
+
+    if [ "$JOB_STATUS" == "Success" ]; then
+      RESULTS+=";DESCRIPTION=Job ended with success"
+    else
+      RESULTS+=";DESCRIPTION=Job ended with errors"
+    fi
     # print results
     echo ${RESULTS}
-  else
-    #ls -t "$LOG_DIR" | while read JOB_NAME; do
-      SESSION_DIR=$(find "$LOG_DIR"/"$JOB_NAME" -mindepth 1 -maxdepth 1 -type d -not -name "*.tar.gz" -printf "%T@ %f\n" | sort -nr | awk 'NR==1{print $2}')
-      LOG_FILE="$LOG_DIR/$JOB_NAME/$SESSION_DIR/Job.log"
-
-      RESULTS+=";LOG_FILE=$LOG_FILE"
-
-      # Search for JOB STATUS and extract the value
-      JOB_STATUS_LINE=$(grep -P 'JOB STATUS:\s*\K\w+' "$LOG_FILE")
-      JOB_STATUS=$(echo "$JOB_STATUS_LINE" | grep -oP 'JOB STATUS:\s*\K\w+')
-
-      if [ -z "$JOB_STATUS" ]; then
-        RESULTS+=";JOB_STATUS=FAILED"
-        RESULTS+=";DESCRIPTION=Job status result not found"
-      else
-        JOB_TIME=$(echo "$JOB_STATUS_LINE" | sed 's/^\[\([^]]*\)\].*/\1/')
-        JOB_TIME_REFORMATTED=$(echo "$JOB_TIME" | sed 's/\([0-9]\{2\}\)\.\([0-9]\{2\}\)\.\([0-9]\{4\}\) \([0-9]\{2\}\):\([0-9]\{2\}\):\([0-9]\{2\}\)/\3-\2-\1 \4:\5:\6/')
-        JOB_TIME_ISO8861=$(date -d "$JOB_TIME_REFORMATTED" +"%Y-%m-%dT%H:%M:%S")
-        JOB_TIME_UNIX=$(date -d "$JOB_TIME_REFORMATTED" +%s)
-
-        #VEEAM_VERSION=$(grep "Version:" "$LOG_FILE" | sed 's/.*: \([0-9\.]*\).*/\1/')
-        #VEEAM_REPOSITORY_TYPE=$(grep "RepositoryType" "$LOG_FILE" | head -n1 | sed -n 's/.*RepositoryType = \([^ ]*\).*/\1/p' | sed 's/\\n$//')
-        #VEEAM_SERVICE_NAME=$(grep "ServiceName" "$LOG_FILE" | head -n1 | sed -n 's/.*ServiceName = \([^ ]*\).*/\1/p' | sed 's/\\n$//')
-        #VEEAM_LICENSE_STATUS=$(grep "Status:" "$LOG_FILE" | sed -n 's/.*: \([^]]*\)/\1/p')
-        #VEEAM_LICENSE_OWNER=$(grep "Issued to:" "$LOG_FILE" | sed -n 's/.*: \([^]]*\)/\1/p')
-
-        # get other info
-        RESULTS+=";JOB_STATUS=$JOB_STATUS"
-        RESULTS+=";JOB_TIME=$JOB_TIME_ISO8861"
-        RESULTS+=";JOB_TIME_UNIX=$JOB_TIME_UNIX"
-        #RESULTS+=";VEEAM_VERSION=$VEEAM_VERSION"
-        #RESULTS+=";VEEAM_REPOSITORY_TYPE=$VEEAM_REPOSITORY_TYPE"
-        #RESULTS+=";VEEAM_SERVICE_NAME=$VEEAM_SERVICE_NAME"
-        #RESULTS+=";VEEAM_LICENSE_STATUS=$VEEAM_LICENSE_STATUS"
-        #RESULTS+=";VEEAM_LICENSE_OWNER=$VEEAM_LICENSE_OWNER"
-
-        if [ "$JOB_STATUS" == "SUCCESS" ]; then
-          RESULTS+=";DESCRIPTION=Job ended with success"
-        else
-          RESULTS+=";DESCRIPTION=Job ended with errors"
-        fi
-      fi
-
-      # print results
-      echo ${RESULTS}
-      unset RESULTS
-    #done
+    unset RESULTS
   fi
 }
 
