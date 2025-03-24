@@ -2,7 +2,7 @@
 ## Veeam Agent for Zabbix
 ## This script is designed to interact with Veeam Agent for Zabbix, providing functionalities such as discovering Veeam license information, checking job statuses, and retrieving detailed logs for Veeam backup jobs.
 ## author: Ugo Viti <u.viti@wearequantico.it>
-version=20250323
+version=20250324
 
 ## INSTALL:
 ## gpasswd -a zabbix veeam
@@ -209,12 +209,20 @@ veeam-agent.check.job() {
     LOG_FILE="$LOG_DIR/$JOB_NAME/$SESSION_DIR/Job.log"
     RESULTS+=";LOG_FILE=$LOG_FILE"
 
-    if [ "$JOB_STATUS" == "Success" ]; then
-      RESULTS+=";DESCRIPTION=Job ended with success"
-    else
-      VEEAM_LOG=$(veeamconfig session log --id "$JOB_LAST_SESSION_ID" | grep -v "\[info\]" | grep -v "Processing finished" | sed 's/^[^]]*\] //')
-      RESULTS+=";DESCRIPTION=Job ended with errors: $VEEAM_LOG"
-    fi
+    VEEAM_LOG=$(veeamconfig session log --id "$JOB_LAST_SESSION_ID" | grep -v "\[info\]" | grep -v "Processing finished" | sed 's/^[^]]*\] //')
+
+    case "$JOB_STATUS" in
+      Success)
+        RESULTS+=";DESCRIPTION=Job ended with success: $VEEAM_LOG"
+        ;;
+      Running)
+        RESULTS+=";DESCRIPTION=Job is running: $VEEAM_LOG"
+        ;;
+      *)
+        RESULTS+=";DESCRIPTION=Job ended with errors: $VEEAM_LOG"
+        ;;
+    esac
+
     # print results
     echo ${RESULTS}
     unset RESULTS

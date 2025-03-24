@@ -15,7 +15,7 @@ zabbix_export:
         project url: https://github.com/ugoviti/zabbix-templates/tree/master/zabbix-agent
       vendor:
         name: Quantico
-        version: 2025.03.23
+        version: 2025.03.24
       groups:
         - name: Templates
         - name: Templates/Applications
@@ -416,12 +416,31 @@ zabbix_export:
           trigger_prototypes:
             - uuid: e3882601af8545d09b12f7c6f0cd75e0
               expression: |
-                last(/Veeam Agent/veeam-agent.job.status[{#JOB_NAME}])<>"Success"
-                or
                 nodata(/Veeam Agent/veeam-agent.job.description[{#JOB_NAME}],24h)=1
-              name: 'Veeam Agent Backup job {#JOB_NAME} failed'
-              opdata: '{ITEM.LASTVALUE2}'
+                or
+                (
+                  last(/Veeam Agent/veeam-agent.job.status[{#JOB_NAME}])<>"Success"
+                    and
+                  last(/Veeam Agent/veeam-agent.job.status[{#JOB_NAME}])<>"Running"
+                )
+              name: 'Veeam Agent Backup job {#JOB_NAME} error'
+              opdata: '{ITEM.LASTVALUE1}'
               priority: HIGH
+              manual_close: 'YES'
+              dependencies:
+                - name: 'Veeam Agent Backup job {#JOB_NAME} warning'
+                  expression: |
+                    nodata(/Veeam Agent/veeam-agent.job.description[{#JOB_NAME}],24h)=1
+                    or
+                    last(/Veeam Agent/veeam-agent.job.status[{#JOB_NAME}])="Warning"
+            - uuid: d8150a78ccab466289d1722711febc35
+              expression: |
+                nodata(/Veeam Agent/veeam-agent.job.description[{#JOB_NAME}],24h)=1
+                or
+                last(/Veeam Agent/veeam-agent.job.status[{#JOB_NAME}])="Warning"
+              name: 'Veeam Agent Backup job {#JOB_NAME} warning'
+              opdata: '{ITEM.LASTVALUE1}'
+              priority: WARNING
               manual_close: 'YES'
         - uuid: e1f1aab2bdac40b1987c20b82dd3df6e
           name: 'Veeam Agent Repositories Discovery'
