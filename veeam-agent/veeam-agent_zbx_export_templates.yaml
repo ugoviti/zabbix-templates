@@ -15,7 +15,7 @@ zabbix_export:
         project url: https://github.com/ugoviti/zabbix-templates/tree/master/zabbix-agent
       vendor:
         name: Quantico
-        version: 2025.03.24
+        version: 2025.03.25
       groups:
         - name: Templates
         - name: Templates/Applications
