@@ -15,7 +15,7 @@ zabbix_export:
         project url: https://github.com/ugoviti/zabbix-templates/tree/master/zabbix-agent
       vendor:
         name: Quantico
-        version: 2025.03.25
+        version: 2025.03.24
       groups:
         - name: Templates
         - name: Templates/Applications
@@ -328,7 +328,7 @@ zabbix_export:
                   value: info
                 - tag: veeam-job
                   value: '{#JOB_NAME}'
-            - uuid: 7b8bf868595b4755b14e204b7336c0ed
+            - uuid: 8e4eb9dea02d488dbd5c594387f7993f
               name: 'Veeam Agent job {#JOB_NAME} immutability'
               type: DEPENDENT
               key: 'veeam-agent.job.immutability[{#JOB_NAME}]'
@@ -399,6 +399,26 @@ zabbix_export:
                 - type: JSONPATH
                   parameters:
                     - '$.data[0].JOB_INFO_MAX_POINTS'
+              master_item:
+                key: 'veeam-agent.check.job[{#JOB_NAME}]'
+              tags:
+                - tag: application
+                  value: veeam-agent
+                - tag: component
+                  value: info
+                - tag: veeam-job
+                  value: '{#JOB_NAME}'
+            - uuid: 7b8bf868595b4755b14e204b7336c0ed
+              name: 'Veeam Agent job {#JOB_NAME} status'
+              type: DEPENDENT
+              key: 'veeam-agent.job.status[{#JOB_NAME}]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].JOB_STATUS'
               master_item:
                 key: 'veeam-agent.check.job[{#JOB_NAME}]'
               tags:
@@ -479,9 +499,9 @@ zabbix_export:
                 nodata(/Veeam Agent/veeam-agent.job.description[{#JOB_NAME}],24h)=1
                 or
                 (
-                  last(/Veeam Agent/veeam-agent.job.immutability[{#JOB_NAME}])<>"Success"
+                  last(/Veeam Agent/veeam-agent.job.status[{#JOB_NAME}])<>"Success"
                     and
-                  last(/Veeam Agent/veeam-agent.job.immutability[{#JOB_NAME}])<>"Running"
+                  last(/Veeam Agent/veeam-agent.job.status[{#JOB_NAME}])<>"Running"
                 )
               name: 'Veeam Agent Backup job {#JOB_NAME} error'
               opdata: '{ITEM.LASTVALUE1}'
@@ -492,12 +512,12 @@ zabbix_export:
                   expression: |
                     nodata(/Veeam Agent/veeam-agent.job.description[{#JOB_NAME}],24h)=1
                     or
-                    last(/Veeam Agent/veeam-agent.job.immutability[{#JOB_NAME}])="Warning"
+                    last(/Veeam Agent/veeam-agent.job.status[{#JOB_NAME}])="Warning"
             - uuid: d8150a78ccab466289d1722711febc35
               expression: |
                 nodata(/Veeam Agent/veeam-agent.job.description[{#JOB_NAME}],24h)=1
                 or
-                last(/Veeam Agent/veeam-agent.job.immutability[{#JOB_NAME}])="Warning"
+                last(/Veeam Agent/veeam-agent.job.status[{#JOB_NAME}])="Warning"
               name: 'Veeam Agent Backup job {#JOB_NAME} warning'
               opdata: '{ITEM.LASTVALUE1}'
               priority: WARNING
