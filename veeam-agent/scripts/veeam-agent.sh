@@ -2,7 +2,7 @@
 ## Veeam Agent for Zabbix
 ## This script is designed to interact with Veeam Agent for Zabbix, providing functionalities such as discovering Veeam license information, checking job statuses, and retrieving detailed logs for Veeam backup jobs.
 ## author: Ugo Viti <u.viti@wearequantico.it>
-version=20250324
+version=20250325
 
 ## INSTALL:
 ## gpasswd -a zabbix veeam
@@ -143,16 +143,17 @@ veeam-agent.check.repo() {
 }
 
 veeam-agent.check.job() {
+  # define the job name
   JOB_NAME=$1
+
+  # extract the unique job id using job name as source
+  JOB_ID="$(veeamconfig job list | awk "/^$JOB_NAME/ {print \$2}")"
 
   # Initialize RESULTS variable
   unset RESULTS
 
   # create the RESULTS CSV
   RESULTS+="JOB_NAME=$JOB_NAME"
-
-  # extract the unique job id using job name as source
-  JOB_ID="$(veeamconfig job list | awk "/^$JOB_NAME/ {print \$2}")"
 
   if [ -z "$JOB_ID" ]; then
     RESULTS+=";JOB_STATUS=Failed"
@@ -167,6 +168,8 @@ veeam-agent.check.job() {
     # Retrieve the last session informations
     JOB_LAST_SESSION_INFO=$(veeamconfig session info --id "$JOB_LAST_SESSION_ID" | sed 's/^[ \t]*//')
 
+    JOB_INFO="$(veeamconfig job info --id $JOB_ID | sed 's/^[ \t]*//')"
+
     # Extract values directly using grep with regex
     #JOB_SESSION_ID=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^ID:\s*\K.*')  # Extract the Session ID
     #JOB_NAME=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Job name:\s*\K.*')  # Extract the Job Name
@@ -180,6 +183,11 @@ veeam-agent.check.job() {
     JOB_DATA_TRANSFERRED=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Transferred:\s*\K.*')  # Extract the Transferred Data
     JOB_RETRY_ATTEMPT=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Attempt:\s*\K.*')  # Extract the Retry Attempt Number
     #JOB_RETRY_ATTEMPT_LAST=$(echo "$JOB_LAST_SESSION_INFO" | grep -oP '^Is last attempt:\s*\K.*')  # Extract if it's the last retry attempt
+
+    JOB_INFO_MAX_POINTS=$(echo "$JOB_INFO" | grep -oP '^Max points:\s*\K.*')  # Extract the Max restore points
+    JOB_INFO_INCLUDE_DIRS=$(echo "$JOB_INFO" | grep -oP '^Include directory:\s*\K.*' | paste -sd ',' -)
+    JOB_INFO_EXCLUDE_DIRS=$(echo "$JOB_INFO" | grep -oP '^Exclude directory:\s*\K.*' | paste -sd ',' -)
+    JOB_INFO_IMMUTABILITY=$(echo "$JOB_INFO" | awk '/^Repository immutability:/ {getline; print}')
 
     # calc other vars
     JOB_TIME_CREATION_UNIXTIME=$(date -d "$JOB_TIME_CREATION" +%s)
@@ -199,6 +207,10 @@ veeam-agent.check.job() {
     RESULTS+=";JOB_DATA_PROCESSED=$JOB_DATA_PROCESSED_BYTES"
     RESULTS+=";JOB_DATA_TRANSFERRED=$JOB_DATA_TRANSFERRED_BYTES"
     RESULTS+=";JOB_RETRY_ATTEMPT=$JOB_RETRY_ATTEMPT"
+    RESULTS+=";JOB_INFO_MAX_POINTS=$JOB_INFO_MAX_POINTS"
+    RESULTS+=";JOB_INFO_INCLUDE_DIRS=$JOB_INFO_INCLUDE_DIRS"
+    RESULTS+=";JOB_INFO_EXCLUDE_DIRS=$JOB_INFO_EXCLUDE_DIRS"
+    RESULTS+=";JOB_INFO_IMMUTABILITY=$JOB_INFO_IMMUTABILITY"
 
     # test
     #JOB_TIME_ISO8861=$(date -d "$JOB_TIME_REFORMATTED" +"%Y-%m-%dT%H:%M:%S")
