@@ -65,3 +65,16 @@ systemctl restart zabbix-agent2
 ```
 - Import `veeam-agent_zbx_export_templates.yaml` into Zabbix templates panel
 - Assign Zabbix template to the host and customize the MACROS
+
+
+## Tips & Tricks
+
+Show latest backup job info:
+```
+JOB_NAME=srv01 ; veeamconfig session log --id "$(veeamconfig session info --id "$(veeamconfig session list --jobid "$(veeamconfig job list | awk "/^$JOB_NAME/ {print \$2}")" | awk "/^$JOB_NAME/ {print \$3}" | tail -n1)" | sed 's/^[ \t]*//')" | grep -v "\[info\]" | grep -v "Processing finished" | sed 's/^[^]]*\] //'
+```
+
+Show latest backup job log:
+```
+JOB_NAME=srv01 ; veeamconfig session log --id "$(veeamconfig session list --jobid "$(veeamconfig job list | awk "/^$JOB_NAME/ {print \$2}")" | awk "/^$JOB_NAME/ {print \$3}" | sed 's/^[ \t]*//')"
+```
