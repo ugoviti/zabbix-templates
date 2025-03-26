@@ -2,7 +2,7 @@
 ## Veeam Agent for Zabbix
 ## This script is designed to interact with Veeam Agent for Zabbix, providing functionalities such as discovering Veeam license information, checking job statuses, and retrieving detailed logs for Veeam backup jobs.
 ## author: Ugo Viti <u.viti@wearequantico.it>
-version=20250325
+version=20250326
 
 ## INSTALL:
 ## gpasswd -a zabbix veeam
@@ -217,9 +217,13 @@ veeam-agent.check.job() {
     #JOB_TIME_UNIX=$(date -d "$JOB_TIME_REFORMATTED" +%s)
 
     # search log file path
-    SESSION_DIR=$(find "$LOG_DIR"/"$JOB_NAME" -mindepth 1 -maxdepth 1 -type d -not -name "*.tar.gz" -printf "%T@ %f\n" | sort -nr | awk 'NR==1{print $2}')
-    LOG_FILE="$LOG_DIR/$JOB_NAME/$SESSION_DIR/Job.log"
-    RESULTS+=";LOG_FILE=$LOG_FILE"
+    if [ -e "${LOG_DIR}/${JOB_NAME}" ]; then
+      SESSION_DIR=$(find "${LOG_DIR}/${JOB_NAME}" -mindepth 1 -maxdepth 1 -type d -not -name "*.tar.gz" -printf "%T@ %f\n" | sort -nr | awk 'NR==1{print $2}')
+      LOG_FILE="$LOG_DIR/$JOB_NAME/$SESSION_DIR/Job.log"
+      RESULTS+=";LOG_FILE=$LOG_FILE"
+    else
+      RESULTS+=";LOG_FILE=ERROR: LOG DIR doesn't exist: $LOG_DIR"
+    fi
 
     VEEAM_LOG=$(veeamconfig session log --id "$JOB_LAST_SESSION_ID" | grep -v "\[info\]" | grep -v "Processing finished" | sed 's/^[^]]*\] //')
 
@@ -301,9 +305,6 @@ printJSON() {
 ## lld rules
 veeam-agent.lld() {
   local method="$1"
-  shift
-  [ ! -z "$1" ] && local LOG_DIR="$1"
-  [ ! -e "$LOG_DIR" ] && echo "ERROR: LOG DIR doesn't exist: $LOG_DIR" && exit 1
 
   case $method in
     jobs)
@@ -325,9 +326,6 @@ veeam-agent.check() {
   local method="$1"
   shift
   local obj="$1"
-  shift
-  [ ! -z "$1" ] && local LOG_DIR="$1"
-  [ ! -e "$LOG_DIR" ] && echo "ERROR: LOG DIR doesn't exist: $LOG_DIR" && exit 1
 
   case $method in
     job)
