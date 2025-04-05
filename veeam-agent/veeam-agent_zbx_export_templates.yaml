@@ -544,7 +544,7 @@ zabbix_export:
               manual_close: 'YES'
           graph_prototypes:
             - uuid: 0671997d1cde438db6dba70da0608923
-              name: 'Veeam Agent Job {#JOB_NAME} Data'
+              name: 'Veeam Agent Job {#JOB_NAME} data size'
               graph_items:
                 - color: 199C0D
                   calc_fnc: ALL
@@ -558,7 +558,7 @@ zabbix_export:
                     host: 'Veeam Agent'
                     key: 'veeam-agent.job.data_transfered[{#JOB_NAME}]'
             - uuid: 9949c33b97794d2c927fdbd698d03cdd
-              name: 'Veeam Agent Job {#JOB_NAME} Duration'
+              name: 'Veeam Agent Job {#JOB_NAME} duration time'
               graph_items:
                 - drawtype: DASHED_LINE
                   color: 199C0D
@@ -691,8 +691,8 @@ zabbix_export:
               widgets:
                 - type: dataover
                   name: 'Veeam Agent Info'
-                  width: '22'
-                  height: '15'
+                  width: '17'
+                  height: '8'
                   fields:
                     - type: INTEGER
                       name: style
@@ -733,11 +733,27 @@ zabbix_export:
                     - type: STRING
                       name: tags.3.value
                       value: info
+                - type: graphprototype
+                  'y': '8'
+                  width: '30'
+                  height: '5'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: 'Veeam Agent'
+                        name: 'Veeam Agent Job {#JOB_NAME} data size'
+                    - type: STRING
+                      name: reference
+                      value: WEDWW
                 - type: dataover
                   name: 'Veeam Agent Backup Job'
-                  x: '22'
-                  width: '21'
-                  height: '15'
+                  x: '17'
+                  width: '17'
+                  height: '8'
                   fields:
                     - type: INTEGER
                       name: show_suppressed
@@ -782,8 +798,9 @@ zabbix_export:
                       name: tags.3.value
                       value: info
                 - type: graphprototype
-                  x: '43'
-                  width: '29'
+                  x: '30'
+                  'y': '8'
+                  width: '30'
                   height: '5'
                   fields:
                     - type: INTEGER
@@ -793,24 +810,27 @@ zabbix_export:
                       name: graphid.0
                       value:
                         host: 'Veeam Agent'
-                        name: 'Veeam Agent Job {#JOB_NAME} Data'
-                    - type: STRING
-                      name: reference
-                      value: WEDWW
-                - type: graphprototype
-                  x: '43'
-                  'y': '5'
-                  width: '29'
-                  height: '5'
-                  fields:
-                    - type: INTEGER
-                      name: columns
-                      value: '1'
-                    - type: GRAPH_PROTOTYPE
-                      name: graphid.0
-                      value:
-                        host: 'Veeam Agent'
-                        name: 'Veeam Agent Job {#JOB_NAME} Duration'
+                        name: 'Veeam Agent Job {#JOB_NAME} duration time'
                     - type: STRING
                       name: reference
                       value: JLVSV
+                - type: problems
+                  x: '34'
+                  width: '38'
+                  height: '8'
+                  fields:
+                    - type: STRING
+                      name: reference
+                      value: ROJQY
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: tags.0.operator
+                      value: '1'
+                    - type: STRING
+                      name: tags.0.tag
+                      value: application
+                    - type: STRING
+                      name: tags.0.value
+                      value: veeam-agent
