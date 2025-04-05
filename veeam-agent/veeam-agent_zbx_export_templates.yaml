@@ -15,7 +15,7 @@ zabbix_export:
         project url: https://github.com/ugoviti/zabbix-templates/tree/master/zabbix-agent
       vendor:
         name: Quantico
-        version: 2025.03.25
+        version: 2025.04.05
       groups:
         - name: Templates
         - name: Templates/Applications
@@ -262,9 +262,11 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
+                - tag: veeam-agent-type
+                  value: data_processed
             - uuid: d047eee8ad1549ca87e0617ad64378c6
               name: 'Veeam Agent job {#JOB_NAME} data transfered'
               type: DEPENDENT
@@ -281,9 +283,11 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
+                - tag: veeam-agent-type
+                  value: data_transfered
             - uuid: 6bd83e7cdc7a4c35ba8f8b89f5327cde
               name: 'Veeam Agent job {#JOB_NAME} description'
               type: DEPENDENT
@@ -305,9 +309,11 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
+                - tag: veeam-agent-type
+                  value: description
             - uuid: d594816311734c4382799cf690f05836
               name: 'Veeam Agent job {#JOB_NAME} dirs excluded'
               type: DEPENDENT
@@ -325,9 +331,11 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
+                - tag: veeam-agent-type
+                  value: exclude_dirs
             - uuid: 8e4eb9dea02d488dbd5c594387f7993f
               name: 'Veeam Agent job {#JOB_NAME} immutability'
               type: DEPENDENT
@@ -345,8 +353,8 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
             - uuid: de40b948bb834c7e978a48fa503f805b
               name: 'Veeam Agent job {#JOB_NAME} dirs included'
@@ -365,9 +373,11 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
+                - tag: veeam-agent-type
+                  value: include_dirs
             - uuid: 1ffdea3a8ea2427cae2e2935f69d7b82
               name: 'Veeam Agent job {#JOB_NAME} log file'
               type: DEPENDENT
@@ -385,8 +395,8 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
             - uuid: 7f5f40a84783459dbc3a8875dd1a21eb
               name: 'Veeam Agent job {#JOB_NAME} restore points'
@@ -405,9 +415,11 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
+                - tag: veeam-agent-type
+                  value: restore_points
             - uuid: 7b8bf868595b4755b14e204b7336c0ed
               name: 'Veeam Agent job {#JOB_NAME} status'
               type: DEPENDENT
@@ -425,15 +437,17 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
+                - tag: veeam-agent-type
+                  value: status
             - uuid: e76bc11facb1429389848d6487f5e1c1
               name: 'Veeam Agent job {#JOB_NAME} time duration'
               type: DEPENDENT
               key: 'veeam-agent.job.time_duration[{#JOB_NAME}]'
               delay: '0'
-              units: seconds
+              units: s
               preprocessing:
                 - type: JSONPATH
                   parameters:
@@ -444,9 +458,11 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
+                - tag: veeam-agent-type
+                  value: time_duration
             - uuid: 59c2550b79ef4e9f83a1e91b27392946
               name: 'Veeam Agent job {#JOB_NAME} time end'
               type: DEPENDENT
@@ -464,9 +480,11 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
+                - tag: veeam-agent-type
+                  value: time_end
               trigger_prototypes:
                 - uuid: abf1641f6ed246c8a674cb825c6e94c2
                   expression: '(now() - last(/Veeam Agent/veeam-agent.job.time_end[{#JOB_NAME}])) > ({$VEEAM_JOB_HOURS_WARN}*60*60)'
@@ -490,9 +508,11 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-job
+                  value: backup-job
+                - tag: veeam-agent-job
                   value: '{#JOB_NAME}'
+                - tag: veeam-agent-type
+                  value: time_start
           trigger_prototypes:
             - uuid: e3882601af8545d09b12f7c6f0cd75e0
               expression: |
@@ -522,6 +542,30 @@ zabbix_export:
               opdata: '{ITEM.LASTVALUE1}'
               priority: WARNING
               manual_close: 'YES'
+          graph_prototypes:
+            - uuid: 0671997d1cde438db6dba70da0608923
+              name: 'Veeam Agent Job {#JOB_NAME} Data'
+              graph_items:
+                - color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: 'Veeam Agent'
+                    key: 'veeam-agent.job.data_processed[{#JOB_NAME}]'
+                - sortorder: '1'
+                  color: F63100
+                  calc_fnc: ALL
+                  item:
+                    host: 'Veeam Agent'
+                    key: 'veeam-agent.job.data_transfered[{#JOB_NAME}]'
+            - uuid: 9949c33b97794d2c927fdbd698d03cdd
+              name: 'Veeam Agent Job {#JOB_NAME} Duration'
+              graph_items:
+                - drawtype: DASHED_LINE
+                  color: 199C0D
+                  calc_fnc: MIN
+                  item:
+                    host: 'Veeam Agent'
+                    key: 'veeam-agent.job.time_duration[{#JOB_NAME}]'
         - uuid: e1f1aab2bdac40b1987c20b82dd3df6e
           name: 'Veeam Agent Repositories Discovery'
           key: veeam-agent.lld.repos
@@ -557,8 +601,8 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-repository
+                  value: backup-repository
+                - tag: veeam-agent-repository
                   value: '{#REPO_NAME}'
               trigger_prototypes:
                 - uuid: 6eef9e3e0bbd4ccfb05da4d35aaaac70
@@ -582,8 +626,8 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-repository
+                  value: backup-repository
+                - tag: veeam-agent-repository
                   value: '{#REPO_NAME}'
             - uuid: 3425c550f1c7439983b524067c1dd366
               name: 'Veeam Agent repository {#REPO_NAME} location'
@@ -602,8 +646,8 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-repository
+                  value: backup-repository
+                - tag: veeam-agent-repository
                   value: '{#REPO_NAME}'
             - uuid: 6e8cbb832c5341e79608c50fb54f95e0
               name: 'Veeam Agent repository {#REPO_NAME} type'
@@ -622,8 +666,8 @@ zabbix_export:
                 - tag: application
                   value: veeam-agent
                 - tag: component
-                  value: info
-                - tag: veeam-repository
+                  value: backup-repository
+                - tag: veeam-agent-repository
                   value: '{#REPO_NAME}'
       tags:
         - tag: class
@@ -637,3 +681,136 @@ zabbix_export:
         - macro: '{$VEEAM_LICENSE_EXPIRE_WARN}'
           value: '14'
           description: 'Warn days before license expires'
+      dashboards:
+        - uuid: a4717bc99374448b9a6c2cdf8ac66c25
+          name: 'Veeam Agent Info'
+          display_period: '60'
+          auto_start: 'NO'
+          pages:
+            - name: 'Veeam Agent Info'
+              widgets:
+                - type: dataover
+                  name: 'Veeam Agent Info'
+                  width: '22'
+                  height: '15'
+                  fields:
+                    - type: INTEGER
+                      name: style
+                      value: '1'
+                    - type: INTEGER
+                      name: tags.0.operator
+                      value: '1'
+                    - type: STRING
+                      name: tags.0.tag
+                      value: application
+                    - type: STRING
+                      name: tags.0.value
+                      value: veeam-agent
+                    - type: INTEGER
+                      name: tags.1.operator
+                      value: '3'
+                    - type: STRING
+                      name: tags.1.tag
+                      value: component
+                    - type: STRING
+                      name: tags.1.value
+                      value: raw
+                    - type: INTEGER
+                      name: tags.2.operator
+                      value: '3'
+                    - type: STRING
+                      name: tags.2.tag
+                      value: component
+                    - type: STRING
+                      name: tags.2.value
+                      value: backup-job
+                    - type: INTEGER
+                      name: tags.3.operator
+                      value: '1'
+                    - type: STRING
+                      name: tags.3.tag
+                      value: component
+                    - type: STRING
+                      name: tags.3.value
+                      value: info
+                - type: dataover
+                  name: 'Veeam Agent Backup Job'
+                  x: '22'
+                  width: '21'
+                  height: '15'
+                  fields:
+                    - type: INTEGER
+                      name: show_suppressed
+                      value: '1'
+                    - type: INTEGER
+                      name: style
+                      value: '1'
+                    - type: INTEGER
+                      name: tags.0.operator
+                      value: '1'
+                    - type: STRING
+                      name: tags.0.tag
+                      value: application
+                    - type: STRING
+                      name: tags.0.value
+                      value: veeam-agent
+                    - type: INTEGER
+                      name: tags.1.operator
+                      value: '3'
+                    - type: STRING
+                      name: tags.1.tag
+                      value: component
+                    - type: STRING
+                      name: tags.1.value
+                      value: raw
+                    - type: INTEGER
+                      name: tags.2.operator
+                      value: '3'
+                    - type: STRING
+                      name: tags.2.tag
+                      value: component
+                    - type: STRING
+                      name: tags.2.value
+                      value: backup-repository
+                    - type: INTEGER
+                      name: tags.3.operator
+                      value: '3'
+                    - type: STRING
+                      name: tags.3.tag
+                      value: component
+                    - type: STRING
+                      name: tags.3.value
+                      value: info
+                - type: graphprototype
+                  x: '43'
+                  width: '29'
+                  height: '5'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: 'Veeam Agent'
+                        name: 'Veeam Agent Job {#JOB_NAME} Data'
+                    - type: STRING
+                      name: reference
+                      value: WEDWW
+                - type: graphprototype
+                  x: '43'
+                  'y': '5'
+                  width: '29'
+                  height: '5'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: 'Veeam Agent'
+                        name: 'Veeam Agent Job {#JOB_NAME} Duration'
+                    - type: STRING
+                      name: reference
+                      value: JLVSV

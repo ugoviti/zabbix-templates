@@ -1,8 +1,8 @@
 #!/bin/bash
 ## Veeam Agent for Zabbix
-## This script is designed to interact with Veeam Agent for Zabbix, providing functionalities such as discovering Veeam license information, checking job statuses, and retrieving detailed logs for Veeam backup jobs.
+## This Zabbix script is designed to interact with Veeam Agent, providing functionalities such as discovering Veeam license information, checking job statuses, and retrieving detailed logs for Veeam backup jobs.
 ## author: Ugo Viti <u.viti@wearequantico.it>
-version=20250326
+version=20250405
 
 ## INSTALL:
 ## gpasswd -a zabbix veeam
@@ -31,6 +31,9 @@ convertSize() {
   # Remove any leading/trailing whitespace
   input=$(echo "$input" | xargs)
 
+  # Exit silently if input is empty or "N/A" (case insensitive)
+  [[ -z "$input" || "${input^^}" == "N/A" ]] && return 0
+
   # Use regex to extract the numeric value and the unit.
   # The regex accepts an optional space between the number and the unit.
   if [[ $input =~ ^([0-9]+(\.[0-9]+)?)\ ?([KMGTP]?B)$ ]]; then
@@ -58,6 +61,7 @@ convertSize() {
     return 1
   fi
 }
+
 
 veeam-agent.lld.jobs() {
   # Initialize RESULTS variable
@@ -229,13 +233,13 @@ veeam-agent.check.job() {
 
     case "$JOB_STATUS" in
       Success)
-        RESULTS+=";DESCRIPTION=Job ended with success: $VEEAM_LOG"
+        RESULTS+=";DESCRIPTION=Job ended with success${VEEAM_LOG:+: $VEEAM_LOG}"
         ;;
       Running)
-        RESULTS+=";DESCRIPTION=Job is running: $VEEAM_LOG"
+        RESULTS+=";DESCRIPTION=Job is running${VEEAM_LOG:+: $VEEAM_LOG}"
         ;;
       *)
-        RESULTS+=";DESCRIPTION=Job ended with errors: $VEEAM_LOG"
+        RESULTS+=";DESCRIPTION=Job ended with errors${VEEAM_LOG:+: $VEEAM_LOG}"
         ;;
     esac
 
