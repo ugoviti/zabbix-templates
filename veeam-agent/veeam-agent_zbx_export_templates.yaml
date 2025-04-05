@@ -735,7 +735,7 @@ zabbix_export:
                       value: info
                 - type: graphprototype
                   'y': '8'
-                  width: '30'
+                  width: '34'
                   height: '5'
                   fields:
                     - type: INTEGER
@@ -749,6 +749,22 @@ zabbix_export:
                     - type: STRING
                       name: reference
                       value: WEDWW
+                - type: graphprototype
+                  'y': '13'
+                  width: '34'
+                  height: '5'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: 'Veeam Agent'
+                        name: 'Veeam Agent Job {#JOB_NAME} duration time'
+                    - type: STRING
+                      name: reference
+                      value: JLVSV
                 - type: dataover
                   name: 'Veeam Agent Backup Job'
                   x: '17'
@@ -797,27 +813,10 @@ zabbix_export:
                     - type: STRING
                       name: tags.3.value
                       value: info
-                - type: graphprototype
-                  x: '30'
-                  'y': '8'
-                  width: '30'
-                  height: '5'
-                  fields:
-                    - type: INTEGER
-                      name: columns
-                      value: '1'
-                    - type: GRAPH_PROTOTYPE
-                      name: graphid.0
-                      value:
-                        host: 'Veeam Agent'
-                        name: 'Veeam Agent Job {#JOB_NAME} duration time'
-                    - type: STRING
-                      name: reference
-                      value: JLVSV
                 - type: problems
                   x: '34'
                   width: '38'
-                  height: '8'
+                  height: '13'
                   fields:
                     - type: STRING
                       name: reference
@@ -825,6 +824,9 @@ zabbix_export:
                     - type: INTEGER
                       name: show
                       value: '2'
+                    - type: INTEGER
+                      name: show_opdata
+                      value: '1'
                     - type: INTEGER
                       name: tags.0.operator
                       value: '1'
