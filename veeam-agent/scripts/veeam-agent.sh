@@ -238,6 +238,9 @@ veeam-agent.check.job() {
       Running)
         RESULTS+=";DESCRIPTION=Job is running${VEEAM_LOG:+: $VEEAM_LOG}"
         ;;
+      Warning)
+        RESULTS+=";DESCRIPTION=Job ended with warnings${VEEAM_LOG:+: $VEEAM_LOG}"
+        ;;
       *)
         RESULTS+=";DESCRIPTION=Job ended with errors${VEEAM_LOG:+: $VEEAM_LOG}"
         ;;
