@@ -15,7 +15,7 @@ zabbix_export:
         project url: https://github.com/ugoviti/zabbix-templates/tree/master/zabbix-agent
       vendor:
         name: Quantico
-        version: 2025.04.05
+        version: 2025.04.08
       groups:
         - name: Templates
         - name: Templates/Applications
@@ -23,7 +23,7 @@ zabbix_export:
         - uuid: 4be5d6a415064f3290e2f1850cd4d609
           name: 'Veeam Agent Get raw data License'
           key: veeam-agent.check.info
-          delay: 60m
+          delay: 5m
           value_type: TEXT
           trends: '0'
           tags:
@@ -34,8 +34,8 @@ zabbix_export:
           triggers:
             - uuid: 973a203a92bd4dfeb050ece61e47cfb3
               expression: 'nodata(/Veeam Agent/veeam-agent.check.info,12h)=1'
-              name: 'No Veeam Agent data collection since 12h'
-              priority: WARNING
+              name: 'Veeam Agent No data collection since 12h'
+              priority: AVERAGE
         - uuid: b63379ecf6b0445ebf7b8e42591fca88
           name: 'Veeam Agent License Email'
           type: DEPENDENT
@@ -222,6 +222,44 @@ zabbix_export:
               value: info
             - tag: veeam-info
               value: license
+        - uuid: 3bcf4305a2024f3facb6183e187ce487
+          name: 'Veeam Agent Service Status'
+          type: DEPENDENT
+          key: 'veeam-agent.info[ServiceStatus]'
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.data[0].VEEAM_STATUS'
+          master_item:
+            key: veeam-agent.check.info
+          tags:
+            - tag: application
+              value: veeam-agent
+            - tag: component
+              value: service-status
+        - uuid: 7259aa182e2146acb4146f6ef509eab0
+          name: 'Veeam Agent Version'
+          type: DEPENDENT
+          key: 'veeam-agent.info[Version]'
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.data[0].VEEAM_VERSION'
+          master_item:
+            key: veeam-agent.check.info
+          tags:
+            - tag: application
+              value: veeam-agent
+            - tag: component
+              value: info
+            - tag: veeam-info
+              value: version
       discovery_rules:
         - uuid: 5feb06be59e241acadfcc08f226e1da1
           name: 'Veeam Agent Jobs Discovery'
@@ -836,3 +874,12 @@ zabbix_export:
                     - type: STRING
                       name: tags.0.value
                       value: veeam-agent
+  triggers:
+    - uuid: e8de71cf0dc94c5391e941dafd27a90b
+      expression: |
+        nodata(/Veeam Agent/veeam-agent.check.info,12h) = 1
+        or
+        last(/Veeam Agent/veeam-agent.info[ServiceStatus]) = "Error"
+      name: 'Veeam Agent Service Error'
+      opdata: '{ITEM.LASTVALUE1}'
+      priority: HIGH

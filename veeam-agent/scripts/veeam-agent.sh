@@ -2,7 +2,7 @@
 ## Veeam Agent for Zabbix
 ## This Zabbix script is designed to interact with Veeam Agent, providing functionalities such as discovering Veeam license information, checking job statuses, and retrieving detailed logs for Veeam backup jobs.
 ## author: Ugo Viti <u.viti@wearequantico.it>
-version=20250405
+version=20250408
 
 ## INSTALL:
 ## gpasswd -a zabbix veeam
@@ -21,9 +21,9 @@ if [ -z "$cmd" ];then
   echo "$0 lld"
   echo "$0 check"
   exit 1
-elif [ -z "$args" ];then
-  echo "ERROR: missing args... exiting"
-  exit 1
+#elif [ -z "$args" ];then
+#  echo "ERROR: missing args... exiting"
+#  exit 1
 fi
 
 convertSize() {
@@ -72,7 +72,7 @@ veeam-agent.lld.jobs() {
 
   # Check if there are no jobs
   if [[ -z "$JOB_LIST" ]]; then
-    RESULTS="JOB_STATUS=FAILED;DESCRIPTION=No configured jobs found"
+    RESULTS="JOB_STATUS=Failed;DESCRIPTION=No configured jobs found"
     printf "%s\n" "$RESULTS"
   else
     # Parse the job list
@@ -98,7 +98,7 @@ veeam-agent.lld.repos() {
 
   # Check if there are no repositories
   if [[ -z "$REPO_LIST" ]]; then
-    RESULTS="JOB_STATUS=FAILED;DESCRIPTION=No configured repositories found"
+    RESULTS="REPO_STATUS=Failed;DESCRIPTION=No configured repositories found"
     printf "%s\n" "$RESULTS"
   else
     # Parse the repository list
@@ -128,7 +128,7 @@ veeam-agent.check.repo() {
 
   # Check if there are no repositories
   if [[ -z "$REPO_LIST" ]]; then
-    RESULTS="JOB_STATUS=FAILED;DESCRIPTION=No configured repositories found"
+    RESULTS="REPO_STATUS=Failed;DESCRIPTION=No configured repositories found"
     printf "%s\n" "$RESULTS"
   else
     # Parse the repository list
@@ -157,7 +157,7 @@ veeam-agent.check.job() {
   unset RESULTS
 
   # create the RESULTS CSV
-  RESULTS+="JOB_NAME=$JOB_NAME"
+  RESULTS="JOB_NAME=$JOB_NAME"
 
   if [ -z "$JOB_ID" ]; then
     RESULTS+=";JOB_STATUS=Failed"
@@ -170,7 +170,7 @@ veeam-agent.check.job() {
     JOB_LAST_SESSION_ID="$(veeamconfig session list --jobid "$JOB_ID" | awk "/^$JOB_NAME/ {print \$3}" | tail -n1)"
 
     # Retrieve the last session informations
-    JOB_LAST_SESSION_INFO=$(veeamconfig session info --id "$JOB_LAST_SESSION_ID" | sed 's/^[ \t]*//')
+    JOB_LAST_SESSION_INFO=$(veeamconfig session info --id "$JOB_LAST_SESSION_ID" | sed 's/^[ \t]*//' | sed '/Running retries for the following session/,$d')
 
     JOB_INFO="$(veeamconfig job info --id $JOB_ID | sed 's/^[ \t]*//')"
 
@@ -257,15 +257,17 @@ veeam-agent.check.info() {
   unset RESULTS
 
   VEEAM_LICENSE=$(veeamconfig license show)
-  VEEAM_LICENSE_SOURCE=$(echo "$VEEAM_LICENSE" | grep -i "License source" | sed 's/.*License source: \(.*\)/\1/')
   VEEAM_MODE=$(echo "$VEEAM_LICENSE" | grep -i "Mode" | sed 's/.*Mode: \(.*\)/\1/')
+  VEEAM_LICENSE_SOURCE=$(echo "$VEEAM_LICENSE" | grep -i "License source" | sed 's/.*License source: \(.*\)/\1/')
   VEEAM_LICENSE_EXPIRATION=$(echo "$VEEAM_LICENSE" | grep -i "Support expiration" | sed 's/.*Support expiration: \(.*\)/\1/')
   VEEAM_LICENSE_STATUS=$(echo "$VEEAM_LICENSE" | grep -i "Status" | sed 's/.*Status: \(.*\)/\1/')
   VEEAM_LICENSE_OWNER=$(echo "$VEEAM_LICENSE" | grep -i "Issued to" | sed 's/.*Issued to: \(.*\)/\1/')
   VEEAM_LICENSE_EMAIL=$(echo "$VEEAM_LICENSE" | grep -i "E-mail" | sed 's/.*E-mail: \(.*\)/\1/')
 
-  RESULTS+="VEEAM_LICENSE_SOURCE=$VEEAM_LICENSE_SOURCE"
+  RESULTS="VEEAM_STATUS=Running"
+  RESULTS+=";VEEAM_VERSION=$VEEAM_VERSION"
   RESULTS+=";VEEAM_MODE=$VEEAM_MODE"
+  RESULTS+=";VEEAM_LICENSE_SOURCE=$VEEAM_LICENSE_SOURCE"
   RESULTS+=";VEEAM_LICENSE_EXPIRATION=$VEEAM_LICENSE_EXPIRATION"
   RESULTS+=";VEEAM_LICENSE_STATUS=$VEEAM_LICENSE_STATUS"
   RESULTS+=";VEEAM_LICENSE_OWNER=$VEEAM_LICENSE_OWNER"
@@ -314,15 +316,12 @@ veeam-agent.lld() {
   local method="$1"
 
   case $method in
-    jobs)
+    jobs|repos)
       printJSON veeam-agent.lld.${method} lld
     ;;
-    repos)
-      printJSON veeam-agent.lld.${method} lld
-    ;;
-
     *)
       echo "ERROR: wrong discovery method specified... exiting"
+      echo "valid methods: jobs|repos"
       exit 1
       ;;
   esac
@@ -343,18 +342,27 @@ veeam-agent.check() {
       [ -z "${obj}" ] && echo "ERROR: repo name to check not specified... exiting" && exit 1
       printJSON veeam-agent.check.${method} ${obj}
     ;;
-
     info)
       printJSON veeam-agent.check.${method}
     ;;
     *)
       echo "ERROR: wrong check method specified... exiting"
+      echo "valid methods: job|repo|info"
       exit 1
       ;;
   esac
 }
 
+# verify if veeam service is running checking the veeam version and using it for later usage
+if ! VEEAM_VERSION=$(veeamconfig -v 2>&1); then
+  # extract errors from veeamconfig commands
+  VEEAM_ERRORS=$(echo -e -n "$VEEAM_VERSION" | tr '\n' ' ' | sed 's/ *$//')
+  echo -e -n '{"data":[{"VEEAM_STATUS": "Error", "DESCRIPTION": "'"${VEEAM_ERRORS//\"/\\\"}"'"}]}'
+  exit 1
+fi
 
+# manipulate version for later usage
+VEEAM_VERSION=$(echo -e -n "$VEEAM_VERSION" | tr -d [:alpha:] | tr '\n' ' ' | sed 's/ *$//')
 
 # execute the given command
 #set -x
