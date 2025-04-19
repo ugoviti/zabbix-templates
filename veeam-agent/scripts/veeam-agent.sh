@@ -194,9 +194,10 @@ veeam-agent.check.job() {
     JOB_INFO_IMMUTABILITY=$(echo "$JOB_INFO" | awk '/^Repository immutability:/ {getline; print}')
 
     # calc other vars
-    JOB_TIME_CREATION_UNIXTIME=$(date -d "$JOB_TIME_CREATION" +%s)
-    JOB_TIME_START_UNIXTIME=$(date -d "$JOB_TIME_START" +%s)
-    JOB_TIME_END_UNIXTIME=$(date -d "$JOB_TIME_END" +%s)
+    [[ -n "$JOB_TIME_CREATION" ]] && JOB_TIME_CREATION_UNIXTIME=$(date -d "$JOB_TIME_CREATION" +%s)
+    [[ -n "$JOB_TIME_START" ]] && JOB_TIME_START_UNIXTIME=$(date -d "$JOB_TIME_START" +%s)
+    [[ -n "$JOB_TIME_END" ]] && JOB_TIME_END_UNIXTIME=$(date -d "$JOB_TIME_END" +%s)
+    JOB_TIME_END_UNIXTIME=${JOB_TIME_END_UNIXTIME:-$(date +%s)}
     JOB_TIME_DURATION_UNIXTIME=$(( JOB_TIME_END_UNIXTIME - JOB_TIME_START_UNIXTIME ))
     JOB_DATA_PROCESSED_BYTES=$(convertSize "$JOB_DATA_PROCESSED")
     JOB_DATA_TRANSFERRED_BYTES=$(convertSize "$JOB_DATA_TRANSFERRED")
