@@ -15,7 +15,7 @@ zabbix_export:
         project url: https://github.com/ugoviti/zabbix-templates/tree/master/zabbix-agent
       vendor:
         name: Quantico
-        version: 2025.04.08
+        version: 2025.04.26
       groups:
         - name: Templates
         - name: Templates/Applications
@@ -26,6 +26,10 @@ zabbix_export:
           delay: 5m
           value_type: TEXT
           trends: '0'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 60m
           tags:
             - tag: application
               value: veeam-agent
@@ -36,6 +40,12 @@ zabbix_export:
               expression: 'nodata(/Veeam Agent/veeam-agent.check.info,12h)=1'
               name: 'Veeam Agent No data collection since 12h'
               priority: AVERAGE
+              dependencies:
+                - name: 'Veeam Agent Service Error'
+                  expression: |
+                    nodata(/Veeam Agent/veeam-agent.check.info,12h) = 1
+                    or
+                    last(/Veeam Agent/veeam-agent.info[ServiceStatus]) = "Error"
         - uuid: b63379ecf6b0445ebf7b8e42591fca88
           name: 'Veeam Agent License Email'
           type: DEPENDENT
@@ -279,6 +289,10 @@ zabbix_export:
                 Job ID: {#JOB_ID}
                 Job Type: {#JOB_TYPE}
                 Job Repository: {#JOB_REPOSITORY}
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 60m
               tags:
                 - tag: application
                   value: veeam-agent
@@ -614,9 +628,13 @@ zabbix_export:
             - uuid: e64e617e211046a0b211d196680ed840
               name: 'Veeam Agent Get raw data repository {#REPO_NAME}'
               key: 'veeam-agent.check.repo[{#REPO_NAME}]'
-              delay: 30m
+              delay: 60m
               value_type: TEXT
               trends: '0'
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 60m
               tags:
                 - tag: application
                   value: veeam-agent
@@ -721,16 +739,16 @@ zabbix_export:
           description: 'Warn days before license expires'
       dashboards:
         - uuid: a4717bc99374448b9a6c2cdf8ac66c25
-          name: 'Veeam Agent Info'
+          name: 'Veeam Agent'
           display_period: '60'
           auto_start: 'NO'
           pages:
-            - name: 'Veeam Agent Info'
+            - name: 'Veeam Agent'
               widgets:
                 - type: dataover
                   name: 'Veeam Agent Info'
-                  width: '17'
-                  height: '8'
+                  width: '19'
+                  height: '9'
                   fields:
                     - type: INTEGER
                       name: style
@@ -771,43 +789,35 @@ zabbix_export:
                     - type: STRING
                       name: tags.3.value
                       value: info
-                - type: graphprototype
-                  'y': '8'
-                  width: '34'
-                  height: '5'
+                - type: problems
+                  name: 'Veeam Agent Problems'
+                  'y': '9'
+                  width: '38'
+                  height: '7'
                   fields:
-                    - type: INTEGER
-                      name: columns
-                      value: '1'
-                    - type: GRAPH_PROTOTYPE
-                      name: graphid.0
-                      value:
-                        host: 'Veeam Agent'
-                        name: 'Veeam Agent Job {#JOB_NAME} data size'
                     - type: STRING
                       name: reference
-                      value: WEDWW
-                - type: graphprototype
-                  'y': '13'
-                  width: '34'
-                  height: '5'
-                  fields:
+                      value: ROJQY
                     - type: INTEGER
-                      name: columns
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: show_opdata
                       value: '1'
-                    - type: GRAPH_PROTOTYPE
-                      name: graphid.0
-                      value:
-                        host: 'Veeam Agent'
-                        name: 'Veeam Agent Job {#JOB_NAME} duration time'
+                    - type: INTEGER
+                      name: tags.0.operator
+                      value: '1'
                     - type: STRING
-                      name: reference
-                      value: JLVSV
+                      name: tags.0.tag
+                      value: application
+                    - type: STRING
+                      name: tags.0.value
+                      value: veeam-agent
                 - type: dataover
                   name: 'Veeam Agent Backup Job'
-                  x: '17'
-                  width: '17'
-                  height: '8'
+                  x: '19'
+                  width: '19'
+                  height: '9'
                   fields:
                     - type: INTEGER
                       name: show_suppressed
@@ -851,29 +861,39 @@ zabbix_export:
                     - type: STRING
                       name: tags.3.value
                       value: info
-                - type: problems
-                  x: '34'
-                  width: '38'
-                  height: '13'
+                - type: graphprototype
+                  x: '38'
+                  width: '34'
+                  height: '7'
                   fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: 'Veeam Agent'
+                        name: 'Veeam Agent Job {#JOB_NAME} data size'
                     - type: STRING
                       name: reference
-                      value: ROJQY
+                      value: WEDWW
+                - type: graphprototype
+                  x: '38'
+                  'y': '7'
+                  width: '34'
+                  height: '6'
+                  fields:
                     - type: INTEGER
-                      name: show
-                      value: '2'
-                    - type: INTEGER
-                      name: show_opdata
+                      name: columns
                       value: '1'
-                    - type: INTEGER
-                      name: tags.0.operator
-                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: 'Veeam Agent'
+                        name: 'Veeam Agent Job {#JOB_NAME} duration time'
                     - type: STRING
-                      name: tags.0.tag
-                      value: application
-                    - type: STRING
-                      name: tags.0.value
-                      value: veeam-agent
+                      name: reference
+                      value: JLVSV
   triggers:
     - uuid: e8de71cf0dc94c5391e941dafd27a90b
       expression: |
