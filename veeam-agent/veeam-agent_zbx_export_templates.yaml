@@ -745,54 +745,41 @@ zabbix_export:
           pages:
             - name: 'Veeam Agent'
               widgets:
-                - type: dataover
-                  name: 'Veeam Agent Info'
-                  width: '19'
-                  height: '9'
+                - type: graphprototype
+                  width: '34'
+                  height: '5'
                   fields:
                     - type: INTEGER
-                      name: style
+                      name: columns
                       value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: 'Veeam Agent'
+                        name: 'Veeam Agent Job {#JOB_NAME} duration time'
+                    - type: STRING
+                      name: reference
+                      value: JLVSV
+                - type: graphprototype
+                  'y': '5'
+                  width: '34'
+                  height: '5'
+                  fields:
                     - type: INTEGER
-                      name: tags.0.operator
+                      name: columns
                       value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: 'Veeam Agent'
+                        name: 'Veeam Agent Job {#JOB_NAME} data size'
                     - type: STRING
-                      name: tags.0.tag
-                      value: application
-                    - type: STRING
-                      name: tags.0.value
-                      value: veeam-agent
-                    - type: INTEGER
-                      name: tags.1.operator
-                      value: '3'
-                    - type: STRING
-                      name: tags.1.tag
-                      value: component
-                    - type: STRING
-                      name: tags.1.value
-                      value: raw
-                    - type: INTEGER
-                      name: tags.2.operator
-                      value: '3'
-                    - type: STRING
-                      name: tags.2.tag
-                      value: component
-                    - type: STRING
-                      name: tags.2.value
-                      value: backup-job
-                    - type: INTEGER
-                      name: tags.3.operator
-                      value: '1'
-                    - type: STRING
-                      name: tags.3.tag
-                      value: component
-                    - type: STRING
-                      name: tags.3.value
-                      value: info
+                      name: reference
+                      value: WEDWW
                 - type: problems
                   name: 'Veeam Agent Problems'
-                  'y': '9'
-                  width: '38'
+                  'y': '10'
+                  width: '53'
                   height: '7'
                   fields:
                     - type: STRING
@@ -802,7 +789,16 @@ zabbix_export:
                       name: show
                       value: '2'
                     - type: INTEGER
+                      name: show_lines
+                      value: '50'
+                    - type: INTEGER
                       name: show_opdata
+                      value: '1'
+                    - type: INTEGER
+                      name: show_suppressed
+                      value: '1'
+                    - type: INTEGER
+                      name: show_symptoms
                       value: '1'
                     - type: INTEGER
                       name: tags.0.operator
@@ -815,9 +811,9 @@ zabbix_export:
                       value: veeam-agent
                 - type: dataover
                   name: 'Veeam Agent Backup Job'
-                  x: '19'
+                  x: '34'
                   width: '19'
-                  height: '9'
+                  height: '10'
                   fields:
                     - type: INTEGER
                       name: show_suppressed
@@ -861,39 +857,51 @@ zabbix_export:
                     - type: STRING
                       name: tags.3.value
                       value: info
-                - type: graphprototype
-                  x: '38'
-                  width: '34'
-                  height: '7'
+                - type: dataover
+                  name: 'Veeam Agent Info'
+                  x: '53'
+                  width: '19'
+                  height: '10'
                   fields:
                     - type: INTEGER
-                      name: columns
+                      name: style
                       value: '1'
-                    - type: GRAPH_PROTOTYPE
-                      name: graphid.0
-                      value:
-                        host: 'Veeam Agent'
-                        name: 'Veeam Agent Job {#JOB_NAME} data size'
-                    - type: STRING
-                      name: reference
-                      value: WEDWW
-                - type: graphprototype
-                  x: '38'
-                  'y': '7'
-                  width: '34'
-                  height: '6'
-                  fields:
                     - type: INTEGER
-                      name: columns
+                      name: tags.0.operator
                       value: '1'
-                    - type: GRAPH_PROTOTYPE
-                      name: graphid.0
-                      value:
-                        host: 'Veeam Agent'
-                        name: 'Veeam Agent Job {#JOB_NAME} duration time'
                     - type: STRING
-                      name: reference
-                      value: JLVSV
+                      name: tags.0.tag
+                      value: application
+                    - type: STRING
+                      name: tags.0.value
+                      value: veeam-agent
+                    - type: INTEGER
+                      name: tags.1.operator
+                      value: '3'
+                    - type: STRING
+                      name: tags.1.tag
+                      value: component
+                    - type: STRING
+                      name: tags.1.value
+                      value: raw
+                    - type: INTEGER
+                      name: tags.2.operator
+                      value: '3'
+                    - type: STRING
+                      name: tags.2.tag
+                      value: component
+                    - type: STRING
+                      name: tags.2.value
+                      value: backup-job
+                    - type: INTEGER
+                      name: tags.3.operator
+                      value: '1'
+                    - type: STRING
+                      name: tags.3.tag
+                      value: component
+                    - type: STRING
+                      name: tags.3.value
+                      value: info
   triggers:
     - uuid: e8de71cf0dc94c5391e941dafd27a90b
       expression: |
